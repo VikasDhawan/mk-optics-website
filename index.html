@@ -1,322 +1,770 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>M&K Optics | See Yourself Differently</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
+<title>M&K Optics | See Yourself Differently</title>
+
+<style>
     * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    :root {
+        --cream: #f4f0e9;
+        --warm: #e7dfd3;
+        --black: #171717;
+        --grey: #66615b;
+        --white: #ffffff;
+        --line: #d8d1c7;
+    }
+
+    html {
+        scroll-behavior: smooth;
     }
 
     body {
-      font-family: Arial, Helvetica, sans-serif;
-      color: #1d1d1d;
-      background: #f7f5f1;
-      line-height: 1.6;
+        font-family: Arial, Helvetica, sans-serif;
+        color: var(--black);
+        background: var(--cream);
+        line-height: 1.5;
     }
+
+    a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    /* NAVIGATION */
 
     header {
-      padding: 28px 7%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #f7f5f1;
+        height: 86px;
+        padding: 0 5%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--cream);
+        border-bottom: 1px solid var(--line);
+        position: sticky;
+        top: 0;
+        z-index: 100;
     }
 
-    .logo {
-      font-size: 24px;
-      font-weight: 700;
-      letter-spacing: 1px;
+    .brand {
+        display: flex;
+        flex-direction: column;
     }
 
-    nav a {
-      margin-left: 28px;
-      text-decoration: none;
-      color: #333;
-      font-size: 14px;
+    .brand-name {
+        font-family: Georgia, serif;
+        font-size: 28px;
+        letter-spacing: 4px;
     }
+
+    .tagline {
+        font-size: 9px;
+        letter-spacing: 3px;
+        margin-top: 3px;
+    }
+
+    nav {
+        display: flex;
+        align-items: center;
+        gap: 34px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    .nav-button {
+        background: var(--black);
+        color: white;
+        padding: 14px 22px;
+    }
+
+    /* HERO */
 
     .hero {
-      min-height: 620px;
-      display: flex;
-      align-items: center;
-      padding: 70px 7%;
-      background: #e9e4dc;
+        display: grid;
+        grid-template-columns: 42% 58%;
+        min-height: 590px;
     }
 
-    .hero-content {
-      max-width: 650px;
+    .hero-copy {
+        padding: 90px 10%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background: var(--warm);
     }
 
     .eyebrow {
-      text-transform: uppercase;
-      letter-spacing: 3px;
-      font-size: 12px;
-      margin-bottom: 20px;
-      color: #666;
+        font-size: 11px;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        color: #756c62;
+        margin-bottom: 22px;
     }
 
     h1 {
-      font-family: Georgia, serif;
-      font-size: clamp(50px, 7vw, 88px);
-      line-height: 0.98;
-      font-weight: 400;
-      margin-bottom: 30px;
+        font-family: Georgia, serif;
+        font-weight: 400;
+        font-size: clamp(55px, 6vw, 88px);
+        line-height: 0.96;
+        margin-bottom: 30px;
     }
 
-    .hero p {
-      font-size: 19px;
-      max-width: 520px;
-      margin-bottom: 35px;
-      color: #4d4d4d;
+    .hero-copy p {
+        font-size: 18px;
+        color: var(--grey);
+        max-width: 490px;
+        margin-bottom: 35px;
+    }
+
+    .buttons {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
     }
 
     .button {
-      display: inline-block;
-      padding: 15px 27px;
-      background: #1d1d1d;
-      color: white;
-      text-decoration: none;
-      margin-right: 10px;
-      font-size: 14px;
-      letter-spacing: 0.5px;
+        display: inline-block;
+        padding: 16px 25px;
+        font-size: 12px;
+        letter-spacing: 0.7px;
+        font-weight: 600;
+        border: 1px solid var(--black);
     }
 
-    .button.secondary {
-      background: transparent;
-      color: #1d1d1d;
-      border: 1px solid #1d1d1d;
+    .button.dark {
+        background: var(--black);
+        color: white;
     }
 
-    section {
-      padding: 90px 7%;
+    .button.light {
+        background: transparent;
     }
 
-    .section-title {
-      font-family: Georgia, serif;
-      font-size: 48px;
-      font-weight: 400;
-      margin-bottom: 18px;
+    .hero-image {
+        background:
+            linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.05)),
+            url("https://images.unsplash.com/photo-1574258495973-f010dfbb5371?auto=format&fit=crop&w=1400&q=85")
+            center center / cover;
+        min-height: 590px;
     }
 
-    .section-intro {
-      max-width: 600px;
-      color: #666;
-      margin-bottom: 45px;
+    /* COLLECTION */
+
+    .collection {
+        padding: 90px 5%;
+        background: var(--white);
     }
 
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
+    .section-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        margin-bottom: 45px;
     }
 
-    .card {
-      background: white;
-      min-height: 330px;
-      padding: 28px;
-      display: flex;
-      align-items: flex-end;
-      position: relative;
+    h2 {
+        font-family: Georgia, serif;
+        font-size: 48px;
+        font-weight: 400;
+        line-height: 1;
     }
 
-    .card:nth-child(1) {
-      background: #d8d1c5;
+    .section-heading p {
+        max-width: 470px;
+        color: var(--grey);
+        font-size: 15px;
     }
 
-    .card:nth-child(2) {
-      background: #c9c9c4;
+    .frames {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
     }
 
-    .card:nth-child(3) {
-      background: #ddd5cd;
+    .frame-card {
+        background: var(--cream);
     }
 
-    .card h3 {
-      font-family: Georgia, serif;
-      font-size: 28px;
-      font-weight: 400;
+    .frame-image {
+        height: 310px;
+        background-size: cover;
+        background-position: center;
     }
 
-    .feature {
-      background: #1d1d1d;
-      color: white;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 60px;
-      align-items: center;
+    .frame-one {
+        background-image:
+        url("https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=900&q=85");
     }
 
-    .feature .section-title {
-      color: white;
+    .frame-two {
+        background-image:
+        url("https://images.unsplash.com/photo-1509695507497-903c140c43b0?auto=format&fit=crop&w=900&q=85");
     }
 
-    .feature p {
-      color: #ccc;
-      margin-bottom: 30px;
-      max-width: 500px;
+    .frame-three {
+        background-image:
+        url("https://images.unsplash.com/photo-1577803645773-f96470509666?auto=format&fit=crop&w=900&q=85");
     }
 
-    .feature .button {
-      background: white;
-      color: #1d1d1d;
+    .frame-info {
+        padding: 20px;
     }
+
+    .frame-info h3 {
+        font-family: Georgia, serif;
+        font-size: 21px;
+        font-weight: 400;
+        margin-bottom: 6px;
+    }
+
+    .frame-info p {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--grey);
+    }
+
+    .explore {
+        margin-top: 40px;
+        text-align: center;
+    }
+
+    /* PERSONALITY */
+
+    .personality {
+        display: grid;
+        grid-template-columns: 50% 50%;
+        min-height: 520px;
+        background: var(--black);
+        color: white;
+    }
+
+    .personality-copy {
+        padding: 80px 12%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .personality-copy .eyebrow {
+        color: #aaa39a;
+    }
+
+    .personality-copy h2 {
+        font-size: 55px;
+        margin-bottom: 25px;
+    }
+
+    .personality-copy p {
+        color: #c7c7c7;
+        max-width: 470px;
+        margin-bottom: 30px;
+    }
+
+    .personality-image {
+        background:
+            url("https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=85")
+            center center / cover;
+    }
+
+    .white-button {
+        display: inline-block;
+        background: white;
+        color: var(--black);
+        padding: 15px 24px;
+        font-size: 12px;
+        font-weight: 600;
+        width: fit-content;
+    }
+
+    /* SERVICES */
+
+    .services {
+        padding: 55px 5%;
+        background: var(--warm);
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0;
+    }
+
+    .service {
+        padding: 20px 35px;
+        border-right: 1px solid #c9c1b6;
+    }
+
+    .service:last-child {
+        border-right: none;
+    }
+
+    .service-number {
+        font-family: Georgia, serif;
+        font-size: 30px;
+        margin-bottom: 12px;
+    }
+
+    .service h3 {
+        font-size: 13px;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+    }
+
+    .service p {
+        font-size: 13px;
+        color: var(--grey);
+        max-width: 280px;
+    }
+
+    /* APPOINTMENT */
+
+    .appointment {
+        padding: 100px 7%;
+        background: var(--cream);
+        text-align: center;
+    }
+
+    .appointment h2 {
+        font-size: 58px;
+        margin-bottom: 20px;
+    }
+
+    .appointment p {
+        color: var(--grey);
+        max-width: 550px;
+        margin: 0 auto 35px;
+    }
+
+    /* VISIT */
 
     .visit {
-      text-align: center;
-      background: #e9e4dc;
+        padding: 85px 7%;
+        background: var(--white);
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 70px;
+        align-items: center;
+    }
+
+    .visit h2 {
+        margin-bottom: 20px;
     }
 
     .visit p {
-      max-width: 600px;
-      margin: 0 auto 30px;
-      color: #555;
+        color: var(--grey);
+        margin-bottom: 25px;
     }
+
+    .visit-image {
+        min-height: 360px;
+        background:
+            url("https://images.unsplash.com/photo-1582142407894-ec85c5fba5c2?auto=format&fit=crop&w=1200&q=85")
+            center / cover;
+    }
+
+    /* FOOTER */
 
     footer {
-      padding: 35px 7%;
-      background: #1d1d1d;
-      color: #ccc;
-      display: flex;
-      justify-content: space-between;
-      font-size: 13px;
+        padding: 35px 5%;
+        background: var(--black);
+        color: #ccc;
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
     }
 
-    @media (max-width: 750px) {
-      nav {
-        display: none;
-      }
+    /* MOBILE */
 
-      .cards,
-      .feature {
-        grid-template-columns: 1fr;
-      }
+    @media (max-width: 800px) {
 
-      .hero {
-        min-height: 520px;
-      }
+        header {
+            height: auto;
+            padding: 20px 6%;
+        }
 
-      section {
-        padding: 65px 7%;
-      }
+        nav a:not(.nav-button) {
+            display: none;
+        }
 
-      footer {
-        flex-direction: column;
-        gap: 10px;
-      }
+        nav {
+            gap: 0;
+        }
+
+        .hero,
+        .personality,
+        .visit {
+            grid-template-columns: 1fr;
+        }
+
+        .hero-copy {
+            padding: 70px 8%;
+        }
+
+        .hero-image {
+            min-height: 420px;
+        }
+
+        .frames,
+        .services {
+            grid-template-columns: 1fr;
+        }
+
+        .frame-card {
+            margin-bottom: 15px;
+        }
+
+        .personality-image {
+            min-height: 430px;
+            order: -1;
+        }
+
+        .service {
+            border-right: none;
+            border-bottom: 1px solid #c9c1b6;
+            padding: 25px 0;
+        }
+
+        .service:last-child {
+            border-bottom: none;
+        }
+
+        .visit-image {
+            min-height: 300px;
+        }
+
+        footer {
+            flex-direction: column;
+            gap: 10px;
+        }
     }
-  </style>
+</style>
 </head>
+
 
 <body>
 
-<header>
-  <div class="logo">M&K OPTICS</div>
+<!-- HEADER -->
 
-  <nav>
-    <a href="#arrivals">New Arrivals</a>
-    <a href="#experience">Our Experience</a>
-    <a href="#visit">Visit Us</a>
-  </nav>
+<header>
+
+    <div class="brand">
+        <div class="brand-name">M&K OPTICS</div>
+        <div class="tagline">SEE YOURSELF DIFFERENTLY</div>
+    </div>
+
+    <nav>
+        <a href="#arrivals">NEW ARRIVALS</a>
+        <a href="#experience">OUR EXPERIENCE</a>
+        <a href="#eye-test">EYE TEST</a>
+        <a href="#visit">VISIT US</a>
+
+        <a href="#eye-test" class="nav-button">
+            BOOK AN EYE TEST
+        </a>
+    </nav>
+
 </header>
 
+
+<!-- HERO -->
+
 <section class="hero">
-  <div class="hero-content">
-    <div class="eyebrow">Eyewear • Vision • Personality</div>
 
-    <h1>See yourself differently.</h1>
+    <div class="hero-copy">
+
+        <div class="eyebrow">
+            Eyewear • Vision • Personality
+        </div>
+
+        <h1>
+            See yourself<br>
+            differently.
+        </h1>
+
+        <p>
+            Curated eyewear that complements your face,
+            your style and the way you see the world.
+        </p>
+
+        <div class="buttons">
+
+            <a href="#eye-test" class="button dark">
+                BOOK AN EYE TEST
+            </a>
+
+            <a href="#arrivals" class="button light">
+                EXPLORE FRAMES
+            </a>
+
+        </div>
+
+    </div>
+
+    <div class="hero-image"></div>
+
+</section>
+
+
+<!-- NEW ARRIVALS -->
+
+<section class="collection" id="arrivals">
+
+    <div class="section-heading">
+
+        <div>
+            <div class="eyebrow">
+                The latest collection
+            </div>
+
+            <h2>
+                New arrivals.
+            </h2>
+        </div>
+
+        <p>
+            Discover frames selected for people who want
+            their eyewear to be more than just a prescription.
+        </p>
+
+    </div>
+
+
+    <div class="frames">
+
+        <div class="frame-card">
+
+            <div class="frame-image frame-one"></div>
+
+            <div class="frame-info">
+
+                <h3>Modern Classics</h3>
+
+                <p>
+                    Refined • Timeless • Everyday
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="frame-card">
+
+            <div class="frame-image frame-two"></div>
+
+            <div class="frame-info">
+
+                <h3>Bold Expressions</h3>
+
+                <p>
+                    Confident • Distinctive • Modern
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="frame-card">
+
+            <div class="frame-image frame-three"></div>
+
+            <div class="frame-info">
+
+                <h3>Everyday Essential</h3>
+
+                <p>
+                    Comfortable • Elegant • Versatile
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="explore">
+
+        <a href="#" class="button light">
+            VIEW ALL COLLECTIONS →
+        </a>
+
+    </div>
+
+</section>
+
+
+<!-- PERSONALITY -->
+
+<section class="personality" id="experience">
+
+    <div class="personality-copy">
+
+        <div class="eyebrow">
+            A different way to choose
+        </div>
+
+        <h2>
+            The right frame can change more than your look.
+        </h2>
+
+        <p>
+            We help you discover frames that complement
+            your face, your style and your personality.
+        </p>
+
+        <!-- Future AI feature -->
+
+        <a href="#" class="white-button">
+            FIND YOUR FRAME
+        </a>
+
+    </div>
+
+
+    <div class="personality-image"></div>
+
+</section>
+
+
+<!-- SERVICES -->
+
+<section class="services">
+
+    <div class="service">
+
+        <div class="service-number">01</div>
+
+        <h3>
+            PROFESSIONAL EYE TESTING
+        </h3>
+
+        <p>
+            Advanced testing for accurate
+            vision and eye health.
+        </p>
+
+    </div>
+
+
+    <div class="service">
+
+        <div class="service-number">02</div>
+
+        <h3>
+            CURATED COLLECTIONS
+        </h3>
+
+        <p>
+            Carefully selected frames
+            from leading brands.
+        </p>
+
+    </div>
+
+
+    <div class="service">
+
+        <div class="service-number">03</div>
+
+        <h3>
+            PERSONAL STYLING
+        </h3>
+
+        <p>
+            Expert guidance to find frames
+            that are truly you.
+        </p>
+
+    </div>
+
+</section>
+
+
+<!-- APPOINTMENT -->
+
+<section class="appointment" id="eye-test">
+
+    <div class="eyebrow">
+        Your vision matters
+    </div>
+
+    <h2>
+        Book your eye test today.
+    </h2>
 
     <p>
-      Curated eyewear that complements your face, your style
-      and the way you see the world.
+        Professional eye testing, expert advice and
+        a carefully selected range of frames.
     </p>
 
-    <a href="#book" class="button">BOOK AN EYE TEST</a>
-    <a href="#arrivals" class="button secondary">EXPLORE FRAMES</a>
-  </div>
+    <!-- THIS WILL LATER CONNECT TO EASY!APPOINTMENTS -->
+
+    <a href="#" class="button dark">
+        BOOK AN APPOINTMENT
+    </a>
+
 </section>
 
-<section id="arrivals">
-  <div class="eyebrow">The latest collection</div>
 
-  <h2 class="section-title">New arrivals.</h2>
+<!-- VISIT -->
 
-  <p class="section-intro">
-    Discover frames selected for people who want their eyewear
-    to be more than just a prescription.
-  </p>
+<section class="visit" id="visit">
 
-  <div class="cards">
-    <div class="card">
-      <h3>Modern<br>Classics</h3>
+    <div>
+
+        <div class="eyebrow">
+            Come see us
+        </div>
+
+        <h2>
+            Visit M&K Optics.
+        </h2>
+
+        <p>
+            We'd love to help you find eyewear
+            that feels like you.
+        </p>
+
+        <p>
+            <strong>M&K Optics</strong><br>
+            Address coming soon<br>
+            Phone: +91 XXXXX XXXXX
+        </p>
+
+        <a href="#" class="button light">
+            WHATSAPP US
+        </a>
+
     </div>
 
-    <div class="card">
-      <h3>Bold<br>Expressions</h3>
-    </div>
 
-    <div class="card">
-      <h3>Everyday<br>Essential</h3>
-    </div>
-  </div>
+    <div class="visit-image"></div>
+
 </section>
 
-<section class="feature" id="experience">
-  <div>
-    <div class="eyebrow">A different way to choose</div>
 
-    <h2 class="section-title">The right frame can change more than your look.</h2>
-
-    <p>
-      Not sure what suits you? We're building a smarter way to
-      discover frames that complement your face, style and personality.
-    </p>
-
-    <a href="#" class="button">FIND YOUR FRAME</a>
-  </div>
-
-  <div>
-    <!-- Space reserved for future AI eyewear experience -->
-  </div>
-</section>
-
-<section class="visit" id="book">
-  <div class="eyebrow">Your vision matters</div>
-
-  <h2 class="section-title">Book your eye test.</h2>
-
-  <p>
-    Professional eye testing, expert advice and a carefully
-    selected range of frames.
-  </p>
-
-  <a href="#" class="button">BOOK AN APPOINTMENT</a>
-</section>
-
-<section id="visit">
-  <div class="eyebrow">Come see us</div>
-
-  <h2 class="section-title">Visit M&K Optics.</h2>
-
-  <p class="section-intro">
-    We'd love to help you find eyewear that feels like you.
-  </p>
-
-  <p>
-    M&K Optics<br>
-    Address coming soon<br>
-    Phone: +91 XXXXX XXXXX
-  </p>
-</section>
+<!-- FOOTER -->
 
 <footer>
-  <div>© 2026 M&K Optics</div>
-  <div>See yourself differently.</div>
+
+    <div>
+        © 2026 M&K Optics. All rights reserved.
+    </div>
+
+    <div>
+        See yourself differently.
+    </div>
+
 </footer>
+
 
 </body>
 </html>
