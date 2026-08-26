@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>M&K Optics | See Yourself Differently</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      color: #1d1d1d;
+      background: #f7f5f1;
+      line-height: 1.6;
+    }
+
+    header {
+      padding: 28px 7%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f7f5f1;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    nav a {
+      margin-left: 28px;
+      text-decoration: none;
+      color: #333;
+      font-size: 14px;
+    }
+
+    .hero {
+      min-height: 620px;
+      display: flex;
+      align-items: center;
+      padding: 70px 7%;
+      background: #e9e4dc;
+    }
+
+    .hero-content {
+      max-width: 650px;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      font-size: 12px;
+      margin-bottom: 20px;
+      color: #666;
+    }
+
+    h1 {
+      font-family: Georgia, serif;
+      font-size: clamp(50px, 7vw, 88px);
+      line-height: 0.98;
+      font-weight: 400;
+      margin-bottom: 30px;
+    }
+
+    .hero p {
+      font-size: 19px;
+      max-width: 520px;
+      margin-bottom: 35px;
+      color: #4d4d4d;
+    }
+
+    .button {
+      display: inline-block;
+      padding: 15px 27px;
+      background: #1d1d1d;
+      color: white;
+      text-decoration: none;
+      margin-right: 10px;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+    }
+
+    .button.secondary {
+      background: transparent;
+      color: #1d1d1d;
+      border: 1px solid #1d1d1d;
+    }
+
+    section {
+      padding: 90px 7%;
+    }
+
+    .section-title {
+      font-family: Georgia, serif;
+      font-size: 48px;
+      font-weight: 400;
+      margin-bottom: 18px;
+    }
+
+    .section-intro {
+      max-width: 600px;
+      color: #666;
+      margin-bottom: 45px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .card {
+      background: white;
+      min-height: 330px;
+      padding: 28px;
+      display: flex;
+      align-items: flex-end;
+      position: relative;
+    }
+
+    .card:nth-child(1) {
+      background: #d8d1c5;
+    }
+
+    .card:nth-child(2) {
+      background: #c9c9c4;
+    }
+
+    .card:nth-child(3) {
+      background: #ddd5cd;
+    }
+
+    .card h3 {
+      font-family: Georgia, serif;
+      font-size: 28px;
+      font-weight: 400;
+    }
+
+    .feature {
+      background: #1d1d1d;
+      color: white;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    .feature .section-title {
+      color: white;
+    }
+
+    .feature p {
+      color: #ccc;
+      margin-bottom: 30px;
+      max-width: 500px;
+    }
+
+    .feature .button {
+      background: white;
+      color: #1d1d1d;
+    }
+
+    .visit {
+      text-align: center;
+      background: #e9e4dc;
+    }
+
+    .visit p {
+      max-width: 600px;
+      margin: 0 auto 30px;
+      color: #555;
+    }
+
+    footer {
+      padding: 35px 7%;
+      background: #1d1d1d;
+      color: #ccc;
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+    }
+
+    @media (max-width: 750px) {
+      nav {
+        display: none;
+      }
+
+      .cards,
+      .feature {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        min-height: 520px;
+      }
+
+      section {
+        padding: 65px 7%;
+      }
+
+      footer {
+        flex-direction: column;
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">M&K OPTICS</div>
+
+  <nav>
+    <a href="#arrivals">New Arrivals</a>
+    <a href="#experience">Our Experience</a>
+    <a href="#visit">Visit Us</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="hero-content">
+    <div class="eyebrow">Eyewear • Vision • Personality</div>
+
+    <h1>See yourself differently.</h1>
+
+    <p>
+      Curated eyewear that complements your face, your style
+      and the way you see the world.
+    </p>
+
+    <a href="#book" class="button">BOOK AN EYE TEST</a>
+    <a href="#arrivals" class="button secondary">EXPLORE FRAMES</a>
+  </div>
+</section>
+
+<section id="arrivals">
+  <div class="eyebrow">The latest collection</div>
+
+  <h2 class="section-title">New arrivals.</h2>
+
+  <p class="section-intro">
+    Discover frames selected for people who want their eyewear
+    to be more than just a prescription.
+  </p>
+
+  <div class="cards">
+    <div class="card">
+      <h3>Modern<br>Classics</h3>
+    </div>
+
+    <div class="card">
+      <h3>Bold<br>Expressions</h3>
+    </div>
+
+    <div class="card">
+      <h3>Everyday<br>Essential</h3>
+    </div>
+  </div>
+</section>
+
+<section class="feature" id="experience">
+  <div>
+    <div class="eyebrow">A different way to choose</div>
+
+    <h2 class="section-title">The right frame can change more than your look.</h2>
+
+    <p>
+      Not sure what suits you? We're building a smarter way to
+      discover frames that complement your face, style and personality.
+    </p>
+
+    <a href="#" class="button">FIND YOUR FRAME</a>
+  </div>
+
+  <div>
+    <!-- Space reserved for future AI eyewear experience -->
+  </div>
+</section>
+
+<section class="visit" id="book">
+  <div class="eyebrow">Your vision matters</div>
+
+  <h2 class="section-title">Book your eye test.</h2>
+
+  <p>
+    Professional eye testing, expert advice and a carefully
+    selected range of frames.
+  </p>
+
+  <a href="#" class="button">BOOK AN APPOINTMENT</a>
+</section>
+
+<section id="visit">
+  <div class="eyebrow">Come see us</div>
+
+  <h2 class="section-title">Visit M&K Optics.</h2>
+
+  <p class="section-intro">
+    We'd love to help you find eyewear that feels like you.
+  </p>
+
+  <p>
+    M&K Optics<br>
+    Address coming soon<br>
+    Phone: +91 XXXXX XXXXX
+  </p>
+</section>
+
+<footer>
+  <div>© 2026 M&K Optics</div>
+  <div>See yourself differently.</div>
+</footer>
+
+</body>
+</html>
