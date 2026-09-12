@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MK Optics Growth Plan</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400..600&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --paper:#F0F2EC;
+    --paper-raised:#FFFFFF;
+    --ink:#121826;
+    --ink-2:#4A5568;
+    --ink-3:#8A93A3;
+    --line:#D7DCD3;
+    --accent:#C79A3E;
+    --accent-text:#8B6A22;
+    --accent-soft:#F3E8CC;
+    --loss:#C15B49;
+    --loss-soft:#F5E1DB;
+    --good:#2F9968;
+    --good-soft:#DEEEE3;
+    --focus-ring:#6E7B98;
+    --shadow: 0 1px 2px rgba(18,24,38,0.06), 0 8px 24px rgba(18,24,38,0.05);
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Manrope", ui-sans-serif, system-ui, sans-serif;
+    font-size:16px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{ background:var(--accent-soft); color:var(--ink); }
+  a{ color:var(--accent-text); }
+  a:focus-visible, button:focus-visible, input:focus-visible{
+    outline:2px solid var(--focus-ring); outline-offset:2px;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.001ms !important; transition-duration:0.001ms !important; }
+  }
+
+  .display{ font-family:"Fraunces", Georgia, serif; }
+  .mono{ font-family:"JetBrains Mono", ui-monospace, "SF Mono", monospace; font-variant-numeric: tabular-nums; }
+
+  .wrap{ max-width:900px; margin:0 auto; padding-inline: clamp(20px, 5vw, 56px); }
+  .prose{ max-width:640px; }
+
+  .masthead{
+    display:flex; align-items:center; justify-content:space-between;
+    padding-block:18px;
+    border-bottom:1px solid var(--line);
+    font-size:12px; letter-spacing:0.06em; text-transform:uppercase;
+    color:var(--ink-2);
+  }
+  .masthead .mark{ color:var(--ink); font-weight:800; letter-spacing:0.04em; }
+  .masthead a{ color:var(--ink-2); text-decoration:none; border-bottom:1px solid var(--line); }
+  .masthead a:hover{ color:var(--accent-text); border-color:var(--accent-text); }
+
+  .hero{ padding-block: clamp(48px, 8vw, 96px) clamp(40px, 6vw, 64px); }
+  .eyebrow{
+    font-size:12px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--ink-3); margin:0 0 22px;
+  }
+  .eyebrow strong{ color:var(--accent-text); font-weight:700; }
+  .eyechart{ margin:0; }
+  .eyechart .row{
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    line-height:0.98;
+    letter-spacing:-0.01em;
+    text-wrap:balance;
+    margin:0;
+  }
+  .eyechart .row1{ font-size:clamp(52px, 10vw, 122px); }
+  .eyechart .row2{ font-size:clamp(34px, 6.4vw, 78px); color:var(--ink-2); margin-top:0.06em; }
+  .eyechart .row3{ font-size:clamp(22px, 4vw, 50px); color:var(--ink-3); margin-top:0.06em; }
+
+  .hero-sub{
+    margin-top:34px;
+    font-size:18px;
+    color:var(--ink-2);
+    max-width:560px;
+  }
+  .hero-meta{
+    margin-top:28px;
+    display:flex; flex-wrap:wrap; gap:10px 22px;
+    font-size:12px; color:var(--ink-3);
+  }
+  .hero-cta{
+    margin-top:30px;
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:13px; font-weight:600; letter-spacing:0.02em;
+    color:var(--ink); text-decoration:none;
+    padding:12px 18px;
+    background:var(--accent-soft);
+    border:1px solid var(--accent);
+    border-radius:3px;
+  }
+  .hero-cta:hover{ background:var(--accent); }
+
+  .chart-divider{
+    display:flex; align-items:baseline; gap:0.14em;
+    padding-block:30px;
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    color:var(--ink-3);
+    overflow-x:auto;
+    white-space:nowrap;
+  }
+  .chart-divider span{ display:inline-block; }
+  .chart-divider .l0{ font-size:44px; color:var(--ink); }
+  .chart-divider .l1{ font-size:37px; }
+  .chart-divider .l2{ font-size:31px; }
+  .chart-divider .l3{ font-size:26px; }
+  .chart-divider .l4{ font-size:22px; }
+  .chart-divider .l5{ font-size:18px; }
+  .chart-divider .l6{ font-size:15px; }
+  .chart-divider .l7{ font-size:13px; color:var(--accent-text); }
+
+  section{ padding-block: clamp(48px, 7vw, 80px); }
+  section + section{ border-top:1px solid var(--line); }
+  .kicker{
+    display:flex; align-items:baseline; gap:12px;
+    margin-bottom:10px;
+  }
+  .kicker .num{
+    font-family:"JetBrains Mono", monospace;
+    font-size:13px; color:var(--accent-text); font-weight:600;
+  }
+  .kicker .label{
+    font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-3);
+  }
+  h2{
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:500;
+    font-size:clamp(28px, 3.6vw, 42px);
+    line-height:1.08;
+    margin:0 0 16px;
+    text-wrap:balance;
+    max-width:680px;
+  }
+  .lede{ color:var(--ink-2); max-width:600px; margin:0 0 40px; font-size:16px; }
+
+  .tiles{
+    display:grid; grid-template-columns:repeat(4, 1fr); gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+  }
+  .tile{
+    background:var(--paper-raised);
+    padding:26px 20px;
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .tile .stage{
+    font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-3);
+  }
+  .tile .figure{
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    font-size:clamp(30px, 3.6vw, 40px);
+    color:var(--loss);
+  }
+  .tile p{ margin:0; font-size:13.5px; color:var(--ink-2); }
+  .source-note{ margin-top:16px; font-size:12px; color:var(--ink-3); }
+
+  .pillars{ display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--line); border:1px solid var(--line); }
+  .pillar{ background:var(--paper-raised); padding:28px 26px; display:flex; gap:18px; }
+  .pillar .tag{
+    flex:none; width:34px; height:34px; border-radius:3px;
+    background:var(--accent-soft); color:var(--accent-text);
+    display:flex; align-items:center; justify-content:center;
+    font-family:"JetBrains Mono", monospace; font-weight:600; font-size:13px;
+  }
+  .pillar h3{ font-family:"Fraunces", Georgia, serif; font-weight:600; font-size:19px; margin:0 0 6px; }
+  .pillar p{ margin:0; font-size:14px; color:var(--ink-2); }
+
+  .steps{ display:flex; flex-wrap:wrap; gap:0; }
+  .step{
+    flex:1 1 200px; position:relative;
+    padding:22px 22px 22px 0;
+    border-top:2px solid var(--line);
+  }
+  .step .n{
+    font-family:"JetBrains Mono", monospace; font-size:12px; color:var(--accent-text);
+    display:block; margin-bottom:10px;
+  }
+  .step h4{ font-size:15px; margin:0 0 6px; font-weight:700; }
+  .step p{ margin:0; font-size:13.5px; color:var(--ink-2); }
+
+  .phases{ display:flex; flex-direction:column; gap:1px; background:var(--line); border:1px solid var(--line); }
+  .phase{ background:var(--paper-raised); padding:26px 28px; display:grid; grid-template-columns:140px 1fr auto; gap:24px; align-items:start; }
+  .phase .acuity{
+    font-family:"JetBrains Mono", monospace; font-size:26px; font-weight:600; color:var(--ink);
+    line-height:1;
+  }
+  .phase .acuity small{ display:block; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-3); margin-top:6px; font-family:"Manrope", sans-serif; font-weight:600; }
+  .phase h3{ font-family:"Fraunces", Georgia, serif; font-weight:600; font-size:20px; margin:0 0 8px; }
+  .phase ul{ margin:0; padding-left:18px; color:var(--ink-2); font-size:13.5px; }
+  .phase ul li{ margin-bottom:4px; }
+  .status-pill{
+    justify-self:end;
+    font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
+    padding:5px 10px; border-radius:100px; white-space:nowrap;
+  }
+  .status-pill.now{ background:var(--good-soft); color:var(--good); }
+  .status-pill.next{ background:var(--accent-soft); color:var(--accent-text); }
+  .status-pill.future{ background:transparent; color:var(--ink-3); border:1px solid var(--line); }
+
+  .outcome-eq{
+    display:flex; align-items:center; flex-wrap:wrap; gap:18px;
+    font-family:"JetBrains Mono", monospace;
+    font-size:clamp(22px, 3.6vw, 34px);
+    font-weight:600;
+    margin:6px 0 28px;
+  }
+  .outcome-eq .term{ display:flex; flex-direction:column; align-items:flex-start; gap:4px; }
+  .outcome-eq .term small{ font-family:"Manrope", sans-serif; font-size:11px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-3); }
+  .outcome-eq .op{ color:var(--ink-3); }
+  .outcome-eq .result{ color:var(--accent-text); }
+  .quote{
+    border-left:2px solid var(--accent); padding-left:18px;
+    font-family:"Fraunces", Georgia, serif; font-style:italic; font-size:18px;
+    color:var(--ink-2); max-width:560px; margin:0 0 8px;
+  }
+  .quote cite{ display:block; font-family:"Manrope", sans-serif; font-style:normal; font-size:12px; color:var(--ink-3); margin-top:8px; }
+
+  .plans{ display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--line); border:1px solid var(--line); }
+  .plan{ background:var(--paper-raised); padding:30px 28px; }
+  .plan .ptitle{ font-size:12px; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-3); margin-bottom:10px; }
+  .plan .price{ font-family:"JetBrains Mono", monospace; font-size:clamp(24px,3vw,30px); font-weight:600; margin-bottom:2px; }
+  .plan .cadence{ font-size:12px; color:var(--ink-3); margin-bottom:22px; }
+  .plan ul{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:9px; }
+  .plan ul li{ font-size:13.5px; color:var(--ink-2); padding-left:18px; position:relative; }
+  .plan ul li::before{ content:"—"; position:absolute; left:0; color:var(--accent-text); }
+
+  .prereqs{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px 32px; }
+  .prereqs li{ font-size:14px; color:var(--ink-2); list-style:none; padding-left:20px; position:relative; }
+  .prereqs li::before{ content:"·"; position:absolute; left:0; top:-4px; color:var(--accent-text); font-size:22px; }
+
+  .approval-box{
+    background:var(--paper-raised); border:1px solid var(--line); border-radius:4px;
+    padding:30px 32px; box-shadow:var(--shadow);
+  }
+  .checklist{ display:flex; flex-direction:column; gap:14px; margin:0 0 30px; padding:0; list-style:none; }
+  .checklist li{ display:flex; align-items:flex-start; gap:12px; font-size:14.5px; }
+  .checklist input[type="checkbox"]{ margin-top:3px; width:16px; height:16px; accent-color:var(--accent-text); flex:none; }
+  .checklist label span{ display:block; color:var(--ink-3); font-size:12px; margin-top:2px; }
+  .signoff{ display:grid; grid-template-columns:1fr 1fr; gap:28px; margin-top:8px; }
+  .signline{ border-top:1px solid var(--ink-3); padding-top:8px; font-size:12px; color:var(--ink-3); }
+  .signline strong{ display:block; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-2); margin-bottom:34px; font-weight:700; }
+
+  footer{
+    padding-block:32px;
+    border-top:1px solid var(--line);
+    display:flex; flex-wrap:wrap; justify-content:space-between; gap:10px;
+    font-size:12px; color:var(--ink-3);
+  }
+
+  @media (max-width:720px){
+    .tiles{ grid-template-columns:1fr 1fr; }
+    .pillars{ grid-template-columns:1fr; }
+    .phase{ grid-template-columns:1fr; gap:12px; }
+    .status-pill{ justify-self:start; }
+    .plans{ grid-template-columns:1fr; }
+    .prereqs{ grid-template-columns:1fr; }
+    .signoff{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <span class="mark">MK OPTICS</span>
+  <a href="#approval">Jump to approval →</a>
+</div>
+
+<div class="wrap">
+
+  <section class="hero">
+    <p class="eyebrow">Growth Proposal — Prepared for <strong>MK Optics</strong></p>
+    <div class="eyechart">
+      <p class="row row1 display">Know.</p>
+      <p class="row row2 display">Nudge.</p>
+      <p class="row row3 display">Keep.</p>
+    </div>
+    <p class="hero-sub">A customer-retention system built for MK Optics: every customer captured at checkout, brought back automatically over WhatsApp, and turned into a repeat buyer — without adding work at the counter.</p>
+    <div class="hero-meta mono">
+      <span>Version 1.0</span>
+      <span>Prepared September 2026</span>
+    </div>
+    <a class="hero-cta" href="#approval">Review &amp; approve this plan ↓</a>
+  </section>
+
+  <div class="chart-divider" aria-hidden="true">
+    <span class="l0">M</span><span class="l1">K</span><span class="l2">O</span><span class="l3">P</span><span class="l4">T</span><span class="l5">I</span><span class="l6">C</span><span class="l7">S</span>
+  </div>
+
+  <section id="diagnosis">
+    <div class="kicker"><span class="num">01</span><span class="label">Diagnosis</span></div>
+    <h2>Most of MK Optics' best customers are one purchase away from being forgotten.</h2>
+    <p class="lede">Four things happen, in order, at almost every optical retailer — and each one quietly costs revenue that was already earned once.</p>
+
+    <div class="tiles">
+      <div class="tile">
+        <span class="stage">Buy</span>
+        <span class="figure mono">~60%</span>
+        <p>of optical store customers are one-time buyers — they never come back for a second purchase.</p>
+      </div>
+      <div class="tile">
+        <span class="stage">Forget</span>
+        <span class="figure mono">~70%</span>
+        <p>of retailers have no complete, usable customer database to even attempt a follow-up.</p>
+      </div>
+      <div class="tile">
+        <span class="stage">Lose</span>
+        <span class="figure mono">2–3×</span>
+        <p>more purchases come from repeat customers than new ones — upside that's never nudged into happening.</p>
+      </div>
+      <div class="tile">
+        <span class="stage">Miss</span>
+        <span class="figure mono">~80%</span>
+        <p>of optical purchases are not influenced by any digital or social marketing at all.</p>
+      </div>
+    </div>
+    <p class="source-note">Sources: industry studies on optical retail; SME retail digitization reports; repeat-customer value studies; consumer behavior research in eyewear.</p>
+  </section>
+
+  <section id="prescription">
+    <div class="kicker"><span class="num">02</span><span class="label">Prescription</span></div>
+    <h2>One system, four jobs.</h2>
+    <p class="lede">The platform's only purpose is to make sure a customer who has already bought from MK Optics once has every reason — and every reminder — to come back.</p>
+
+    <div class="pillars">
+      <div class="pillar">
+        <span class="tag">A</span>
+        <div><h3>Remember every customer</h3><p>Contact details, prescriptions, purchase history and preferences, kept in one record that's always current.</p></div>
+      </div>
+      <div class="pillar">
+        <span class="tag">B</span>
+        <div><h3>Bring them back, automatically</h3><p>Timely WhatsApp reminders for eye tests, replacements and contact-lens refills — sent without staff having to remember.</p></div>
+      </div>
+      <div class="pillar">
+        <span class="tag">C</span>
+        <div><h3>Turn happy customers into promoters</h3><p>Automatic, well-timed requests for Google reviews and referrals from customers who are already satisfied.</p></div>
+      </div>
+      <div class="pillar">
+        <span class="tag">D</span>
+        <div><h3>Grow sales, month after month</h3><p>More repeat visits, more new customers from referrals, and higher value per customer — tracked in one dashboard.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how-it-works">
+    <div class="kicker"><span class="num">03</span><span class="label">How it works</span></div>
+    <h2>From a QR scan to a lifelong customer.</h2>
+    <p class="lede">The entire signup takes seconds at the counter — no app to install, no extra hardware.</p>
+
+    <div class="steps">
+      <div class="step"><span class="n mono">01</span><h4>Customer scans QR</h4><p>A code at checkout or in-store links to the MK Optics Rewards signup page.</p></div>
+      <div class="step"><span class="n mono">02</span><h4>Joins in seconds</h4><p>Name and mobile number, with a clear consent checkbox for offers and updates.</p></div>
+      <div class="step"><span class="n mono">03</span><h4>Saved to the record</h4><p>Added to the customer database for future reminders, offers and personalised messages.</p></div>
+      <div class="step"><span class="n mono">04</span><h4>Stays connected</h4><p>Receives exclusive offers, visit reminders and updates over WhatsApp going forward.</p></div>
+    </div>
+  </section>
+
+  <section id="plan">
+    <div class="kicker"><span class="num">04</span><span class="label">Treatment plan</span></div>
+    <h2>Three phases, each sharper than the last.</h2>
+    <p class="lede">Delivery is sequenced like a vision test — the store's view of its own customers gets measurably clearer at each stage.</p>
+
+    <div class="phases">
+      <div class="phase">
+        <div class="acuity">20/40<small>Capture &amp; connect</small></div>
+        <div><h3>First visit</h3><ul>
+          <li>Customer database, QR signup &amp; digital records</li>
+          <li>Store profile, Google Business Profile setup</li>
+          <li>Website booking entry point &amp; loyalty program setup</li>
+        </ul></div>
+        <span class="status-pill now">Weeks 1–6</span>
+      </div>
+      <div class="phase">
+        <div class="acuity">20/20<small>Engage &amp; nurture</small></div>
+        <div><h3>Ongoing</h3><ul>
+          <li>Automated win-back &amp; reminder messages</li>
+          <li>Lost-sale recovery, review &amp; referral automation</li>
+          <li>Slow-stock campaigns, seasonal campaigns, reporting dashboard</li>
+        </ul></div>
+        <span class="status-pill next">Weeks 7–14</span>
+      </div>
+      <div class="phase">
+        <div class="acuity">20/15<small>Reward &amp; grow</small></div>
+        <div><h3>Next visit and beyond</h3><ul>
+          <li>Next-best-offer recommendations</li>
+          <li>Contact-lens replenishment prediction</li>
+          <li>Loyalty redemption &amp; advanced customer insights</li>
+        </ul></div>
+        <span class="status-pill future">After 6–12 months of data</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="outcome">
+    <div class="kicker"><span class="num">05</span><span class="label">Projected outcome</span></div>
+    <h2>Retention moves the number that matters.</h2>
+
+    <div class="outcome-eq">
+      <span class="term"><small>Returning customers / mo.</small>40</span>
+      <span class="op">×</span>
+      <span class="term"><small>Avg. spend per return visit</small>₹2,500</span>
+      <span class="op">=</span>
+      <span class="term result"><small>Additional monthly revenue</small>₹1,00,000</span>
+    </div>
+
+    <p class="quote">"Loyal customers buy more often, spend more over time and are more likely to refer others."<cite>— Bain &amp; Co. / Harvard Business Review, on the economics of customer loyalty: a 5% increase in retention can lift profit 25–95%.</cite></p>
+    <p class="lede" style="margin-top:20px;">The example above is illustrative — MK Optics' own store data replaces these numbers once the customer database is live.</p>
+  </section>
+
+  <section id="investment">
+    <div class="kicker"><span class="num">06</span><span class="label">Investment</span></div>
+    <h2>Start. Engage. Grow. Priced the same way.</h2>
+    <p class="lede">One setup fee to get the store ready, then a monthly plan to keep it running.</p>
+
+    <div class="plans">
+      <div class="plan">
+        <div class="ptitle">One-time setup</div>
+        <div class="price mono">₹15,000 – ₹20,000</div>
+        <div class="cadence">Billed once, at Phase 1 delivery</div>
+        <ul>
+          <li>Store profile &amp; database setup</li>
+          <li>Website with online booking</li>
+          <li>Google Business setup</li>
+          <li>QR code &amp; customer capture</li>
+          <li>Loyalty program setup</li>
+          <li>Campaign templates</li>
+        </ul>
+      </div>
+      <div class="plan">
+        <div class="ptitle">Monthly plan</div>
+        <div class="price mono">₹2,500 – ₹4,000</div>
+        <div class="cadence">Recurring, from Phase 2 go-live</div>
+        <ul>
+          <li>Automated win-back &amp; reminder messages</li>
+          <li>Review &amp; referral campaigns</li>
+          <li>Loyalty &amp; re-engagement</li>
+          <li>Seasonal &amp; festival campaigns</li>
+          <li>Performance reports</li>
+          <li>Ongoing support &amp; updates</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="prerequisites">
+    <div class="kicker"><span class="num">07</span><span class="label">What we need from MK Optics</span></div>
+    <h2>A short list, mostly one-time.</h2>
+    <ul class="prereqs">
+      <li>Brand assets — logo, store photos, brand colors</li>
+      <li>Access to the MK Optics Google Business Profile</li>
+      <li>A WhatsApp Business Account (we can help set this up)</li>
+      <li>30–60 minutes of staff time for training at go-live</li>
+    </ul>
+  </section>
+
+  <div class="chart-divider" aria-hidden="true">
+    <span class="l0">M</span><span class="l1">K</span><span class="l2">O</span><span class="l3">P</span><span class="l4">T</span><span class="l5">I</span><span class="l6">C</span><span class="l7">S</span>
+  </div>
+
+  <section id="approval">
+    <div class="kicker"><span class="num">08</span><span class="label">Approval</span></div>
+    <h2>Ready to grow the store?</h2>
+    <p class="lede">Once the items below are approved, Phase 1 development begins.</p>
+
+    <div class="approval-box">
+      <ul class="checklist">
+        <li>
+          <input type="checkbox" id="chk-scope">
+          <label for="chk-scope">Scope of work approved<span>Product requirements &amp; roadmap</span></label>
+        </li>
+        <li>
+          <input type="checkbox" id="chk-design">
+          <label for="chk-design">UI design approved<span>Screens for signup, customer database, campaigns &amp; dashboard</span></label>
+        </li>
+        <li>
+          <input type="checkbox" id="chk-pricing">
+          <label for="chk-pricing">Pricing &amp; terms approved<span>Statement of work</span></label>
+        </li>
+      </ul>
+
+      <div class="signoff">
+        <div class="signline"><strong>Approved by (MK Optics)</strong></div>
+        <div class="signline"><strong>Date</strong></div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <div class="wrap" style="display:flex; flex-wrap:wrap; justify-content:space-between; gap:10px; width:100%; padding-inline:0;">
+    <span class="mono">MK Optics Growth Plan · v1.0</span>
+    <span><a href="index.html">Back to overview</a></span>
+  </div>
+</footer>
+
+</body>
+</html>

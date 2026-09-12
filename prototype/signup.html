@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MK Optics Rewards — Join</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap">
+<style>
+  :root{
+    --ink:#121826; --ink-2:#4A5568; --ink-3:#6B7280;
+    --paper:#F5F6F3; --raised:#FFFFFF; --line:#E1E4DD;
+    --accent:#C79A3E; --accent-text:#8B6A22; --accent-soft:#F3E8CC;
+    --good:#2F9968; --good-soft:#DEEEE3;
+  }
+  *{ box-sizing:border-box; }
+  body{ margin:0; font-family:"Manrope",ui-sans-serif,system-ui,sans-serif; background:var(--paper); color:var(--ink); display:flex; justify-content:center; padding:24px 0; }
+  .display{ font-family:"Fraunces",Georgia,serif; }
+  .mono{ font-family:"JetBrains Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums; }
+  input[type="text"], input[type="tel"]{
+    width:100%; padding:14px 16px; border-radius:3px; border:1px solid var(--line);
+    background:var(--raised); font-family:"Manrope",sans-serif; font-size:15px; color:var(--ink);
+  }
+  input::placeholder{ color:var(--ink-3); }
+  button{ font-family:"Manrope",sans-serif; cursor:pointer; }
+  .phone{ width:390px; max-width:100%; min-height:820px; background:var(--paper); display:flex; flex-direction:column; padding:28px 24px 40px; box-shadow:0 1px 2px rgba(18,24,38,.06), 0 12px 32px rgba(18,24,38,.08); border-radius:12px; }
+  [hidden]{ display:none !important; }
+  .backlink{ position:fixed; top:16px; left:16px; font-size:12px; color:var(--ink-2); text-decoration:none; border-bottom:1px solid var(--line); }
+</style>
+</head>
+<body>
+<a class="backlink" href="index.html">← Back to overview</a>
+
+<div class="phone">
+
+  <div style="display:flex; align-items:center; gap:10px; margin-bottom:36px;">
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#121826" stroke-width="1.6"><circle cx="8" cy="12" r="5.4"/><circle cx="16" cy="12" r="5.4"/><line x1="13.2" y1="12" x2="10.8" y2="12"/></svg>
+    <div style="font-weight:800; letter-spacing:0.04em; font-size:14px;">MK OPTICS</div>
+  </div>
+
+  <div id="form-view">
+    <div style="display:flex; justify-content:center; margin-bottom:22px;">
+      <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="#C79A3E" stroke-width="1.3">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/>
+        <path d="M6.2 5.4h1.6M6.2 6.6h1.6M17.2 5.4h1.6M17.2 6.6h1.6M6.2 16.4h1.6M6.2 17.6h1.6" stroke-width="1"/>
+        <path d="M16 17 L18 19 L21 15" stroke="#2F9968" stroke-width="1.6"/>
+      </svg>
+    </div>
+
+    <h1 class="display" style="font-size:30px; font-weight:600; text-align:center; margin:0 0 10px; line-height:1.1;">Join MK Optics<br>Rewards</h1>
+    <p style="text-align:center; color:var(--ink-2); font-size:14px; margin:0 0 30px; line-height:1.5;">Scan once. Get offers, eye-test reminders and faster checkout on your next visit.</p>
+
+    <div style="display:flex; flex-direction:column; gap:16px; margin-bottom:8px;">
+      <div>
+        <label style="display:block; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-3); margin-bottom:6px;">Full name</label>
+        <input id="name-input" type="text" placeholder="e.g. Priya Sharma" value="Priya Sharma">
+      </div>
+      <div>
+        <label style="display:block; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-3); margin-bottom:6px;">Mobile number</label>
+        <div style="display:flex; align-items:center; border:1px solid var(--line); border-radius:3px; background:var(--raised); overflow:hidden;">
+          <span class="mono" style="padding:14px 12px; color:var(--ink-2); border-right:1px solid var(--line); font-size:15px;">+91</span>
+          <input type="tel" placeholder="98XXX XXXXX" style="border:none; border-radius:0;">
+        </div>
+      </div>
+    </div>
+
+    <label style="display:flex; align-items:flex-start; gap:10px; margin:20px 0 26px; font-size:12.5px; color:var(--ink-2); line-height:1.5;">
+      <input type="checkbox" checked style="margin-top:2px; width:16px; height:16px; accent-color:#8B6A22; flex:none;">
+      I'd like to receive offers, reminders and updates on WhatsApp.
+    </label>
+
+    <button id="join-btn" style="width:100%; padding:16px; background:var(--ink); color:#fff; border:none; border-radius:3px; font-size:14px; font-weight:700; letter-spacing:0.02em;">Join Now</button>
+
+    <div style="display:flex; justify-content:space-between; gap:8px; margin-top:28px;">
+      <div style="display:flex; flex-direction:column; align-items:center; gap:6px; flex:1;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A5568" stroke-width="1.5"><rect x="4" y="10" width="16" height="10" rx="1.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+        <span style="font-size:10.5px; color:var(--ink-2); text-align:center;">Data kept secure</span>
+      </div>
+      <div style="display:flex; flex-direction:column; align-items:center; gap:6px; flex:1;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A5568" stroke-width="1.5"><path d="M12 3l7 3.5v5c0 4.5-3 7.5-7 9.5-4-2-7-5-7-9.5v-5L12 3z"/></svg>
+        <span style="font-size:10.5px; color:var(--ink-2); text-align:center;">No spam, ever</span>
+      </div>
+      <div style="display:flex; flex-direction:column; align-items:center; gap:6px; flex:1;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A5568" stroke-width="1.5"><circle cx="12" cy="12" r="8"/><path d="M9.5 12l1.8 1.8L15 10"/></svg>
+        <span style="font-size:10.5px; color:var(--ink-2); text-align:center;">Always free</span>
+      </div>
+    </div>
+
+    <p style="margin-top:26px; font-size:11px; color:var(--ink-3); text-align:center; line-height:1.5;">By joining, you consent to be contacted by MK Optics on WhatsApp.<br>Reply STOP anytime to opt out.</p>
+  </div>
+
+  <div id="success-view" hidden style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding-top:60px;">
+    <div style="width:64px; height:64px; border-radius:50%; background:var(--good-soft); display:flex; align-items:center; justify-content:center; margin-bottom:22px;">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#2F9968" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg>
+    </div>
+    <h1 class="display" style="font-size:26px; font-weight:600; margin:0 0 10px;">You're in, <span id="first-name">Priya</span>!</h1>
+    <p style="color:var(--ink-2); font-size:14px; line-height:1.6; max-width:280px; margin:0 0 30px;">Welcome to MK Optics Rewards. We've sent your digital card and first offer on WhatsApp.</p>
+    <div style="width:100%; background:#0D1710; border-radius:8px; padding:14px; text-align:left;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+        <div style="width:22px; height:22px; border-radius:50%; background:#2F9968; display:flex; align-items:center; justify-content:center;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M4 20l1.6-4.8A8 8 0 1 1 9 18.4L4 20z"/></svg>
+        </div>
+        <span style="color:#fff; font-size:12px; font-weight:600;">MK Optics</span>
+      </div>
+      <div style="background:#fff; border-radius:0 8px 8px 8px; padding:12px 14px; font-size:13px; line-height:1.5; color:var(--ink);">
+        Hi <span id="wa-first-name">Priya</span>, welcome to MK Optics Rewards! Here's 10% off your next frame — show this message in-store.
+      </div>
+    </div>
+    <button id="reset-btn" style="margin-top:26px; background:none; border:none; color:var(--accent-text); font-size:12.5px; font-weight:700; text-decoration:underline;">Start over</button>
+  </div>
+
+</div>
+
+<script>
+  const nameInput = document.getElementById('name-input');
+  const formView = document.getElementById('form-view');
+  const successView = document.getElementById('success-view');
+  const firstNameEl = document.getElementById('first-name');
+  const waFirstNameEl = document.getElementById('wa-first-name');
+
+  document.getElementById('join-btn').addEventListener('click', () => {
+    const name = (nameInput.value || 'Priya Sharma').trim();
+    const firstName = name.split(' ')[0] || 'there';
+    firstNameEl.textContent = firstName;
+    waFirstNameEl.textContent = firstName;
+    formView.hidden = true;
+    successView.hidden = false;
+  });
+
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    successView.hidden = true;
+    formView.hidden = false;
+  });
+</script>
+</body>
+</html>

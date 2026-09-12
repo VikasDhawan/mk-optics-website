@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MK Optics Growth Platform — Review</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+  :root{
+    --ink:#121826; --ink-2:#4A5568; --ink-3:#6B7280;
+    --paper:#F0F2EC; --raised:#FFFFFF; --line:#DCE0D8;
+    --accent:#C79A3E; --accent-text:#8B6A22; --accent-soft:#F3E8CC;
+  }
+  *{ box-sizing:border-box; }
+  body{ margin:0; font-family:"Manrope",ui-sans-serif,system-ui,sans-serif; background:var(--paper); color:var(--ink); }
+  .display{ font-family:"Fraunces",Georgia,serif; }
+  .wrap{ max-width:760px; margin:0 auto; padding: clamp(40px,8vw,80px) clamp(20px,5vw,40px); }
+  h1{ font-family:"Fraunces",Georgia,serif; font-weight:600; font-size:clamp(30px,5vw,44px); margin:0 0 12px; line-height:1.1; }
+  p.lede{ color:var(--ink-2); font-size:16px; max-width:560px; margin:0 0 40px; }
+  .cards{ display:flex; flex-direction:column; gap:14px; }
+  a.card{
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    background:var(--raised); border:1px solid var(--line); border-radius:6px;
+    padding:22px 26px; text-decoration:none; color:inherit;
+  }
+  a.card:hover{ border-color:var(--accent); }
+  .card .tag{ font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--accent-text); font-weight:700; margin-bottom:6px; }
+  .card h2{ font-family:"Fraunces",Georgia,serif; font-weight:600; font-size:19px; margin:0 0 6px; }
+  .card p{ margin:0; font-size:13.5px; color:var(--ink-2); }
+  .arrow{ flex:none; color:var(--ink-3); font-size:20px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Growth Platform — Review</h1>
+  <p class="lede">Three pages for reviewing scope, look, and flow before development begins.</p>
+
+  <div class="cards">
+    <a class="card" href="growth-plan.html">
+      <div>
+        <div class="tag">Proposal</div>
+        <h2>Growth Plan</h2>
+        <p>The problem, the solution, the phased rollout, pricing, and an approval checklist.</p>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+
+    <a class="card" href="signup.html">
+      <div>
+        <div class="tag">Screen</div>
+        <h2>Customer Signup</h2>
+        <p>The mobile page a customer sees after scanning the in-store QR code.</p>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+
+    <a class="card" href="app.html">
+      <div>
+        <div class="tag">Screen</div>
+        <h2>Staff App</h2>
+        <p>Counter intake, customer database, campaigns, and the store dashboard.</p>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+  </div>
+</div>
+</body>
+</html>
