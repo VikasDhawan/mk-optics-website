@@ -658,7 +658,60 @@
         return phone.slice(0, phone.length - 5) + 'XXXXX';
     }
 
-    function showExistingCustomer(c) {
+    // One shared list of {input id -> visits column} pairs, so saving,
+    // clearing, and pre-filling the form all stay in sync with a single
+    // source of truth instead of three separate hand-written lists.
+    const VISIT_FIELDS = [
+        ['od-sphere', 'od_sphere'], ['od-cylinder', 'od_cylinder'], ['od-axis', 'od_axis'],
+        ['od-prism', 'od_prism'], ['od-base', 'od_base'],
+        ['os-sphere', 'os_sphere'], ['os-cylinder', 'os_cylinder'], ['os-axis', 'os_axis'],
+        ['os-prism', 'os_prism'], ['os-base', 'os_base'],
+        ['add-od-sphere', 'add_od_sphere'], ['add-os-sphere', 'add_os_sphere'],
+        ['additional-info', 'additional_information'], ['prescribed-by', 'prescribed_by'],
+        ['frame', 'frame'], ['lens', 'lens'], ['amount', 'amount'], ['channel', 'channel'],
+        ['preferences-budget', 'preferences_budget'], ['pitch-next', 'pitch_next_time'],
+        ['reminder-date', 'next_reminder_date']
+    ];
+
+    function resetVisitForm() {
+        VISIT_FIELDS.forEach(([inputId]) => { el(inputId).value = ''; });
+        el('channel').value = 'In-store';
+        selectedReminder = 'Eye test';
+        document.querySelectorAll('#reminder-chips .chip').forEach(c => c.classList.remove('active'));
+        document.querySelector('#reminder-chips .chip[data-value="Eye test"]').classList.add('active');
+    }
+
+    function populateVisitForm(visit) {
+        resetVisitForm();
+        if (!visit) return;
+        VISIT_FIELDS.forEach(([inputId, column]) => {
+            if (visit[column] !== null && visit[column] !== undefined) {
+                el(inputId).value = visit[column];
+            }
+        });
+        if (visit.reminder_for) {
+            selectedReminder = visit.reminder_for;
+            document.querySelectorAll('#reminder-chips .chip').forEach((c) => {
+                c.classList.toggle('active', c.dataset.value === visit.reminder_for);
+            });
+        }
+    }
+
+    async function loadLatestVisit(customerId) {
+        const { data, error } = await supabase
+            .from('visits')
+            .select('*')
+            .eq('customer_id', customerId)
+            .order('created_at', { ascending: false })
+            .limit(1);
+        if (error) {
+            setStatus('Could not load this customer\'s last visit: ' + error.message, true);
+            return null;
+        }
+        return (data && data[0]) || null;
+    }
+
+    async function showExistingCustomer(c) {
         selectedCustomer = c;
         el('new-customer-form').hidden = true;
         resultsEl.innerHTML = '';
@@ -677,6 +730,9 @@
         // Already selected/open; clicking again just re-confirms the selection.
         row.addEventListener('click', () => showExistingCustomer(c));
         resultsEl.appendChild(row);
+
+        const latestVisit = await loadLatestVisit(c.id);
+        populateVisitForm(latestVisit);
     }
 
     function showNewCustomerPrompt(phone) {
@@ -686,6 +742,7 @@
         el('nc-phone').value = phone;
         el('nc-name').value = '';
         el('nc-name').focus();
+        resetVisitForm();
     }
 
     async function lookupCustomer() {
@@ -788,31 +845,11 @@
             return;
         }
 
-        const visit = {
-            customer_id: selectedCustomer.id,
-            od_sphere: el('od-sphere').value || null,
-            od_cylinder: el('od-cylinder').value || null,
-            od_axis: el('od-axis').value || null,
-            od_prism: el('od-prism').value || null,
-            od_base: el('od-base').value || null,
-            os_sphere: el('os-sphere').value || null,
-            os_cylinder: el('os-cylinder').value || null,
-            os_axis: el('os-axis').value || null,
-            os_prism: el('os-prism').value || null,
-            os_base: el('os-base').value || null,
-            add_od_sphere: el('add-od-sphere').value || null,
-            add_os_sphere: el('add-os-sphere').value || null,
-            additional_information: el('additional-info').value || null,
-            prescribed_by: el('prescribed-by').value || null,
-            frame: el('frame').value || null,
-            lens: el('lens').value || null,
-            amount: el('amount').value ? Number(el('amount').value) : null,
-            channel: el('channel').value || null,
-            preferences_budget: el('preferences-budget').value || null,
-            pitch_next_time: el('pitch-next').value || null,
-            next_reminder_date: el('reminder-date').value || null,
-            reminder_for: selectedReminder
-        };
+        const visit = { customer_id: selectedCustomer.id, reminder_for: selectedReminder };
+        VISIT_FIELDS.forEach(([inputId, column]) => {
+            visit[column] = el(inputId).value || null;
+        });
+        if (visit.amount !== null) visit.amount = Number(visit.amount);
 
         const { error } = await supabase.from('visits').insert(visit);
         if (error) {
