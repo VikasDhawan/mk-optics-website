@@ -7,6 +7,14 @@ Website prototype for M&K Optics
 - `counter-intake.html` — internal Counter Intake app for staff to look up
   customers, record a sale, capture the prescription, and send a WhatsApp
   confirmation. Responsive down to mobile widths.
+- `follow-ups.html` — internal Follow-Ups app listing every reminder due
+  today or overdue (eye tests, refills, offers — whatever was set as
+  "Reminder For" when a visit was saved), with a one-tap WhatsApp message
+  and a "Mark Done" button per customer.
+- `app-shared.css` / `auth-gate.js` — shared styling and the staff-login
+  gate used by both apps above, so a fix or design change in either only
+  needs to happen once. Any new staff page should reuse both rather than
+  copying their own version.
 
 ## Setting up the Counter Intake app (Supabase)
 
@@ -37,10 +45,10 @@ The Counter Intake app stores customers and visits in [Supabase](https://supabas
    static file server). If Supabase isn't configured yet, the page shows a
    banner and skips the login screen entirely (nothing to log into). Once
    configured, you'll see a staff login screen — sign in with the account
-   from step 4. The Counter Intake page currently reads/writes only
-   `customers` and `visits` — the `leads`, `reminders`, and `referrals`
-   tables are in place for the follow-up features below but aren't wired
-   into a screen yet.
+   from step 4. `follow-ups.html` uses the same login. Saving a visit with
+   a "Next Reminder Date" now also creates a row in `reminders`, which is
+   what `follow-ups.html` reads from. The `leads` and `referrals` tables
+   are still in place for later features but aren't wired into a screen yet.
 
 ### Staff login
 
@@ -72,8 +80,6 @@ WhatsApp window that opens.
 - Per-staff permissions (e.g. only managers can see amounts/reports) —
   today, any logged-in staff account can do anything in the app.
 - Public appointment booking flow.
-- A "Daily Follow-Ups" screen reading from the `reminders` table (who
-  to message, remind, or offer today).
 - A "Leads" screen for logging walk-ins/enquiries who didn't buy.
 - Rewards QR sign-up flow and referral tracking screens.
 - AI recommendation engine (what to sell next, contact-lens refill

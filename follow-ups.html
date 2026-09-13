@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Follow-Ups | MK Optics</title>
+
+<link rel="stylesheet" href="app-shared.css">
+<style>
+    .followup-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .followup-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px 18px;
+        border-radius: 8px;
+        border: 1.5px solid var(--line);
+        background: var(--cream);
+        flex-wrap: wrap;
+    }
+
+    .followup-row.overdue {
+        border-color: #e0a0a0;
+        background: #fdf0f0;
+    }
+
+    .followup-info { flex: 1; min-width: 200px; }
+    .followup-name { font-weight: 700; color: var(--ink); }
+    .followup-meta { font-size: 12px; color: var(--grey); margin-top: 2px; }
+
+    .followup-badge {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        background: var(--navy);
+        color: var(--white);
+        white-space: nowrap;
+    }
+
+    .followup-badge.overdue {
+        background: #b02a2a;
+    }
+
+    .followup-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    @media (max-width: 900px) {
+        .followup-row { flex-direction: column; align-items: stretch; }
+        .followup-actions .btn { flex: 1; }
+    }
+</style>
+</head>
+<body>
+
+<div id="login-screen" class="login-screen" hidden>
+    <div class="login-card">
+        <div class="sidebar-brand">
+            <svg viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" stroke="#1c7a3e" stroke-width="3"/>
+                <circle cx="36" cy="12" r="10" stroke="#1c7a3e" stroke-width="3"/>
+            </svg>
+            MK OPTICS
+        </div>
+        <h2>Staff Login</h2>
+        <p class="sub">Sign in with the mobile number and password your manager set up for you.</p>
+        <div class="login-field">
+            <label class="field-label" for="login-phone">Mobile Number</label>
+            <input type="tel" id="login-phone" placeholder="+91 98450 12345" autocomplete="username">
+            <p class="empty-hint" style="margin-top:4px">Include the country code, e.g. +91 for India.</p>
+        </div>
+        <div class="login-field">
+            <label class="field-label" for="login-password">Password</label>
+            <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <button class="btn btn-dark" id="login-btn" style="width:100%">Log In</button>
+        <p id="login-error" class="status-msg error" style="margin-top:14px"></p>
+    </div>
+</div>
+
+<div class="app" id="app-root" hidden>
+
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <svg viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" stroke="#6fd66f" stroke-width="3"/>
+                <circle cx="36" cy="12" r="10" stroke="#6fd66f" stroke-width="3"/>
+            </svg>
+            MK OPTICS
+        </div>
+        <nav class="sidebar-nav">
+            <a href="counter-intake.html">Counter Intake</a>
+            <a href="follow-ups.html" class="active">Follow-Ups</a>
+            <a href="#">Customers</a>
+            <a href="#">Campaigns</a>
+            <a href="#">Settings</a>
+        </nav>
+        <div>
+            <div class="staff-email" id="staff-email"></div>
+            <div class="sign-out-link" id="sign-out-btn">Sign out</div>
+        </div>
+    </aside>
+
+    <main class="main">
+
+        <div class="topbar">
+            <h1>Follow-Ups</h1>
+            <p>Everyone due for a message, reminder, or offer — today or overdue</p>
+        </div>
+
+        <div class="content">
+
+            <div id="config-banner" class="config-banner" hidden>
+                Supabase isn't configured yet. Copy
+                <code>supabase-config.example.js</code> to <code>supabase-config.js</code>,
+                fill in your project URL and key, and reload this page.
+            </div>
+
+            <div class="card">
+                <h2>Due today or overdue</h2>
+                <div id="followup-list" class="followup-list">
+                    <p class="empty-hint">Loading…</p>
+                </div>
+            </div>
+
+            <div id="status-msg" class="status-msg"></div>
+
+        </div>
+    </main>
+</div>
+
+<script src="supabase-config.js" onerror="window.__SUPABASE_CONFIG_MISSING__ = true"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="auth-gate.js"></script>
+<script>
+(function () {
+    const supabase = window.MKAuth.supabase;
+    const listEl = document.getElementById('followup-list');
+    const statusEl = document.getElementById('status-msg');
+
+    function setStatus(message, isError) {
+        statusEl.textContent = message;
+        statusEl.className = 'status-msg ' + (isError ? 'error' : 'ok');
+    }
+
+    function todayISO() {
+        return new Date().toISOString().slice(0, 10);
+    }
+
+    function daysOverdue(dueDate) {
+        const due = new Date(dueDate + 'T00:00:00');
+        const today = new Date(todayISO() + 'T00:00:00');
+        return Math.round((today - due) / 86400000);
+    }
+
+    function buildWhatsAppLink(phone, message) {
+        const digits = phone.replace(/\D/g, '');
+        return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+    }
+
+    function renderReminders(reminders) {
+        listEl.innerHTML = '';
+        if (!reminders.length) {
+            listEl.innerHTML = '<p class="empty-hint">Nothing due today — you\'re all caught up.</p>';
+            return;
+        }
+        reminders.forEach((r) => {
+            const overdueBy = daysOverdue(r.due_date);
+            const isOverdue = overdueBy > 0;
+            const customer = r.customers || {};
+
+            const row = document.createElement('div');
+            row.className = 'followup-row' + (isOverdue ? ' overdue' : '');
+            row.innerHTML = `
+                <div class="followup-info">
+                    <div class="followup-name">${customer.name || 'Unknown customer'}</div>
+                    <div class="followup-meta">${r.type} · due ${r.due_date}</div>
+                </div>
+                <div class="followup-badge${isOverdue ? ' overdue' : ''}">${isOverdue ? overdueBy + ' day' + (overdueBy > 1 ? 's' : '') + ' overdue' : 'Due today'}</div>
+                <div class="followup-actions">
+                    <button class="btn btn-primary" data-action="whatsapp">WhatsApp</button>
+                    <button class="btn btn-dark" data-action="done">Mark Done</button>
+                </div>
+            `;
+
+            row.querySelector('[data-action="whatsapp"]').addEventListener('click', () => {
+                if (!customer.phone) {
+                    setStatus('This customer has no phone number on file.', true);
+                    return;
+                }
+                const message = `Hi ${customer.name}, this is MK Optics — just a friendly reminder about your ${r.type.toLowerCase()}. Would you like to drop by or book a time?`;
+                window.open(buildWhatsAppLink(customer.phone, message), '_blank');
+            });
+
+            row.querySelector('[data-action="done"]').addEventListener('click', async () => {
+                const { error } = await supabase.from('reminders').update({ status: 'done' }).eq('id', r.id);
+                if (error) {
+                    setStatus('Could not update reminder: ' + error.message, true);
+                    return;
+                }
+                row.remove();
+                if (!listEl.querySelector('.followup-row')) {
+                    renderReminders([]);
+                }
+            });
+
+            listEl.appendChild(row);
+        });
+    }
+
+    async function loadReminders() {
+        if (!supabase) {
+            listEl.innerHTML = '<p class="empty-hint">Connect Supabase to see follow-ups.</p>';
+            return;
+        }
+        const { data, error } = await supabase
+            .from('reminders')
+            .select('*, customers(name, phone)')
+            .eq('status', 'pending')
+            .lte('due_date', todayISO())
+            .order('due_date', { ascending: true });
+        if (error) {
+            listEl.innerHTML = '<p class="empty-hint">Could not load follow-ups: ' + error.message + '</p>';
+            return;
+        }
+        renderReminders(data || []);
+    }
+
+    window.MKAuth.ready.then(loadReminders);
+})();
+</script>
+
+</body>
+</html>

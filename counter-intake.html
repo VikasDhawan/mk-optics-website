@@ -5,180 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Counter Intake | MK Optics</title>
 
+<link rel="stylesheet" href="app-shared.css">
 <style>
-    * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-    }
-
-    [hidden] {
-        display: none !important;
-    }
-
-    :root {
-        --navy: #0d2a66;
-        --navy-dark: #081b45;
-        --green: #6fd66f;
-        --green-dark: #1c7a3e;
-        --green-pale: #d9f5da;
-        --cream: #f4f6fb;
-        --white: #ffffff;
-        --ink: #101a33;
-        --grey: #5a6478;
-        --line: #dde3ef;
-    }
-
-    body {
-        font-family: Arial, Helvetica, sans-serif;
-        color: var(--ink);
-        background: var(--cream);
-        line-height: 1.5;
-        min-height: 100vh;
-        display: flex;
-    }
-
-    a { color: inherit; text-decoration: none; }
-
-    /* LAYOUT */
-
-    .app {
-        display: flex;
-        width: 100%;
-        min-height: 100vh;
-    }
-
-    .sidebar {
-        width: 240px;
-        flex-shrink: 0;
-        background: linear-gradient(180deg, var(--navy) 0%, var(--navy-dark) 100%);
-        color: var(--white);
-        padding: 28px 20px;
-        display: flex;
-        flex-direction: column;
-        gap: 30px;
-        justify-content: space-between;
-        position: sticky;
-        top: 0;
-        height: 100vh;
-        overflow-y: auto;
-    }
-
-    .sidebar-brand {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-family: Georgia, serif;
-        font-weight: 700;
-        font-size: 18px;
-        letter-spacing: 1px;
-    }
-
-    .sidebar-brand svg { width: 26px; height: 13px; flex-shrink: 0; }
-
-    .sidebar-nav {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
-
-    .sidebar-nav a {
-        padding: 12px 14px;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 600;
-        color: #cdd9f5;
-    }
-
-    .sidebar-nav a.active {
-        background: var(--green);
-        color: var(--navy-dark);
-    }
-
-    .main {
-        flex: 1;
-        min-width: 0;
-    }
-
-    .topbar {
-        background: linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%);
-        color: var(--white);
-        padding: 34px 5%;
-    }
-
-    .topbar h1 {
-        font-family: Georgia, serif;
-        font-size: 34px;
-        margin-bottom: 6px;
-    }
-
-    .topbar p {
-        color: #cdd9f5;
-        font-size: 14px;
-    }
-
-    .content {
-        padding: 28px 5% 60px;
-        max-width: 1300px;
-    }
-
-    /* CARDS */
-
-    .card {
-        background: var(--white);
-        border: 1px solid var(--line);
-        border-radius: 10px;
-        padding: 24px;
-        margin-bottom: 24px;
-    }
-
-    .card h2 {
-        font-family: Georgia, serif;
-        color: var(--navy);
-        font-size: 20px;
-        margin-bottom: 18px;
-    }
-
-    .grid-2 {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 24px;
-    }
-
-    label.field-label {
-        display: block;
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.8px;
-        color: var(--grey);
-        font-weight: 700;
-        margin-bottom: 6px;
-    }
-
-    input[type="text"],
-    input[type="search"],
-    input[type="number"],
-    input[type="date"],
-    select,
-    textarea {
-        width: 100%;
-        padding: 12px 14px;
-        border: 1.5px solid var(--line);
-        border-radius: 8px;
-        font-size: 14px;
-        font-family: inherit;
-        color: var(--ink);
-        background: var(--white);
-    }
-
-    input:focus, select:focus, textarea:focus {
-        outline: none;
-        border-color: var(--green-dark);
-    }
-
-    textarea { resize: vertical; min-height: 70px; }
-
-    /* CUSTOMER SEARCH */
+    /* CUSTOMER SEARCH (page-specific to Counter Intake) */
 
     .search-row {
         display: flex;
@@ -188,40 +17,6 @@
     }
 
     .search-row input { flex: 1; min-width: 200px; }
-
-    .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        padding: 12px 20px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 700;
-        letter-spacing: 0.3px;
-        border: none;
-        cursor: pointer;
-        white-space: nowrap;
-    }
-
-    .btn-primary {
-        background: var(--green);
-        color: var(--navy-dark);
-    }
-
-    .btn-primary:hover { background: #5cc95c; }
-
-    .btn-dark {
-        background: var(--green-dark);
-        color: var(--white);
-    }
-
-    .btn-dark:hover { background: #166634; }
-
-    .btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
 
     .customer-results {
         display: flex;
@@ -268,12 +63,6 @@
         font-weight: 700;
         color: var(--green-dark);
         text-align: right;
-    }
-
-    .empty-hint {
-        font-size: 13px;
-        color: var(--grey);
-        padding: 10px 2px;
     }
 
     /* RX TABLE */
@@ -363,125 +152,10 @@
     .summary-bar strong { color: var(--navy); display: block; margin-bottom: 4px; }
     .summary-bar p { font-size: 13px; color: var(--grey); }
 
-    .status-msg {
-        font-size: 13px;
-        font-weight: 700;
-        margin-top: 10px;
-    }
-
-    .status-msg.ok { color: var(--green-dark); }
-    .status-msg.error { color: #b02a2a; }
-
-    .config-banner {
-        background: #fff4d6;
-        border: 1px solid #e8c766;
-        color: #6a4e00;
-        padding: 14px 18px;
-        border-radius: 8px;
-        font-size: 13px;
-        margin-bottom: 20px;
-    }
-
-    /* MOBILE */
-
     @media (max-width: 900px) {
-        .app { flex-direction: column; }
-
-        .sidebar {
-            width: 100%;
-            flex-direction: row;
-            align-items: center;
-            padding: 14px 16px;
-            gap: 16px;
-            overflow-x: auto;
-            justify-content: flex-start;
-            position: static;
-            height: auto;
-        }
-
-        .staff-email { display: none; }
-        .sign-out-link { padding: 8px 12px; white-space: nowrap; }
-
-        .sidebar-nav {
-            flex-direction: row;
-            gap: 4px;
-        }
-
-        .sidebar-nav a {
-            padding: 8px 12px;
-            white-space: nowrap;
-            font-size: 13px;
-        }
-
-        .topbar { padding: 24px 6%; }
-        .topbar h1 { font-size: 26px; }
-        .content { padding: 20px 6% 50px; }
-
-        .grid-2 { grid-template-columns: 1fr; }
-
         .rx-table { display: block; overflow-x: auto; }
-
         .summary-bar { flex-direction: column; align-items: stretch; text-align: left; }
         .summary-bar .btn { width: 100%; }
-    }
-
-    /* LOGIN */
-
-    .login-screen {
-        min-height: 100vh;
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(160deg, var(--navy) 0%, var(--navy-dark) 100%);
-        padding: 24px;
-    }
-
-    .login-card {
-        background: var(--white);
-        border-radius: 12px;
-        padding: 36px 32px;
-        width: 100%;
-        max-width: 380px;
-    }
-
-    .login-card .sidebar-brand {
-        color: var(--navy);
-        justify-content: center;
-        margin-bottom: 24px;
-        font-size: 20px;
-    }
-
-    .login-card h2 {
-        font-family: Georgia, serif;
-        color: var(--navy);
-        font-size: 20px;
-        margin-bottom: 4px;
-    }
-
-    .login-card p.sub {
-        color: var(--grey);
-        font-size: 13px;
-        margin-bottom: 22px;
-    }
-
-    .login-field {
-        margin-bottom: 16px;
-    }
-
-    .sign-out-link {
-        margin-top: auto;
-        font-size: 12px;
-        color: #cdd9f5;
-        cursor: pointer;
-        padding: 10px 14px;
-    }
-
-    .staff-email {
-        font-size: 11px;
-        color: #9fb0d8;
-        padding: 0 14px;
-        word-break: break-all;
     }
 </style>
 </head>
@@ -524,9 +198,9 @@
         </div>
         <nav class="sidebar-nav">
             <a href="counter-intake.html" class="active">Counter Intake</a>
+            <a href="follow-ups.html">Follow-Ups</a>
             <a href="#">Customers</a>
             <a href="#">Campaigns</a>
-            <a href="#">Dashboard</a>
             <a href="#">Settings</a>
         </nav>
         <div>
@@ -722,83 +396,12 @@
 
 <script src="supabase-config.js" onerror="window.__SUPABASE_CONFIG_MISSING__ = true"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="auth-gate.js"></script>
 <script>
 (function () {
-    const cfg = window.SUPABASE_CONFIG;
-    const configBanner = document.getElementById('config-banner');
-    let supabase = null;
-
-    if (!cfg || !cfg.url || cfg.url.indexOf('YOUR-PROJECT-REF') !== -1) {
-        configBanner.hidden = false;
-    } else {
-        supabase = window.supabase.createClient(cfg.url, cfg.anonKey);
-    }
-
-    // ---- Staff login gate -------------------------------------------
-    // If Supabase isn't configured at all, there's nothing to log into —
-    // just show the app (with its "not configured" banner) as before.
-    // Once Supabase IS configured, nobody sees the app until they've
-    // signed in with a staff account created in the Supabase dashboard.
-    const loginScreen = document.getElementById('login-screen');
-    const appRoot = document.getElementById('app-root');
-    const loginError = document.getElementById('login-error');
-    const staffEmailEl = document.getElementById('staff-email');
-
-    // Supabase expects phone numbers in E.164 format (e.g. +919845012345 —
-    // a "+", the country code, then the number, no spaces/dashes). This
-    // strips everything except digits and a leading "+" so "+91 98450
-    // 12345" and "+91-98450-12345" both work.
-    function normalizePhone(raw) {
-        const trimmed = raw.trim();
-        const hasPlus = trimmed.startsWith('+');
-        const digits = trimmed.replace(/\D/g, '');
-        return (hasPlus ? '+' : '+') + digits;
-    }
-
-    function showApp(session) {
-        loginScreen.hidden = true;
-        appRoot.hidden = false;
-        staffEmailEl.textContent = session && session.user ? (session.user.phone || session.user.email || '') : '';
-    }
-
-    function showLogin() {
-        loginScreen.hidden = false;
-        appRoot.hidden = true;
-    }
-
-    if (!supabase) {
-        showApp(null);
-    } else {
-        supabase.auth.getSession().then(({ data }) => {
-            if (data.session) { showApp(data.session); } else { showLogin(); }
-        });
-
-        supabase.auth.onAuthStateChange((_event, session) => {
-            if (session) { showApp(session); } else { showLogin(); }
-        });
-
-        document.getElementById('login-btn').addEventListener('click', async () => {
-            const phoneInput = document.getElementById('login-phone').value.trim();
-            const password = document.getElementById('login-password').value;
-            loginError.textContent = '';
-            if (!phoneInput || !password) {
-                loginError.textContent = 'Enter both mobile number and password.';
-                return;
-            }
-            const { error } = await supabase.auth.signInWithPassword({ phone: normalizePhone(phoneInput), password });
-            if (error) {
-                loginError.textContent = error.message;
-            }
-        });
-
-        document.getElementById('login-password').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') document.getElementById('login-btn').click();
-        });
-
-        document.getElementById('sign-out-btn').addEventListener('click', () => {
-            supabase.auth.signOut();
-        });
-    }
+    // auth-gate.js already checked config, created the Supabase client,
+    // and wired up the login screen — we just reuse its client here.
+    const supabase = window.MKAuth.supabase;
 
     let selectedCustomer = null;
     let selectedReminder = 'Eye test';
@@ -1020,6 +623,23 @@
         if (error) {
             setStatus('Could not save visit: ' + error.message, true);
             return;
+        }
+
+        // A visit's "next reminder date" is only useful if it actually
+        // shows up on a follow-up list somewhere — so every saved visit
+        // with a reminder date also creates a row in `reminders`, which
+        // is what the Follow-Ups page reads from.
+        if (visit.next_reminder_date) {
+            const { error: reminderError } = await supabase.from('reminders').insert({
+                customer_id: selectedCustomer.id,
+                type: selectedReminder,
+                due_date: visit.next_reminder_date,
+                status: 'pending'
+            });
+            if (reminderError) {
+                setStatus('Visit saved, but could not create the follow-up reminder: ' + reminderError.message, true);
+                return;
+            }
         }
 
         const message = `Hi ${selectedCustomer.name}, thanks for visiting MK Optics! We've recorded your purchase (${visit.frame || 'your order'}). We'll remind you about your ${selectedReminder.toLowerCase()} around ${visit.next_reminder_date || 'your next visit'}.`;
