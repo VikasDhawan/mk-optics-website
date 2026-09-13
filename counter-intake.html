@@ -646,10 +646,25 @@
         return phone.slice(0, phone.length - 5) + 'XXXXX';
     }
 
-    function renderResults(customers) {
+    function renderResults(customers, searchTerm) {
         resultsEl.innerHTML = '';
         if (!customers.length) {
-            resultsEl.innerHTML = '<p class="empty-hint">No matches. Use "+ New Customer" to add one.</p>';
+            const hint = document.createElement('div');
+            hint.className = 'empty-hint';
+            const isPhone = /\d{4,}/.test(searchTerm || '');
+            hint.innerHTML = `No customer found${searchTerm ? ` for "${searchTerm}"` : ''}. `;
+            const addBtn = document.createElement('button');
+            addBtn.className = 'btn btn-primary';
+            addBtn.style.marginLeft = '6px';
+            addBtn.textContent = '+ Add as New Customer';
+            addBtn.addEventListener('click', () => {
+                el('new-customer-form').hidden = false;
+                if (searchTerm) {
+                    el(isPhone ? 'nc-phone' : 'nc-name').value = searchTerm;
+                }
+            });
+            hint.appendChild(addBtn);
+            resultsEl.appendChild(hint);
             return;
         }
         customers.forEach((c) => {
@@ -689,7 +704,7 @@
             resultsEl.innerHTML = '<p class="empty-hint">Search failed: ' + error.message + '</p>';
             return;
         }
-        renderResults(data || []);
+        renderResults(data || [], term);
     }
 
     el('customer-search').addEventListener('input', (e) => {
