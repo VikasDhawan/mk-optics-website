@@ -478,28 +478,36 @@
         return (data && data[0]) || null;
     }
 
-    async function showExistingCustomer(c) {
+    // Selects a customer and shows their card. `fetchHistory` controls
+    // whether we also load and pre-fill their last visit into the
+    // Prescription/Purchase form below — this must be true for a real
+    // lookup (staff expects to see history) and false right after
+    // creating a brand-new customer (there is no history, and doing
+    // this would wipe out anything staff already typed into the form
+    // before saving the new customer — that was the bug reported).
+    async function selectCustomer(c, { isNew, fetchHistory }) {
         selectedCustomer = c;
         el('new-customer-form').hidden = true;
         resultsEl.innerHTML = '';
 
         const row = document.createElement('div');
         row.className = 'customer-row selected';
-        row.title = 'Click to open this customer\'s record';
+        row.title = 'Click to reopen this customer\'s record';
         row.innerHTML = `
             <div class="avatar">${initials(c.name)}</div>
             <div>
                 <div class="customer-name">${c.name}</div>
                 <div class="customer-meta">${maskPhone(c.phone)}</div>
             </div>
-            <div class="customer-tag">Existing customer — record open ✓</div>
+            <div class="customer-tag">${isNew ? 'New customer added ✓' : 'Existing customer — record open ✓'}</div>
         `;
-        // Already selected/open; clicking again just re-confirms the selection.
-        row.addEventListener('click', () => showExistingCustomer(c));
+        row.addEventListener('click', () => selectCustomer(c, { isNew: false, fetchHistory: true }));
         resultsEl.appendChild(row);
 
-        const latestVisit = await loadLatestVisit(c.id);
-        populateVisitForm(latestVisit);
+        if (fetchHistory) {
+            const latestVisit = await loadLatestVisit(c.id);
+            populateVisitForm(latestVisit);
+        }
     }
 
     function showNewCustomerPrompt(phone) {
@@ -533,7 +541,7 @@
             return;
         }
         if (data && data.length === 1) {
-            showExistingCustomer(data[0]);
+            selectCustomer(data[0], { isNew: false, fetchHistory: true });
         } else if (data && data.length > 1) {
             // More than one match (e.g. a short/partial number) — let staff pick.
             resultsEl.innerHTML = '';
@@ -548,7 +556,7 @@
                     </div>
                     <div class="customer-tag">Select</div>
                 `;
-                row.addEventListener('click', () => showExistingCustomer(c));
+                row.addEventListener('click', () => selectCustomer(c, { isNew: false, fetchHistory: true }));
                 resultsEl.appendChild(row);
             });
             el('new-customer-form').hidden = true;
@@ -565,16 +573,14 @@
         }
     });
 
-    el('save-new-customer-btn').addEventListener('click', async () => {
-        const name = el('nc-name').value.trim();
-        const phone = el('nc-phone').value.trim();
+    // Shared by both the standalone "Save Customer" button and by the
+    // main "Save & Send" button, which auto-creates the customer if
+    // staff filled in the new-customer fields but never clicked Save
+    // Customer separately — so there's no longer a required, easy-to-miss
+    // step at the top of the page before the real work at the bottom.
+    async function createNewCustomer(name, phone) {
         if (!name || !phone) {
-            setStatus('Enter a name and mobile number to add a customer.', true);
-            return;
-        }
-        if (!supabase) {
-            setStatus('Connect Supabase before adding customers.', true);
-            return;
+            return { error: 'Enter a name and mobile number to add a customer.' };
         }
         const { data, error } = await supabase
             .from('customers')
@@ -582,11 +588,23 @@
             .select()
             .single();
         if (error) {
-            setStatus('Could not save customer: ' + error.message, true);
+            return { error: 'Could not save customer: ' + error.message };
+        }
+        return { customer: data };
+    }
+
+    el('save-new-customer-btn').addEventListener('click', async () => {
+        if (!supabase) {
+            setStatus('Connect Supabase before adding customers.', true);
             return;
         }
-        showExistingCustomer(data);
-        setStatus('Customer added and selected.', false);
+        const result = await createNewCustomer(el('nc-name').value.trim(), el('nc-phone').value.trim());
+        if (result.error) {
+            setStatus(result.error, true);
+            return;
+        }
+        selectCustomer(result.customer, { isNew: true, fetchHistory: false });
+        setStatus('Customer added and selected — continue filling in the visit below.', false);
     });
 
     document.getElementById('reminder-chips').addEventListener('click', (e) => {
@@ -603,12 +621,26 @@
     }
 
     el('save-visit-btn').addEventListener('click', async () => {
-        if (!selectedCustomer) {
-            setStatus('Select or add a customer first.', true);
-            return;
-        }
         if (!supabase) {
             setStatus('Connect Supabase before saving a visit.', true);
+            return;
+        }
+
+        // If staff typed a new customer's details but never clicked the
+        // separate "Save Customer" button, create the customer now
+        // instead of blocking with an error far from where the mistake
+        // actually is (the top of the page).
+        if (!selectedCustomer && !el('new-customer-form').hidden) {
+            const result = await createNewCustomer(el('nc-name').value.trim(), el('nc-phone').value.trim());
+            if (result.error) {
+                setStatus(result.error, true);
+                return;
+            }
+            selectCustomer(result.customer, { isNew: true, fetchHistory: false });
+        }
+
+        if (!selectedCustomer) {
+            setStatus('Search for a customer\'s mobile number above, or add a new one, before saving.', true);
             return;
         }
 
