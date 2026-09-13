@@ -26,8 +26,10 @@ The Counter Intake app stores customers and visits in [Supabase](https://supabas
    project's URL and anon/public key (Project Settings > API).
    `supabase-config.js` is gitignored so your keys don't need to be committed.
 4. Create at least one staff account: Supabase dashboard > Authentication >
-   Users > **Add user** (email + password). This is who will log into the
-   Counter Intake app.
+   Users > **Add user** — fill in **Phone** (with country code, e.g.
+   `+919845012345`, no spaces) and a password, leave Email blank. Turn on
+   "Auto Confirm" if offered, so it doesn't wait on an SMS confirmation
+   that will never arrive. This is who will log into the Counter Intake app.
 5. Run `supabase-migration-002-require-login.sql` in the SQL Editor. This
    locks the database down to "only logged-in staff can read/write" — do
    this only after step 4, so you have a way to log in once it's locked.
@@ -43,10 +45,19 @@ The Counter Intake app stores customers and visits in [Supabase](https://supabas
 ### Staff login
 
 The app uses Supabase's built-in login (Supabase Auth) — no custom
-password-handling code. Add or remove staff accounts anytime from
-Supabase dashboard > Authentication > Users; there's no separate "sign up"
-screen in the app itself (staff don't self-register). Once logged in, the
-browser stays signed in until "Sign out" is clicked (bottom of the sidebar).
+password-handling code. Staff log in with their **mobile number and a
+password** (not email), matching how customers are identified elsewhere
+in the app. This uses phone+password sign-in, not SMS one-time codes, so
+no SMS provider or cost is involved. Add or remove staff accounts anytime
+from Supabase dashboard > Authentication > Users; there's no separate
+"sign up" screen in the app itself (staff don't self-register). Once
+logged in, the browser stays signed in until "Sign out" is clicked
+(bottom of the sidebar).
+
+If a staff member forgets their password, there's no self-service "forgot
+password" flow for phone-based accounts (that requires SMS, which we're
+not using) — an admin resets it manually from Supabase dashboard >
+Authentication > Users > (select the user) > Reset password.
 
 ### WhatsApp confirmations
 

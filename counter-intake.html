@@ -497,10 +497,11 @@
             MK OPTICS
         </div>
         <h2>Staff Login</h2>
-        <p class="sub">Sign in with the email and password your manager set up for you.</p>
+        <p class="sub">Sign in with the mobile number and password your manager set up for you.</p>
         <div class="login-field">
-            <label class="field-label" for="login-email">Email</label>
-            <input type="email" id="login-email" placeholder="you@mkoptics.example" autocomplete="username">
+            <label class="field-label" for="login-phone">Mobile Number</label>
+            <input type="tel" id="login-phone" placeholder="+91 98450 12345" autocomplete="username">
+            <p class="empty-hint" style="margin-top:4px">Include the country code, e.g. +91 for India.</p>
         </div>
         <div class="login-field">
             <label class="field-label" for="login-password">Password</label>
@@ -743,10 +744,21 @@
     const loginError = document.getElementById('login-error');
     const staffEmailEl = document.getElementById('staff-email');
 
+    // Supabase expects phone numbers in E.164 format (e.g. +919845012345 —
+    // a "+", the country code, then the number, no spaces/dashes). This
+    // strips everything except digits and a leading "+" so "+91 98450
+    // 12345" and "+91-98450-12345" both work.
+    function normalizePhone(raw) {
+        const trimmed = raw.trim();
+        const hasPlus = trimmed.startsWith('+');
+        const digits = trimmed.replace(/\D/g, '');
+        return (hasPlus ? '+' : '+') + digits;
+    }
+
     function showApp(session) {
         loginScreen.hidden = true;
         appRoot.hidden = false;
-        staffEmailEl.textContent = session && session.user ? session.user.email : '';
+        staffEmailEl.textContent = session && session.user ? (session.user.phone || session.user.email || '') : '';
     }
 
     function showLogin() {
@@ -766,14 +778,14 @@
         });
 
         document.getElementById('login-btn').addEventListener('click', async () => {
-            const email = document.getElementById('login-email').value.trim();
+            const phoneInput = document.getElementById('login-phone').value.trim();
             const password = document.getElementById('login-password').value;
             loginError.textContent = '';
-            if (!email || !password) {
-                loginError.textContent = 'Enter both email and password.';
+            if (!phoneInput || !password) {
+                loginError.textContent = 'Enter both mobile number and password.';
                 return;
             }
-            const { error } = await supabase.auth.signInWithPassword({ email, password });
+            const { error } = await supabase.auth.signInWithPassword({ phone: normalizePhone(phoneInput), password });
             if (error) {
                 loginError.textContent = error.message;
             }
