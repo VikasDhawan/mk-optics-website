@@ -181,11 +181,16 @@ create index if not exists referrals_referrer_idx on referrals (referrer_custome
 -- =====================================================================
 -- SECURITY — Row Level Security (RLS)
 -- =====================================================================
--- This is like a rule that says "only people who are logged into this
--- app may read or write these folders." Since this is an internal
--- staff tool, we start with a simple rule (any logged-in/authenticated
--- user can read and write) and can tighten it later (e.g. per-branch
--- staff accounts) once you have staff logins set up.
+-- This is like a rule that says who is allowed to read or write these
+-- folders. The Counter Intake app doesn't have a staff login screen
+-- yet, so for now we allow "anon" (anyone with the app's public key,
+-- i.e. anyone who can open the app page) to read and write — this is
+-- a TEMPORARY, testing-only setting.
+--
+-- IMPORTANT: before this app is used with real customer data, add a
+-- staff login and change these policies to "authenticated" only (see
+-- the commented-out stricter version below each policy), so a random
+-- visitor to the page can't read or edit your customer list.
 -- =====================================================================
 
 alter table customers enable row level security;
@@ -194,35 +199,35 @@ alter table leads enable row level security;
 alter table reminders enable row level security;
 alter table referrals enable row level security;
 
-create policy "Authenticated users can read customers"
-  on customers for select to authenticated using (true);
-create policy "Authenticated users can write customers"
-  on customers for insert to authenticated with check (true);
-create policy "Authenticated users can update customers"
-  on customers for update to authenticated using (true);
+create policy "Anyone with the app can read customers (testing only)"
+  on customers for select to anon, authenticated using (true);
+create policy "Anyone with the app can write customers (testing only)"
+  on customers for insert to anon, authenticated with check (true);
+create policy "Anyone with the app can update customers (testing only)"
+  on customers for update to anon, authenticated using (true);
 
-create policy "Authenticated users can read visits"
-  on visits for select to authenticated using (true);
-create policy "Authenticated users can write visits"
-  on visits for insert to authenticated with check (true);
+create policy "Anyone with the app can read visits (testing only)"
+  on visits for select to anon, authenticated using (true);
+create policy "Anyone with the app can write visits (testing only)"
+  on visits for insert to anon, authenticated with check (true);
 
-create policy "Authenticated users can read leads"
-  on leads for select to authenticated using (true);
-create policy "Authenticated users can write leads"
-  on leads for insert to authenticated with check (true);
-create policy "Authenticated users can update leads"
-  on leads for update to authenticated using (true);
+create policy "Anyone with the app can read leads (testing only)"
+  on leads for select to anon, authenticated using (true);
+create policy "Anyone with the app can write leads (testing only)"
+  on leads for insert to anon, authenticated with check (true);
+create policy "Anyone with the app can update leads (testing only)"
+  on leads for update to anon, authenticated using (true);
 
-create policy "Authenticated users can read reminders"
-  on reminders for select to authenticated using (true);
-create policy "Authenticated users can write reminders"
-  on reminders for insert to authenticated with check (true);
-create policy "Authenticated users can update reminders"
-  on reminders for update to authenticated using (true);
+create policy "Anyone with the app can read reminders (testing only)"
+  on reminders for select to anon, authenticated using (true);
+create policy "Anyone with the app can write reminders (testing only)"
+  on reminders for insert to anon, authenticated with check (true);
+create policy "Anyone with the app can update reminders (testing only)"
+  on reminders for update to anon, authenticated using (true);
 
-create policy "Authenticated users can read referrals"
-  on referrals for select to authenticated using (true);
-create policy "Authenticated users can write referrals"
-  on referrals for insert to authenticated with check (true);
-create policy "Authenticated users can update referrals"
-  on referrals for update to authenticated using (true);
+create policy "Anyone with the app can read referrals (testing only)"
+  on referrals for select to anon, authenticated using (true);
+create policy "Anyone with the app can write referrals (testing only)"
+  on referrals for insert to anon, authenticated with check (true);
+create policy "Anyone with the app can update referrals (testing only)"
+  on referrals for update to anon, authenticated using (true);
