@@ -3,7 +3,7 @@
 // login screen or the app depending on whether someone is signed in.
 //
 // Every page using this expects these elements to exist in its HTML:
-//   #config-banner, #login-screen, #login-phone, #login-password,
+//   #config-banner, #login-screen, #login-email, #login-password,
 //   #login-btn, #login-error, #app-root, #staff-email, #sign-out-btn
 //
 // After this script runs, window.MKAuth.supabase is either the Supabase
@@ -29,18 +29,11 @@
     const loginError = document.getElementById('login-error');
     const staffEmailEl = document.getElementById('staff-email');
 
-    // Supabase expects phone numbers in E.164 format (e.g. +919845012345 —
-    // a "+", the country code, then the number, no spaces/dashes).
-    function normalizePhone(raw) {
-        const digits = raw.trim().replace(/\D/g, '');
-        return '+' + digits;
-    }
-
     function showApp(session) {
         loginScreen.hidden = true;
         appRoot.hidden = false;
         if (staffEmailEl) {
-            staffEmailEl.textContent = session && session.user ? (session.user.phone || session.user.email || '') : '';
+            staffEmailEl.textContent = session && session.user ? (session.user.email || '') : '';
         }
     }
 
@@ -64,14 +57,14 @@
     });
 
     document.getElementById('login-btn').addEventListener('click', async () => {
-        const phoneInput = document.getElementById('login-phone').value.trim();
+        const email = document.getElementById('login-email').value.trim();
         const password = document.getElementById('login-password').value;
         loginError.textContent = '';
-        if (!phoneInput || !password) {
-            loginError.textContent = 'Enter both mobile number and password.';
+        if (!email || !password) {
+            loginError.textContent = 'Enter both email and password.';
             return;
         }
-        const { error } = await supabase.auth.signInWithPassword({ phone: normalizePhone(phoneInput), password });
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
             loginError.textContent = error.message;
         }
