@@ -3,88 +3,107 @@ Website prototype for M&K Optics
 
 ## Pages
 
-- `index.html` — public marketing site.
-- `counter-intake.html` — internal Counter Intake app for staff to look up
-  customers, record a sale, capture the prescription, and send a WhatsApp
-  confirmation. Responsive down to mobile widths.
-- `follow-ups.html` — internal Follow-Ups app listing every reminder due
-  today or overdue (eye tests, refills, offers — whatever was set as
-  "Reminder For" when a visit was saved), with a one-tap WhatsApp message
-  and a "Mark Done" button per customer.
-- `app-shared.css` / `auth-gate.js` — shared styling and the staff-login
-  gate used by both apps above, so a fix or design change in either only
-  needs to happen once. Any new staff page should reuse both rather than
-  copying their own version.
+**Public**
+- `index.html` — marketing site.
+- `rewards-signup.html` — QR-code sign-up page for customers to join the
+  rewards program themselves at the counter. No login; deliberately
+  narrow write access (see Security below).
 
-## Setting up the Counter Intake app (Supabase)
+**Staff (all behind login, all share the same sidebar/navigation)**
+- `counter-intake.html` — look up or add a customer by mobile number,
+  capture prescription + purchase, save, and send a WhatsApp confirmation.
+- `follow-ups.html` — every reminder due today or overdue, with a
+  one-tap WhatsApp message and "Mark Done."
+- `customers.html` — search any customer and see their full contact
+  details, preferences/notes (editable), pending reminders, and complete
+  purchase + prescription history across every visit.
+- `leads.html` — log walk-ins/enquiries who didn't buy, follow up via
+  WhatsApp, and convert a lead into a real customer record (creating one
+  if it doesn't already exist) or mark it lost.
+- `referrals.html` — look up the referring customer, log who they
+  referred, ask them via WhatsApp, advance status (invited → joined →
+  purchased), and track whether each side's discount was given.
 
-The Counter Intake app stores customers and visits in [Supabase](https://supabase.com)
-(free tier is enough for this).
+**Shared**
+- `app-shared.css` / `auth-gate.js` — layout, login screen, and the
+  staff-login gate used by every staff page above. A fix or design
+  change here applies everywhere at once. Any new staff page should
+  reuse both rather than copying its own version.
+
+## Setting up (Supabase)
+
+The app stores everything in [Supabase](https://supabase.com) (free tier
+is enough).
 
 1. Create a free project at supabase.com.
-2. Open the SQL Editor in your project and run the contents of
-   `supabase-schema.sql`. This creates five tables: `customers`,
-   `visits` (prescription + purchase per visit), `leads` (enquiries
-   that didn't convert to a sale), `reminders` (eye-test, contact-lens
-   refill, review/referral asks, offers, social posts — one table
-   drives the daily follow-up list), and `referrals` (who referred
-   whom, and whether each side's discount was given). Each table has a
-   plain-English comment above it in the file explaining what it's for.
-3. Copy `supabase-config.example.js` to `supabase-config.js` and fill in your
-   project's URL and anon/public key (Project Settings > API).
-   `supabase-config.js` is gitignored so your keys don't need to be committed.
-4. Create at least one staff account: Supabase dashboard > Authentication >
-   Users > **Add user** — fill in **Email** and a password (the email
-   doesn't need to be a real inbox you check, since accounts are created
-   directly here rather than via self-signup). Turn on "Auto Confirm" if
-   offered, so it doesn't wait on an email confirmation click that will
-   never come. This is who will log into the Counter Intake app.
+2. SQL Editor → run `supabase-schema.sql`. Creates `customers`, `visits`,
+   `leads`, `reminders`, `referrals` — each with a plain-English comment
+   explaining what it's for.
+3. Copy `supabase-config.example.js` to `supabase-config.js`, fill in your
+   project's URL and anon/public key (Project Settings → API Keys).
+   `supabase-config.js` is gitignored — your keys don't need to be
+   committed.
+4. Create at least one staff account: Authentication → Users → **Add
+   user** — Email + password (doesn't need to be a real inbox; accounts
+   are created directly here, not via self-signup). Turn on "Auto
+   Confirm" if offered.
 
-   (We initially tried phone-number-based login to match the customer
-   ID convention, but Supabase's "Phone" sign-in method is off by default
-   and enabling it may require configuring a paid SMS provider even for
-   password-only logins — not worth the friction for an internal tool, so
-   we're using email instead.)
-5. Run `supabase-migration-002-require-login.sql` in the SQL Editor. This
-   locks the database down to "only logged-in staff can read/write" — do
-   this only after step 4, so you have a way to log in once it's locked.
-6. Open `counter-intake.html` in a browser (or serve the folder with any
-   static file server). If Supabase isn't configured yet, the page shows a
-   banner and skips the login screen entirely (nothing to log into). Once
-   configured, you'll see a staff login screen — sign in with the account
-   from step 4. `follow-ups.html` uses the same login. Saving a visit with
-   a "Next Reminder Date" now also creates a row in `reminders`, which is
-   what `follow-ups.html` reads from. The `leads` and `referrals` tables
-   are still in place for later features but aren't wired into a screen yet.
+   (We initially tried phone-number login to match the customer-ID
+   convention, but Supabase's "Phone" sign-in method is off by default
+   and enabling it may require a paid SMS provider even for
+   password-only logins — not worth the friction, so it's email.)
+5. SQL Editor → run `supabase-migration-002-require-login.sql`. Locks the
+   database to "only logged-in staff can read/write" — run this *after*
+   step 4, so you have a way to log in once it's locked.
+6. SQL Editor → run `supabase-migration-003-reward-signups.sql`. Adds the
+   `reward_signups` table the public sign-up page writes to.
+7. Open `counter-intake.html` (or any staff page) in a browser, or serve
+   the folder with any static file server. Sign in with the account from
+   step 4.
 
 ### Staff login
 
-The app uses Supabase's built-in login (Supabase Auth) — no custom
-password-handling code. Staff log in with **email and password**. Add or
-remove staff accounts anytime from Supabase dashboard > Authentication >
-Users; there's no separate "sign up" screen in the app itself (staff
-don't self-register). Once logged in, the browser stays signed in until
-"Sign out" is clicked (bottom of the sidebar).
+Supabase's built-in login (Supabase Auth) — no custom password code.
+Email + password; no self-registration (add/remove accounts from
+Authentication → Users). Sessions persist until "Sign out" (bottom of
+the sidebar). Forgotten password → admin resets it manually from the
+same Users screen.
 
-If a staff member forgets their password, an admin can reset it manually
-from Supabase dashboard > Authentication > Users > (select the user) >
-Reset password — no need to rely on an actual email being sent.
+### Security model
 
-### WhatsApp confirmations
+- Staff pages: RLS requires a logged-in session for every read/write.
+- `rewards-signup.html`: no login, by design (customers fill it in
+  themselves). Rather than reopening the main `customers` table to
+  anonymous writes, anonymous visitors may only **insert** into the
+  separate `reward_signups` table — they can't read it back, so one
+  customer can't see another's submission. Staff review and merge these
+  into real customer records (currently: manually via `customers.html`;
+  a dedicated review screen is a natural next step).
+- Per-staff permissions (e.g. restricting who sees sale amounts) aren't
+  built — any logged-in staff account can do anything in the app.
 
-"Save & Send WhatsApp Confirmation" saves the visit to Supabase, then opens
-a `wa.me` link pre-filled with a confirmation message to the customer's
-number. This uses WhatsApp's free click-to-chat links — no WhatsApp Business
-API account is required, but a staff member does need to tap send in the
-WhatsApp window that opens.
+### WhatsApp messages
 
-## Roadmap
+Every "send via WhatsApp" button opens a `wa.me` click-to-chat link
+pre-filled with a message — free, no WhatsApp Business API account
+needed, but a staff member must tap send in the window that opens.
 
-- Per-staff permissions (e.g. only managers can see amounts/reports) —
-  today, any logged-in staff account can do anything in the app.
-- Public appointment booking flow.
-- A "Leads" screen for logging walk-ins/enquiries who didn't buy.
-- Rewards QR sign-up flow and referral tracking screens.
-- AI recommendation engine (what to sell next, contact-lens refill
-  timing) — needs 6-12 months of real customer data before it's useful,
-  per the growth-system plan this schema is based on.
+## Deliberately not built yet
+
+- **AI recommendation engine** (what to sell next, contact-lens refill
+  timing) — the growth-system plan this schema is based on marks this
+  "Future Feature, needs 6-12 months of data." Building UI for it now
+  would have nothing real behind it.
+- **Public appointment booking** — a separate, larger feature.
+- **Per-staff permissions / roles.**
+- **A review screen for `reward_signups`** — right now staff would check
+  that table directly in Supabase's Table Editor rather than in the app.
+
+## Testing
+
+Every page's logic (search, save, status changes, conversions) was
+verified with a scripted browser run against a mock Supabase client
+before being handed off — not just checked for syntax. Live end-to-end
+testing against a real Supabase project still needs to happen in an
+ordinary browser, since this development environment's network cannot
+reach Supabase's servers.
