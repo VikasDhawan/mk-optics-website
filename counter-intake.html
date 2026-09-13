@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Counter Intake | MK Optics</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    :root {
+        --navy: #0d2a66;
+        --navy-dark: #081b45;
+        --green: #6fd66f;
+        --green-dark: #1c7a3e;
+        --green-pale: #d9f5da;
+        --cream: #f4f6fb;
+        --white: #ffffff;
+        --ink: #101a33;
+        --grey: #5a6478;
+        --line: #dde3ef;
+    }
+
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        color: var(--ink);
+        background: var(--cream);
+        line-height: 1.5;
+        min-height: 100vh;
+        display: flex;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* LAYOUT */
+
+    .app {
+        display: flex;
+        width: 100%;
+        min-height: 100vh;
+    }
+
+    .sidebar {
+        width: 240px;
+        flex-shrink: 0;
+        background: linear-gradient(180deg, var(--navy) 0%, var(--navy-dark) 100%);
+        color: var(--white);
+        padding: 28px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+    }
+
+    .sidebar-brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: Georgia, serif;
+        font-weight: 700;
+        font-size: 18px;
+        letter-spacing: 1px;
+    }
+
+    .sidebar-brand svg { width: 26px; height: 13px; flex-shrink: 0; }
+
+    .sidebar-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .sidebar-nav a {
+        padding: 12px 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #cdd9f5;
+    }
+
+    .sidebar-nav a.active {
+        background: var(--green);
+        color: var(--navy-dark);
+    }
+
+    .main {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .topbar {
+        background: linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%);
+        color: var(--white);
+        padding: 34px 5%;
+    }
+
+    .topbar h1 {
+        font-family: Georgia, serif;
+        font-size: 34px;
+        margin-bottom: 6px;
+    }
+
+    .topbar p {
+        color: #cdd9f5;
+        font-size: 14px;
+    }
+
+    .content {
+        padding: 28px 5% 60px;
+        max-width: 1300px;
+    }
+
+    /* CARDS */
+
+    .card {
+        background: var(--white);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+
+    .card h2 {
+        font-family: Georgia, serif;
+        color: var(--navy);
+        font-size: 20px;
+        margin-bottom: 18px;
+    }
+
+    .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+
+    label.field-label {
+        display: block;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--grey);
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    input[type="search"],
+    input[type="number"],
+    input[type="date"],
+    select,
+    textarea {
+        width: 100%;
+        padding: 12px 14px;
+        border: 1.5px solid var(--line);
+        border-radius: 8px;
+        font-size: 14px;
+        font-family: inherit;
+        color: var(--ink);
+        background: var(--white);
+    }
+
+    input:focus, select:focus, textarea:focus {
+        outline: none;
+        border-color: var(--green-dark);
+    }
+
+    textarea { resize: vertical; min-height: 70px; }
+
+    /* CUSTOMER SEARCH */
+
+    .search-row {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+    }
+
+    .search-row input { flex: 1; min-width: 200px; }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        border: none;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .btn-primary {
+        background: var(--green);
+        color: var(--navy-dark);
+    }
+
+    .btn-primary:hover { background: #5cc95c; }
+
+    .btn-dark {
+        background: var(--green-dark);
+        color: var(--white);
+    }
+
+    .btn-dark:hover { background: #166634; }
+
+    .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .customer-results {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .customer-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 16px;
+        border-radius: 8px;
+        border: 1.5px solid var(--line);
+        cursor: pointer;
+        background: var(--cream);
+    }
+
+    .customer-row:hover { border-color: var(--green); }
+
+    .customer-row.selected {
+        background: var(--green-pale);
+        border-color: var(--green-dark);
+    }
+
+    .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--white);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: var(--navy);
+        flex-shrink: 0;
+    }
+
+    .customer-name { font-weight: 700; color: var(--ink); }
+    .customer-meta { font-size: 12px; color: var(--grey); }
+    .customer-tag {
+        margin-left: auto;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--green-dark);
+        text-align: right;
+    }
+
+    .empty-hint {
+        font-size: 13px;
+        color: var(--grey);
+        padding: 10px 2px;
+    }
+
+    /* RX TABLE */
+
+    .rx-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+
+    .rx-table th {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--grey);
+        text-align: left;
+        padding: 6px 6px;
+        font-weight: 700;
+    }
+
+    .rx-table td {
+        padding: 5px 6px;
+    }
+
+    .rx-table td.rx-label {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--navy);
+        white-space: nowrap;
+        padding-right: 10px;
+    }
+
+    .rx-table input {
+        padding: 9px 10px;
+        font-size: 13px;
+        min-width: 60px;
+    }
+
+    .rx-section-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--navy);
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        padding: 10px 0 4px;
+    }
+
+    /* REMINDER CHIPS */
+
+    .chip-row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .chip {
+        padding: 10px 16px;
+        border-radius: 20px;
+        border: 1.5px solid var(--line);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        background: var(--white);
+        color: var(--ink);
+    }
+
+    .chip.active {
+        background: var(--navy);
+        color: var(--white);
+        border-color: var(--navy);
+    }
+
+    /* SUMMARY BAR */
+
+    .summary-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        background: var(--green-pale);
+        border: 1px solid var(--green);
+        border-radius: 10px;
+        padding: 20px 24px;
+    }
+
+    .summary-bar strong { color: var(--navy); display: block; margin-bottom: 4px; }
+    .summary-bar p { font-size: 13px; color: var(--grey); }
+
+    .status-msg {
+        font-size: 13px;
+        font-weight: 700;
+        margin-top: 10px;
+    }
+
+    .status-msg.ok { color: var(--green-dark); }
+    .status-msg.error { color: #b02a2a; }
+
+    .config-banner {
+        background: #fff4d6;
+        border: 1px solid #e8c766;
+        color: #6a4e00;
+        padding: 14px 18px;
+        border-radius: 8px;
+        font-size: 13px;
+        margin-bottom: 20px;
+    }
+
+    /* MOBILE */
+
+    @media (max-width: 900px) {
+        .app { flex-direction: column; }
+
+        .sidebar {
+            width: 100%;
+            flex-direction: row;
+            align-items: center;
+            padding: 14px 16px;
+            gap: 16px;
+            overflow-x: auto;
+        }
+
+        .sidebar-nav {
+            flex-direction: row;
+            gap: 4px;
+        }
+
+        .sidebar-nav a {
+            padding: 8px 12px;
+            white-space: nowrap;
+            font-size: 13px;
+        }
+
+        .topbar { padding: 24px 6%; }
+        .topbar h1 { font-size: 26px; }
+        .content { padding: 20px 6% 50px; }
+
+        .grid-2 { grid-template-columns: 1fr; }
+
+        .rx-table { display: block; overflow-x: auto; }
+
+        .summary-bar { flex-direction: column; align-items: stretch; text-align: left; }
+        .summary-bar .btn { width: 100%; }
+    }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <svg viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" stroke="#6fd66f" stroke-width="3"/>
+                <circle cx="36" cy="12" r="10" stroke="#6fd66f" stroke-width="3"/>
+            </svg>
+            MK OPTICS
+        </div>
+        <nav class="sidebar-nav">
+            <a href="counter-intake.html" class="active">Counter Intake</a>
+            <a href="#">Customers</a>
+            <a href="#">Campaigns</a>
+            <a href="#">Dashboard</a>
+            <a href="#">Settings</a>
+        </nav>
+    </aside>
+
+    <main class="main">
+
+        <div class="topbar">
+            <h1>Counter Intake</h1>
+            <p>Capture a customer and record today's sale</p>
+        </div>
+
+        <div class="content">
+
+            <div id="config-banner" class="config-banner" hidden>
+                Supabase isn't configured yet, so nothing will be saved. Copy
+                <code>supabase-config.example.js</code> to <code>supabase-config.js</code>,
+                fill in your project URL and anon key, run
+                <code>supabase-schema.sql</code> in your Supabase project, and reload this page.
+            </div>
+
+            <!-- CUSTOMER SEARCH -->
+            <div class="card">
+                <h2>Find or add a customer</h2>
+                <div class="search-row">
+                    <input type="search" id="customer-search" placeholder="Search by name or phone number">
+                    <button class="btn btn-primary" id="new-customer-btn">+ New Customer</button>
+                </div>
+                <div id="new-customer-form" class="grid-2" style="margin-bottom:16px" hidden>
+                    <div>
+                        <label class="field-label" for="nc-name">Name</label>
+                        <input type="text" id="nc-name" placeholder="Full name">
+                    </div>
+                    <div>
+                        <label class="field-label" for="nc-phone">Phone</label>
+                        <input type="text" id="nc-phone" placeholder="+91 XXXXX XXXXX">
+                    </div>
+                    <div style="grid-column: 1 / -1">
+                        <button class="btn btn-dark" id="save-new-customer-btn">Save Customer</button>
+                    </div>
+                </div>
+                <div id="customer-results" class="customer-results">
+                    <p class="empty-hint">Start typing a name or phone number to search existing customers.</p>
+                </div>
+            </div>
+
+            <div class="grid-2">
+
+                <!-- PRESCRIPTION -->
+                <div class="card">
+                    <h2>Prescription</h2>
+
+                    <table class="rx-table">
+                        <tr>
+                            <th></th>
+                            <th>Sphere</th>
+                            <th>Cylinder</th>
+                            <th>Axis</th>
+                            <th>Prism</th>
+                            <th>Base</th>
+                        </tr>
+                        <tr><td colspan="6" class="rx-section-label">Distance</td></tr>
+                        <tr>
+                            <td class="rx-label">OD</td>
+                            <td><input type="text" id="od-sphere" placeholder="—"></td>
+                            <td><input type="text" id="od-cylinder" placeholder="—"></td>
+                            <td><input type="text" id="od-axis" placeholder="—"></td>
+                            <td><input type="text" id="od-prism" placeholder="—"></td>
+                            <td><input type="text" id="od-base" placeholder="—"></td>
+                        </tr>
+                        <tr>
+                            <td class="rx-label">OS</td>
+                            <td><input type="text" id="os-sphere" placeholder="—"></td>
+                            <td><input type="text" id="os-cylinder" placeholder="—"></td>
+                            <td><input type="text" id="os-axis" placeholder="—"></td>
+                            <td><input type="text" id="os-prism" placeholder="—"></td>
+                            <td><input type="text" id="os-base" placeholder="—"></td>
+                        </tr>
+                        <tr><td colspan="6" class="rx-section-label">Add</td></tr>
+                        <tr>
+                            <td class="rx-label">OD</td>
+                            <td><input type="text" id="add-od-sphere" placeholder="—"></td>
+                            <td colspan="4"></td>
+                        </tr>
+                        <tr>
+                            <td class="rx-label">OS</td>
+                            <td><input type="text" id="add-os-sphere" placeholder="—"></td>
+                            <td colspan="4"></td>
+                        </tr>
+                    </table>
+
+                    <div class="grid-2">
+                        <div>
+                            <label class="field-label" for="additional-info">Additional Information</label>
+                            <input type="text" id="additional-info" placeholder="—">
+                        </div>
+                        <div>
+                            <label class="field-label" for="prescribed-by">Prescribed By</label>
+                            <input type="text" id="prescribed-by" placeholder="Dr. Name">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PURCHASE -->
+                <div class="card">
+                    <h2>Purchase</h2>
+
+                    <div style="margin-bottom:16px">
+                        <label class="field-label" for="frame">Frame</label>
+                        <input type="text" id="frame" placeholder="e.g. Ray-Ban RB2140 — Tortoise, Round Metal">
+                    </div>
+
+                    <div class="grid-2" style="margin-bottom:16px">
+                        <div>
+                            <label class="field-label" for="lens">Lens</label>
+                            <input type="text" id="lens" placeholder="e.g. Progressive · Anti-glare">
+                        </div>
+                        <div>
+                            <label class="field-label" for="amount">Amount (₹)</label>
+                            <input type="number" id="amount" placeholder="0">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="field-label" for="channel">Channel</label>
+                        <select id="channel">
+                            <option>In-store</option>
+                            <option>Phone</option>
+                            <option>WhatsApp</option>
+                            <option>Online</option>
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- NOTES -->
+            <div class="card">
+                <h2>Notes for next visit</h2>
+                <div class="grid-2" style="margin-bottom:18px">
+                    <div>
+                        <label class="field-label" for="preferences-budget">Preferences &amp; Budget</label>
+                        <textarea id="preferences-budget" placeholder="e.g. Prefers metal frames, round shape. Budget ~₹6,000."></textarea>
+                    </div>
+                    <div>
+                        <label class="field-label" for="pitch-next">What to pitch next time</label>
+                        <textarea id="pitch-next" placeholder="e.g. Show titanium gunmetal frames when new stock arrives."></textarea>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div>
+                        <label class="field-label" for="reminder-date">Next Reminder Date</label>
+                        <input type="date" id="reminder-date">
+                    </div>
+                    <div>
+                        <label class="field-label">Reminder For</label>
+                        <div class="chip-row" id="reminder-chips">
+                            <div class="chip active" data-value="Eye test">Eye test</div>
+                            <div class="chip" data-value="Consumables">Consumables</div>
+                            <div class="chip" data-value="New collection">New collection</div>
+                            <div class="chip" data-value="Discount offer">Discount offer</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUMMARY / SAVE -->
+            <div class="summary-bar">
+                <div>
+                    <strong id="summary-title">Next visit reminder will be set from the date above.</strong>
+                    <p>Saving will store this visit and stage a WhatsApp confirmation for the customer.</p>
+                </div>
+                <button class="btn btn-dark" id="save-visit-btn">Save &amp; Send WhatsApp Confirmation</button>
+            </div>
+            <div id="status-msg" class="status-msg"></div>
+
+        </div>
+    </main>
+</div>
+
+<script src="supabase-config.js" onerror="window.__SUPABASE_CONFIG_MISSING__ = true"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+(function () {
+    const cfg = window.SUPABASE_CONFIG;
+    const configBanner = document.getElementById('config-banner');
+    let supabase = null;
+
+    if (!cfg || !cfg.url || cfg.url.indexOf('YOUR-PROJECT-REF') !== -1) {
+        configBanner.hidden = false;
+    } else {
+        supabase = window.supabase.createClient(cfg.url, cfg.anonKey);
+    }
+
+    let selectedCustomer = null;
+    let selectedReminder = 'Eye test';
+    let searchTimer = null;
+
+    const el = (id) => document.getElementById(id);
+    const resultsEl = el('customer-results');
+    const statusEl = el('status-msg');
+
+    function setStatus(message, isError) {
+        statusEl.textContent = message;
+        statusEl.className = 'status-msg ' + (isError ? 'error' : 'ok');
+    }
+
+    function initials(name) {
+        return name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+    }
+
+    function maskPhone(phone) {
+        if (!phone) return '';
+        const digits = phone.replace(/\D/g, '');
+        if (digits.length <= 4) return phone;
+        return phone.slice(0, phone.length - 5) + 'XXXXX';
+    }
+
+    function renderResults(customers) {
+        resultsEl.innerHTML = '';
+        if (!customers.length) {
+            resultsEl.innerHTML = '<p class="empty-hint">No matches. Use "+ New Customer" to add one.</p>';
+            return;
+        }
+        customers.forEach((c) => {
+            const row = document.createElement('div');
+            row.className = 'customer-row' + (selectedCustomer && selectedCustomer.id === c.id ? ' selected' : '');
+            row.innerHTML = `
+                <div class="avatar">${initials(c.name)}</div>
+                <div>
+                    <div class="customer-name">${c.name}</div>
+                    <div class="customer-meta">${maskPhone(c.phone)}</div>
+                </div>
+                <div class="customer-tag">${selectedCustomer && selectedCustomer.id === c.id ? 'Selected' : 'Select'}</div>
+            `;
+            row.addEventListener('click', () => {
+                selectedCustomer = c;
+                renderResults(customers);
+            });
+            resultsEl.appendChild(row);
+        });
+    }
+
+    async function searchCustomers(term) {
+        if (!supabase) {
+            resultsEl.innerHTML = '<p class="empty-hint">Connect Supabase to search customers.</p>';
+            return;
+        }
+        if (!term) {
+            resultsEl.innerHTML = '<p class="empty-hint">Start typing a name or phone number to search existing customers.</p>';
+            return;
+        }
+        const { data, error } = await supabase
+            .from('customers')
+            .select('*')
+            .or(`name.ilike.%${term}%,phone.ilike.%${term}%`)
+            .limit(10);
+        if (error) {
+            resultsEl.innerHTML = '<p class="empty-hint">Search failed: ' + error.message + '</p>';
+            return;
+        }
+        renderResults(data || []);
+    }
+
+    el('customer-search').addEventListener('input', (e) => {
+        clearTimeout(searchTimer);
+        const term = e.target.value.trim();
+        searchTimer = setTimeout(() => searchCustomers(term), 300);
+    });
+
+    el('new-customer-btn').addEventListener('click', () => {
+        el('new-customer-form').hidden = !el('new-customer-form').hidden;
+    });
+
+    el('save-new-customer-btn').addEventListener('click', async () => {
+        const name = el('nc-name').value.trim();
+        const phone = el('nc-phone').value.trim();
+        if (!name || !phone) {
+            setStatus('Enter a name and phone number to add a customer.', true);
+            return;
+        }
+        if (!supabase) {
+            setStatus('Connect Supabase before adding customers.', true);
+            return;
+        }
+        const { data, error } = await supabase
+            .from('customers')
+            .insert({ name, phone })
+            .select()
+            .single();
+        if (error) {
+            setStatus('Could not save customer: ' + error.message, true);
+            return;
+        }
+        selectedCustomer = data;
+        renderResults([data]);
+        el('new-customer-form').hidden = true;
+        el('nc-name').value = '';
+        el('nc-phone').value = '';
+        setStatus('Customer added and selected.', false);
+    });
+
+    document.getElementById('reminder-chips').addEventListener('click', (e) => {
+        const chip = e.target.closest('.chip');
+        if (!chip) return;
+        document.querySelectorAll('#reminder-chips .chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        selectedReminder = chip.dataset.value;
+    });
+
+    function buildWhatsAppLink(phone, message) {
+        const digits = phone.replace(/\D/g, '');
+        return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+    }
+
+    el('save-visit-btn').addEventListener('click', async () => {
+        if (!selectedCustomer) {
+            setStatus('Select or add a customer first.', true);
+            return;
+        }
+        if (!supabase) {
+            setStatus('Connect Supabase before saving a visit.', true);
+            return;
+        }
+
+        const visit = {
+            customer_id: selectedCustomer.id,
+            od_sphere: el('od-sphere').value || null,
+            od_cylinder: el('od-cylinder').value || null,
+            od_axis: el('od-axis').value || null,
+            od_prism: el('od-prism').value || null,
+            od_base: el('od-base').value || null,
+            os_sphere: el('os-sphere').value || null,
+            os_cylinder: el('os-cylinder').value || null,
+            os_axis: el('os-axis').value || null,
+            os_prism: el('os-prism').value || null,
+            os_base: el('os-base').value || null,
+            add_od_sphere: el('add-od-sphere').value || null,
+            add_os_sphere: el('add-os-sphere').value || null,
+            additional_information: el('additional-info').value || null,
+            prescribed_by: el('prescribed-by').value || null,
+            frame: el('frame').value || null,
+            lens: el('lens').value || null,
+            amount: el('amount').value ? Number(el('amount').value) : null,
+            channel: el('channel').value || null,
+            preferences_budget: el('preferences-budget').value || null,
+            pitch_next_time: el('pitch-next').value || null,
+            next_reminder_date: el('reminder-date').value || null,
+            reminder_for: selectedReminder
+        };
+
+        const { error } = await supabase.from('visits').insert(visit);
+        if (error) {
+            setStatus('Could not save visit: ' + error.message, true);
+            return;
+        }
+
+        const message = `Hi ${selectedCustomer.name}, thanks for visiting MK Optics! We've recorded your purchase (${visit.frame || 'your order'}). We'll remind you about your ${selectedReminder.toLowerCase()} around ${visit.next_reminder_date || 'your next visit'}.`;
+        const link = buildWhatsAppLink(selectedCustomer.phone, message);
+        setStatus('Visit saved. Opening WhatsApp confirmation…', false);
+        window.open(link, '_blank');
+    });
+})();
+</script>
+
+</body>
+</html>
