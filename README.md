@@ -10,6 +10,10 @@ Website prototype for M&K Optics
   narrow write access (see Security below).
 
 **Staff (all behind login, all share the same sidebar/navigation)**
+- `dashboard.html` — the staff app's home page: key numbers (total
+  customers, visits and revenue this month, follow-ups due, open leads,
+  pending rewards sign-ups) and a queue to review pending rewards
+  sign-ups — add each as a real customer, or dismiss duplicates/spam.
 - `counter-intake.html` — look up or add a customer by mobile number,
   capture prescription + purchase, save, and send a WhatsApp confirmation.
 - `follow-ups.html` — every reminder due today or overdue, with a
@@ -77,8 +81,7 @@ same Users screen.
   anonymous writes, anonymous visitors may only **insert** into the
   separate `reward_signups` table — they can't read it back, so one
   customer can't see another's submission. Staff review and merge these
-  into real customer records (currently: manually via `customers.html`;
-  a dedicated review screen is a natural next step).
+  into real customer records from the **Dashboard**.
 - Per-staff permissions (e.g. restricting who sees sale amounts) aren't
   built — any logged-in staff account can do anything in the app.
 
@@ -96,8 +99,6 @@ needed, but a staff member must tap send in the window that opens.
   would have nothing real behind it.
 - **Public appointment booking** — a separate, larger feature.
 - **Per-staff permissions / roles.**
-- **A review screen for `reward_signups`** — right now staff would check
-  that table directly in Supabase's Table Editor rather than in the app.
 
 ## Testing
 
