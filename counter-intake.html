@@ -57,6 +57,11 @@
         display: flex;
         flex-direction: column;
         gap: 30px;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
     }
 
     .sidebar-brand {
@@ -389,7 +394,13 @@
             padding: 14px 16px;
             gap: 16px;
             overflow-x: auto;
+            justify-content: flex-start;
+            position: static;
+            height: auto;
         }
+
+        .staff-email { display: none; }
+        .sign-out-link { padding: 8px 12px; white-space: nowrap; }
 
         .sidebar-nav {
             flex-direction: row;
@@ -413,11 +424,94 @@
         .summary-bar { flex-direction: column; align-items: stretch; text-align: left; }
         .summary-bar .btn { width: 100%; }
     }
+
+    /* LOGIN */
+
+    .login-screen {
+        min-height: 100vh;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(160deg, var(--navy) 0%, var(--navy-dark) 100%);
+        padding: 24px;
+    }
+
+    .login-card {
+        background: var(--white);
+        border-radius: 12px;
+        padding: 36px 32px;
+        width: 100%;
+        max-width: 380px;
+    }
+
+    .login-card .sidebar-brand {
+        color: var(--navy);
+        justify-content: center;
+        margin-bottom: 24px;
+        font-size: 20px;
+    }
+
+    .login-card h2 {
+        font-family: Georgia, serif;
+        color: var(--navy);
+        font-size: 20px;
+        margin-bottom: 4px;
+    }
+
+    .login-card p.sub {
+        color: var(--grey);
+        font-size: 13px;
+        margin-bottom: 22px;
+    }
+
+    .login-field {
+        margin-bottom: 16px;
+    }
+
+    .sign-out-link {
+        margin-top: auto;
+        font-size: 12px;
+        color: #cdd9f5;
+        cursor: pointer;
+        padding: 10px 14px;
+    }
+
+    .staff-email {
+        font-size: 11px;
+        color: #9fb0d8;
+        padding: 0 14px;
+        word-break: break-all;
+    }
 </style>
 </head>
 <body>
 
-<div class="app">
+<div id="login-screen" class="login-screen" hidden>
+    <div class="login-card">
+        <div class="sidebar-brand">
+            <svg viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" stroke="#1c7a3e" stroke-width="3"/>
+                <circle cx="36" cy="12" r="10" stroke="#1c7a3e" stroke-width="3"/>
+            </svg>
+            MK OPTICS
+        </div>
+        <h2>Staff Login</h2>
+        <p class="sub">Sign in with the email and password your manager set up for you.</p>
+        <div class="login-field">
+            <label class="field-label" for="login-email">Email</label>
+            <input type="email" id="login-email" placeholder="you@mkoptics.example" autocomplete="username">
+        </div>
+        <div class="login-field">
+            <label class="field-label" for="login-password">Password</label>
+            <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <button class="btn btn-dark" id="login-btn" style="width:100%">Log In</button>
+        <p id="login-error" class="status-msg error" style="margin-top:14px"></p>
+    </div>
+</div>
+
+<div class="app" id="app-root" hidden>
 
     <aside class="sidebar">
         <div class="sidebar-brand">
@@ -434,6 +528,10 @@
             <a href="#">Dashboard</a>
             <a href="#">Settings</a>
         </nav>
+        <div>
+            <div class="staff-email" id="staff-email"></div>
+            <div class="sign-out-link" id="sign-out-btn">Sign out</div>
+        </div>
     </aside>
 
     <main class="main">
@@ -633,6 +731,61 @@
         configBanner.hidden = false;
     } else {
         supabase = window.supabase.createClient(cfg.url, cfg.anonKey);
+    }
+
+    // ---- Staff login gate -------------------------------------------
+    // If Supabase isn't configured at all, there's nothing to log into —
+    // just show the app (with its "not configured" banner) as before.
+    // Once Supabase IS configured, nobody sees the app until they've
+    // signed in with a staff account created in the Supabase dashboard.
+    const loginScreen = document.getElementById('login-screen');
+    const appRoot = document.getElementById('app-root');
+    const loginError = document.getElementById('login-error');
+    const staffEmailEl = document.getElementById('staff-email');
+
+    function showApp(session) {
+        loginScreen.hidden = true;
+        appRoot.hidden = false;
+        staffEmailEl.textContent = session && session.user ? session.user.email : '';
+    }
+
+    function showLogin() {
+        loginScreen.hidden = false;
+        appRoot.hidden = true;
+    }
+
+    if (!supabase) {
+        showApp(null);
+    } else {
+        supabase.auth.getSession().then(({ data }) => {
+            if (data.session) { showApp(data.session); } else { showLogin(); }
+        });
+
+        supabase.auth.onAuthStateChange((_event, session) => {
+            if (session) { showApp(session); } else { showLogin(); }
+        });
+
+        document.getElementById('login-btn').addEventListener('click', async () => {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            loginError.textContent = '';
+            if (!email || !password) {
+                loginError.textContent = 'Enter both email and password.';
+                return;
+            }
+            const { error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) {
+                loginError.textContent = error.message;
+            }
+        });
+
+        document.getElementById('login-password').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') document.getElementById('login-btn').click();
+        });
+
+        document.getElementById('sign-out-btn').addEventListener('click', () => {
+            supabase.auth.signOut();
+        });
     }
 
     let selectedCustomer = null;

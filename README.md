@@ -25,12 +25,28 @@ The Counter Intake app stores customers and visits in [Supabase](https://supabas
 3. Copy `supabase-config.example.js` to `supabase-config.js` and fill in your
    project's URL and anon/public key (Project Settings > API).
    `supabase-config.js` is gitignored so your keys don't need to be committed.
-4. Open `counter-intake.html` in a browser (or serve the folder with any
+4. Create at least one staff account: Supabase dashboard > Authentication >
+   Users > **Add user** (email + password). This is who will log into the
+   Counter Intake app.
+5. Run `supabase-migration-002-require-login.sql` in the SQL Editor. This
+   locks the database down to "only logged-in staff can read/write" — do
+   this only after step 4, so you have a way to log in once it's locked.
+6. Open `counter-intake.html` in a browser (or serve the folder with any
    static file server). If Supabase isn't configured yet, the page shows a
-   banner and search/save actions are disabled until you complete the steps
-   above. The Counter Intake page currently reads/writes only `customers`
-   and `visits` — the `leads`, `reminders`, and `referrals` tables are in
-   place for the follow-up features below but aren't wired into a screen yet.
+   banner and skips the login screen entirely (nothing to log into). Once
+   configured, you'll see a staff login screen — sign in with the account
+   from step 4. The Counter Intake page currently reads/writes only
+   `customers` and `visits` — the `leads`, `reminders`, and `referrals`
+   tables are in place for the follow-up features below but aren't wired
+   into a screen yet.
+
+### Staff login
+
+The app uses Supabase's built-in login (Supabase Auth) — no custom
+password-handling code. Add or remove staff accounts anytime from
+Supabase dashboard > Authentication > Users; there's no separate "sign up"
+screen in the app itself (staff don't self-register). Once logged in, the
+browser stays signed in until "Sign out" is clicked (bottom of the sidebar).
 
 ### WhatsApp confirmations
 
@@ -42,6 +58,8 @@ WhatsApp window that opens.
 
 ## Roadmap
 
+- Per-staff permissions (e.g. only managers can see amounts/reports) —
+  today, any logged-in staff account can do anything in the app.
 - Public appointment booking flow.
 - A "Daily Follow-Ups" screen reading from the `reminders` table (who
   to message, remind, or offer today).

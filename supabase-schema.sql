@@ -182,15 +182,14 @@ create index if not exists referrals_referrer_idx on referrals (referrer_custome
 -- SECURITY — Row Level Security (RLS)
 -- =====================================================================
 -- This is like a rule that says who is allowed to read or write these
--- folders. The Counter Intake app doesn't have a staff login screen
--- yet, so for now we allow "anon" (anyone with the app's public key,
--- i.e. anyone who can open the app page) to read and write — this is
--- a TEMPORARY, testing-only setting.
+-- folders. The policies below were written back when the Counter
+-- Intake app had no staff login screen, so they temporarily allowed
+-- "anon" (anyone with the app's public key) to read and write.
 --
--- IMPORTANT: before this app is used with real customer data, add a
--- staff login and change these policies to "authenticated" only (see
--- the commented-out stricter version below each policy), so a random
--- visitor to the page can't read or edit your customer list.
+-- If you're setting this database up for the FIRST time today and the
+-- app already has a login screen, skip straight to also running
+-- supabase-migration-002-require-login.sql right after this file —
+-- there's no need to use these open policies even temporarily.
 -- =====================================================================
 
 alter table customers enable row level security;
