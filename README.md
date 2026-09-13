@@ -15,14 +15,22 @@ The Counter Intake app stores customers and visits in [Supabase](https://supabas
 
 1. Create a free project at supabase.com.
 2. Open the SQL Editor in your project and run the contents of
-   `supabase-schema.sql` to create the `customers` and `visits` tables.
+   `supabase-schema.sql`. This creates five tables: `customers`,
+   `visits` (prescription + purchase per visit), `leads` (enquiries
+   that didn't convert to a sale), `reminders` (eye-test, contact-lens
+   refill, review/referral asks, offers, social posts — one table
+   drives the daily follow-up list), and `referrals` (who referred
+   whom, and whether each side's discount was given). Each table has a
+   plain-English comment above it in the file explaining what it's for.
 3. Copy `supabase-config.example.js` to `supabase-config.js` and fill in your
    project's URL and anon/public key (Project Settings > API).
    `supabase-config.js` is gitignored so your keys don't need to be committed.
 4. Open `counter-intake.html` in a browser (or serve the folder with any
    static file server). If Supabase isn't configured yet, the page shows a
    banner and search/save actions are disabled until you complete the steps
-   above.
+   above. The Counter Intake page currently reads/writes only `customers`
+   and `visits` — the `leads`, `reminders`, and `referrals` tables are in
+   place for the follow-up features below but aren't wired into a screen yet.
 
 ### WhatsApp confirmations
 
@@ -34,4 +42,11 @@ WhatsApp window that opens.
 
 ## Roadmap
 
-- Public appointment booking flow (planned follow-up).
+- Public appointment booking flow.
+- A "Daily Follow-Ups" screen reading from the `reminders` table (who
+  to message, remind, or offer today).
+- A "Leads" screen for logging walk-ins/enquiries who didn't buy.
+- Rewards QR sign-up flow and referral tracking screens.
+- AI recommendation engine (what to sell next, contact-lens refill
+  timing) — needs 6-12 months of real customer data before it's useful,
+  per the growth-system plan this schema is based on.
