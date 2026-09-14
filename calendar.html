@@ -254,28 +254,30 @@
             cell.className = 'cal-day' + (key === today ? ' today' : '') + (events.length ? ' has-events' : '');
             cell.innerHTML = `<div class="cal-day-num">${d}</div>` +
                 (events.length ? `<div class="cal-day-count">${events.length} booked</div>` : '');
-            cell.addEventListener('click', () => showDayDetail(key, events));
+            cell.addEventListener('click', () => showDayDetail(key, events, cell));
             grid.appendChild(cell);
         }
     }
 
-    function showDayDetail(key, events) {
+    function showDayDetail(key, events, cellEl) {
         document.querySelectorAll('.cal-day').forEach(c => c.classList.remove('selected'));
+        if (cellEl) cellEl.classList.add('selected');
         const card = el('day-detail-card');
         card.hidden = false;
         el('day-detail-title').textContent = key;
         const list = el('day-detail-list');
         if (!events.length) {
             list.innerHTML = '<p class="empty-hint">Nothing booked this day.</p>';
-            return;
+        } else {
+            list.innerHTML = events.map((r) => {
+                const c = r.customers || {};
+                return `<div class="day-detail-row">
+                    <div class="name">${c.name || 'Unknown customer'}</div>
+                    <div class="meta">${r.type} · ${c.phone || 'no phone on file'} · ${r.status}</div>
+                </div>`;
+            }).join('');
         }
-        list.innerHTML = events.map((r) => {
-            const c = r.customers || {};
-            return `<div class="day-detail-row">
-                <div class="name">${c.name || 'Unknown customer'}</div>
-                <div class="meta">${r.type} · ${c.phone || 'no phone on file'} · ${r.status}</div>
-            </div>`;
-        }).join('');
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     el('cal-prev-btn').addEventListener('click', () => {

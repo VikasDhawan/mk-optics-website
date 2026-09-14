@@ -140,6 +140,16 @@
             </div>
 
             <div class="card">
+                <h2>Upcoming</h2>
+                <p class="empty-hint" style="margin-top:-6px;margin-bottom:14px">
+                    Booked ahead — not due yet, so they won't appear below until their date arrives.
+                </p>
+                <div id="upcoming-list" class="followup-list">
+                    <p class="empty-hint">Loading…</p>
+                </div>
+            </div>
+
+            <div class="card">
                 <h2>Due today or overdue</h2>
                 <div id="followup-list" class="followup-list">
                     <p class="empty-hint">Loading…</p>
@@ -159,6 +169,7 @@
 (function () {
     const supabase = window.MKAuth.supabase;
     const listEl = document.getElementById('followup-list');
+    const upcomingEl = document.getElementById('upcoming-list');
     const requestListEl = document.getElementById('request-list');
     const statusEl = document.getElementById('status-msg');
 
@@ -182,25 +193,27 @@
         return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
     }
 
-    function renderReminders(reminders) {
-        listEl.innerHTML = '';
+    function renderReminders(reminders, targetEl, emptyMessage, onChange) {
+        targetEl.innerHTML = '';
         if (!reminders.length) {
-            listEl.innerHTML = '<p class="empty-hint">Nothing due today — you\'re all caught up.</p>';
+            targetEl.innerHTML = `<p class="empty-hint">${emptyMessage}</p>`;
             return;
         }
         reminders.forEach((r) => {
             const overdueBy = daysOverdue(r.due_date);
             const isOverdue = overdueBy > 0;
+            const isFuture = overdueBy < 0;
             const customer = r.customers || {};
 
             const row = document.createElement('div');
             row.className = 'followup-row' + (isOverdue ? ' overdue' : '');
+            const badgeText = isFuture ? 'Upcoming' : (isOverdue ? overdueBy + ' day' + (overdueBy > 1 ? 's' : '') + ' overdue' : 'Due today');
             row.innerHTML = `
                 <div class="followup-info">
                     <div class="followup-name">${customer.name || 'Unknown customer'}</div>
                     <div class="followup-meta">${r.type} · due ${r.due_date}</div>
                 </div>
-                <div class="followup-badge${isOverdue ? ' overdue' : ''}">${isOverdue ? overdueBy + ' day' + (overdueBy > 1 ? 's' : '') + ' overdue' : 'Due today'}</div>
+                <div class="followup-badge${isOverdue ? ' overdue' : ''}">${badgeText}</div>
                 <div class="followup-actions">
                     <button class="btn btn-primary" data-action="whatsapp">WhatsApp</button>
                     <button class="btn btn-dark" data-action="done">Mark Done</button>
@@ -223,12 +236,13 @@
                     return;
                 }
                 row.remove();
-                if (!listEl.querySelector('.followup-row')) {
-                    renderReminders([]);
+                if (!targetEl.querySelector('.followup-row')) {
+                    targetEl.innerHTML = `<p class="empty-hint">${emptyMessage}</p>`;
                 }
+                if (onChange) onChange();
             });
 
-            listEl.appendChild(row);
+            targetEl.appendChild(row);
         });
     }
 
@@ -247,7 +261,25 @@
             listEl.innerHTML = '<p class="empty-hint">Could not load follow-ups: ' + error.message + '</p>';
             return;
         }
-        renderReminders(data || []);
+        renderReminders(data || [], listEl, "Nothing due today — you're all caught up.");
+    }
+
+    async function loadUpcoming() {
+        if (!supabase) {
+            upcomingEl.innerHTML = '<p class="empty-hint">Connect Supabase to see upcoming follow-ups.</p>';
+            return;
+        }
+        const { data, error } = await supabase
+            .from('reminders')
+            .select('*, customers(name, phone)')
+            .eq('status', 'pending')
+            .gt('due_date', todayISO())
+            .order('due_date', { ascending: true });
+        if (error) {
+            upcomingEl.innerHTML = '<p class="empty-hint">Could not load upcoming follow-ups: ' + error.message + '</p>';
+            return;
+        }
+        renderReminders(data || [], upcomingEl, 'Nothing booked ahead right now.');
     }
 
     // --- New Appointment Requests (booked online) -----------------------
@@ -303,6 +335,7 @@
                 setStatus(req.name + ' added to Follow-Ups.', false);
                 loadRequests();
                 loadReminders();
+                loadUpcoming();
             });
 
             row.querySelector('[data-action="dismiss"]').addEventListener('click', async () => {
@@ -332,7 +365,7 @@
         renderRequests(data || []);
     }
 
-    window.MKAuth.ready.then(() => { loadReminders(); loadRequests(); });
+    window.MKAuth.ready.then(() => { loadReminders(); loadUpcoming(); loadRequests(); });
 })();
 </script>
 
