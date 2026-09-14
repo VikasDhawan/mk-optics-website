@@ -42,6 +42,26 @@
         appRoot.hidden = true;
     }
 
+    // Mobile hamburger menu: closed = a single row (brand + ☰). Tapping
+    // it adds .menu-open to the sidebar, which CSS uses to expand the
+    // page links and account actions as normal in-flow rows underneath
+    // (pushing content down), rather than a horizontally-scrolling strip
+    // or an overlaid dropdown. Wired regardless of Supabase config since
+    // it's pure UI; harmless no-op on desktop widths.
+    const menuBtn = document.getElementById('mobile-menu-btn');
+    const sidebar = menuBtn ? menuBtn.closest('.sidebar') : null;
+    if (menuBtn && sidebar) {
+        menuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            sidebar.classList.toggle('menu-open');
+        });
+        document.addEventListener('click', (e) => {
+            if (sidebar.classList.contains('menu-open') && !sidebar.contains(e.target)) {
+                sidebar.classList.remove('menu-open');
+            }
+        });
+    }
+
     if (!supabase) {
         window.MKAuth.ready = Promise.resolve();
         showApp(null);

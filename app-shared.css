@@ -296,36 +296,78 @@ textarea { resize: vertical; min-height: 70px; }
     word-break: break-all;
 }
 
+.mobile-menu-btn {
+    display: none;
+}
+
 /* MOBILE */
 
 @media (max-width: 900px) {
     .app { flex-direction: column; }
 
+    /* Closed state: a single row (brand + hamburger). Tapping the
+       hamburger adds .menu-open, which lets .sidebar-nav and
+       .sidebar-footer expand as full-width rows below it, pushing the
+       page content down — a normal in-flow accordion, not an overlay,
+       so there's nothing to clip or z-index fight with. */
     .sidebar {
         width: 100%;
         flex-direction: row;
+        flex-wrap: wrap;
         align-items: center;
         padding: 14px 16px;
-        gap: 16px;
-        overflow-x: auto;
-        justify-content: flex-start;
+        gap: 8px;
         position: static;
         height: auto;
     }
 
-    .staff-email { display: none; }
-    .sign-out-link { padding: 8px 12px; white-space: nowrap; }
+    .sidebar-nav,
+    .sidebar-footer {
+        display: none;
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .sidebar.menu-open .sidebar-nav,
+    .sidebar.menu-open .sidebar-footer {
+        display: flex;
+    }
 
     .sidebar-nav {
-        flex-direction: row;
         gap: 4px;
+        padding-top: 10px;
+        margin-top: 10px;
+        border-top: 1px solid rgba(255,255,255,0.15);
     }
 
-    .sidebar-nav a {
-        padding: 8px 12px;
-        white-space: nowrap;
-        font-size: 13px;
+    .sidebar-footer {
+        gap: 2px;
+        padding-top: 10px;
+        margin-top: 4px;
+        border-top: 1px solid rgba(255,255,255,0.15);
     }
+
+    .mobile-menu-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        width: 36px;
+        height: 36px;
+        margin-left: auto;
+        background: transparent;
+        border: none;
+        color: var(--white);
+        font-size: 22px;
+        line-height: 1;
+        cursor: pointer;
+        border-radius: 6px;
+    }
+
+    .mobile-menu-btn:hover { background: rgba(255,255,255,0.1); }
+
+    .staff-email { display: block; padding: 6px 14px 8px; }
+    .sign-out-link { padding: 10px 14px; }
 
     .topbar { padding: 24px 6%; }
     .topbar h1 { font-size: 26px; }
