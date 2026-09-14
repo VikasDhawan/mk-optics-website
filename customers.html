@@ -87,28 +87,28 @@
 
     .toggle-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 
-    .insights-list { display: flex; flex-direction: column; gap: 10px; }
-
-    .insight-banner {
-        background: linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%);
-        border-radius: 10px;
-        padding: 16px 18px;
+    .story-card {
+        background: linear-gradient(160deg, var(--navy) 0%, var(--navy-dark) 100%);
+        border-radius: 12px;
+        padding: 20px 20px 16px;
         color: var(--white);
     }
-    .insight-banner-label {
+
+    .story-hero-label {
         font-size: 11px;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        opacity: 0.8;
-        margin-bottom: 4px;
+        letter-spacing: 0.6px;
+        opacity: 0.75;
+        margin-bottom: 2px;
     }
-    .insight-banner-value {
+    .story-hero-value {
         font-family: Georgia, serif;
-        font-size: 32px;
+        font-size: 38px;
         font-weight: 700;
         color: var(--green);
+        line-height: 1.15;
     }
-    .insight-banner-value span {
+    .story-hero-value span {
         font-family: inherit;
         font-size: 14px;
         font-weight: 400;
@@ -117,35 +117,66 @@
         margin-left: 4px;
     }
 
-    .insight-row {
+    .story-chart {
         display: flex;
-        align-items: flex-start;
+        align-items: flex-end;
+        gap: 6px;
+        height: 70px;
+        margin: 16px 0 6px;
+    }
+    .story-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+    .story-bar {
+        width: 100%;
+        max-width: 34px;
+        border-radius: 4px 4px 0 0;
+        background: linear-gradient(180deg, var(--green) 0%, var(--green-dark) 100%);
+    }
+    .story-bar-label {
+        font-size: 9px;
+        opacity: 0.65;
+        margin-top: 5px;
+        white-space: nowrap;
+    }
+
+    .story-narrative {
+        font-size: 13.5px;
+        line-height: 1.55;
+        margin: 12px 0 14px;
+        opacity: 0.95;
+    }
+    .story-narrative b { color: var(--green); }
+
+    .story-action {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         gap: 10px;
-        padding: 12px 14px;
+        background: rgba(255,255,255,0.1);
         border-radius: 8px;
-        background: var(--green-pale);
-        border: 1.5px solid var(--green-dark);
+        padding: 10px 14px;
         font-size: 13px;
-        color: var(--ink);
+        font-weight: 600;
     }
-    .insight-row .icon { font-size: 17px; line-height: 1.3; }
-    .insight-row .insight-body { display: flex; flex-direction: column; gap: 3px; }
-    .insight-row .insight-headline {
-        font-weight: 700;
-        color: var(--navy);
-        font-size: 14px;
-    }
-    .insight-row .insight-action {
-        margin-left: auto;
+    .story-action button {
         flex-shrink: 0;
-        background: var(--navy);
-        color: var(--white);
+        background: var(--green);
+        color: var(--navy-dark);
         border: none;
         border-radius: 6px;
-        padding: 5px 10px;
-        font-size: 11px;
+        padding: 7px 12px;
+        font-size: 12px;
         font-weight: 700;
         cursor: pointer;
+    }
+
+    .story-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .story-chip {
+        font-size: 11.5px;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 20px;
+        padding: 5px 11px;
+        opacity: 0.9;
     }
 
     @media (max-width: 900px) {
@@ -263,8 +294,8 @@
                     </div>
 
                     <div class="detail-section" id="insights-section" hidden>
-                        <h3>💡 AI Insights <span style="text-transform:none;font-weight:400;color:var(--grey);letter-spacing:normal">— revenue opportunities spotted automatically from this customer's history</span></h3>
-                        <div id="detail-insights" class="insights-list"></div>
+                        <h3>💡 AI Insight</h3>
+                        <div id="detail-insights"></div>
                     </div>
 
                     <div class="detail-section">
@@ -387,193 +418,142 @@
         `;
     }
 
-    // --- Insights ---------------------------------------------------
-    // This is deliberately simple, rule-based pattern-spotting over one
-    // customer's own visit history — not a trained AI model (the README
-    // notes a real recommendation engine needs 6-12 months of data
-    // across ALL customers, which the shop doesn't have yet). But once
-    // a customer has 2+ visits, a few plain rules already surface
-    // useful things: is their prescription changing, is reading power
-    // showing up for the first time, do they keep buying the same kind
-    // of lens, and roughly when are they due back.
+    // --- AI Insight: one story, not a checklist -----------------------
+    // Deliberately simple, rule-based arithmetic on one customer's own
+    // visit history (no external AI service — a real trained model
+    // needs months of data across the whole customer base, per the
+    // README). But the point isn't the maths, it's the story: one
+    // number, one chart, one paragraph, one thing to do about it —
+    // built so a busy shopkeeper gets it in the 5 seconds they'll
+    // actually spend looking at it.
     function parseNum(v) {
         if (v == null) return NaN;
         const n = parseFloat(String(v).replace(/[^0-9.\-]/g, ''));
         return Number.isFinite(n) ? n : NaN;
     }
 
-    function firstValid(visits, field) {
-        for (const v of visits) { const n = parseNum(v[field]); if (!Number.isNaN(n)) return { visit: v, value: n }; }
-        return null;
-    }
-
-    function lastValid(visits, field) {
-        for (let i = visits.length - 1; i >= 0; i--) { const n = parseNum(visits[i][field]); if (!Number.isNaN(n)) return { visit: visits[i], value: n }; }
-        return null;
-    }
-
     function rupee(n) {
         return '₹' + Math.round(n).toLocaleString('en-IN');
     }
 
-    // Every insight below answers "so what, in rupees" — not just "here's
-    // a pattern." That's the difference between a curiosity and a reason
-    // to act. Still plain arithmetic on this customer's own history, no
-    // external service — but presented as what it actually is: an
-    // automated, always-on analyst that never gets tired of doing the
-    // maths on every single customer, every single day.
-    function computeInsights(visitsDesc, customer) {
-        if (visitsDesc.length < 2) return { banner: null, items: [] };
+    function shortDate(d) {
+        return d.toLocaleDateString('en-IN', { month: 'short', year: '2-digit' });
+    }
+
+    function buildStory(visitsDesc, customer) {
+        if (visitsDesc.length < 3) return null;
         const visits = [...visitsDesc].reverse(); // oldest first
-        const items = [];
-        let banner = null;
+        const dates = visits.map(v => new Date((v.visit_date || v.created_at || '').slice(0, 10) + 'T00:00:00'));
+        const amounts = visits.map(v => parseNum(v.amount));
+        if (amounts.some(n => Number.isNaN(n)) || dates.some(d => isNaN(d))) return null;
 
-        const dates = visits.map(v => new Date((v.visit_date || v.created_at || '').slice(0, 10) + 'T00:00:00')).filter(d => !isNaN(d));
-        const amounts = visits.map(v => parseNum(v.amount)).filter(n => !Number.isNaN(n));
         const totalSpend = amounts.reduce((a, b) => a + b, 0);
-        const spanDays = dates.length >= 2 ? (dates[dates.length - 1] - dates[0]) / 86400000 : 0;
-        const avgGap = dates.length >= 2 && spanDays > 0 ? spanDays / (dates.length - 1) : null;
+        const spanDays = (dates[dates.length - 1] - dates[0]) / 86400000;
+        const avgGap = spanDays / (dates.length - 1);
+        if (!(avgGap > 0)) return null;
+        const annualValue = (totalSpend / amounts.length) * (365 / avgGap);
 
-        // 1. Estimated Annual Value — the headline banner number. Turns
-        //    "spends money sometimes" into a concrete yearly figure the
-        //    owner can compare against rent, staff cost, ad spend, etc.
-        if (avgGap && amounts.length) {
-            const avgAmount = totalSpend / amounts.length;
-            const visitsPerYear = 365 / avgGap;
-            const eavNow = avgAmount * visitsPerYear;
-            banner = { label: 'Estimated annual value of this one customer', value: eavNow };
+        const firstAmt = amounts[0], lastAmt = amounts[amounts.length - 1];
+        const n = amounts.length - 1;
+        const growthRate = firstAmt > 0 ? Math.pow(lastAmt / firstAmt, 1 / n) - 1 : 0;
+        const predictedNext = lastAmt * (1 + growthRate);
 
-            // If frequency is accelerating, show how much that trend has
-            // already grown their annual value — visits that intensify
-            // are the clearest early signal of a customer worth protecting.
-            if (dates.length >= 4) {
-                const gaps = [];
-                for (let i = 1; i < dates.length; i++) gaps.push((dates[i] - dates[i - 1]) / 86400000);
-                const mid = Math.floor(gaps.length / 2);
-                const earlyAvg = gaps.slice(0, mid).reduce((a, b) => a + b, 0) / mid;
-                const recentAvg = gaps.slice(mid).reduce((a, b) => a + b, 0) / (gaps.length - mid);
-                const earlyAmt = amounts[0], recentAmt = amounts[amounts.length - 1];
-                if (earlyAvg > 0 && recentAvg > 0 && earlyAmt > 0) {
-                    const eavStart = earlyAmt * (365 / earlyAvg);
-                    const eavRecent = recentAmt * (365 / recentAvg);
-                    if (recentAvg <= earlyAvg * 0.65 && eavRecent > eavStart * 1.3) {
-                        items.push({
-                            icon: '📈',
-                            headline: `Value up ${rupee(eavStart)} → ${rupee(eavRecent)}/yr`,
-                            text: `Visits are getting more frequent (from ~${Math.round(earlyAvg)} to ~${Math.round(recentAvg)} days apart) and each one is worth more. At this pace, this customer's estimated annual value has grown roughly ${Math.round((eavRecent / eavStart - 1) * 100)}% since they started. Protecting this relationship (a quick check-in call, a loyalty perk) costs almost nothing next to what's at stake.`
-                        });
-                    } else if (earlyAvg <= recentAvg * 0.65) {
-                        const lostValue = eavStart;
-                        items.push({
-                            icon: '🚨',
-                            headline: `${rupee(lostValue)}/yr at risk`,
-                            text: `Visits have slowed sharply (from ~${Math.round(earlyAvg)} to ~${Math.round(recentAvg)} days apart). If this customer drifts away entirely, that's roughly ${rupee(lostValue)} in yearly revenue walking out the door — a single WhatsApp reminder now is the cheapest insurance you'll ever buy.`
-                        });
-                    }
-                }
-            }
+        // Frequency direction, for the narrative's opening line.
+        const gaps = [];
+        for (let i = 1; i < dates.length; i++) gaps.push((dates[i] - dates[i - 1]) / 86400000);
+        const mid = Math.floor(gaps.length / 2) || 1;
+        const earlyGap = gaps.slice(0, mid).reduce((a, b) => a + b, 0) / mid;
+        const recentGap = gaps.slice(mid).reduce((a, b) => a + b, 0) / (gaps.length - mid || 1);
+        const speedingUp = earlyGap > 0 && recentGap <= earlyGap * 0.75;
+
+        let narrative;
+        if (growthRate >= 0.1 && speedingUp) {
+            narrative = `${customer.name.split(' ')[0]} started as a ${rupee(firstAmt)} customer ${shortDate(dates[0])}, visiting roughly every ${Math.round(earlyGap)} days. Today they're spending <b>${rupee(lastAmt)} per visit</b> and coming back every ~${Math.round(recentGap)} days — buying more often, and paying more each time. If that trend holds, their next visit is worth around <b>${rupee(predictedNext)}</b>.`;
+        } else if (growthRate >= 0.1) {
+            narrative = `${customer.name.split(' ')[0]} has grown from a ${rupee(firstAmt)} customer to <b>${rupee(lastAmt)} per visit</b> over ${visits.length} visits — a steady upgrade pattern. Their next visit is projected to be worth around <b>${rupee(predictedNext)}</b>, if the right option is ready to show them.`;
+        } else if (speedingUp) {
+            narrative = `${customer.name.split(' ')[0]} is visiting more often lately — every ~${Math.round(recentGap)} days now, down from ~${Math.round(earlyGap)}. Based on their spending pattern, this relationship is worth an estimated <b>${rupee(annualValue)} a year</b>.`;
+        } else {
+            narrative = `Across ${visits.length} visits over ${Math.round(spanDays / 30)} months, ${customer.name.split(' ')[0]} has spent <b>${rupee(totalSpend)}</b> in total — an estimated <b>${rupee(annualValue)} a year</b> at their current pace.`;
         }
 
-        // 2. Predicted next-visit spend, from their own compounding
-        //    upgrade trend — tells staff exactly what to have ready to
-        //    show, in rupees, before the customer even walks in.
-        {
-            const firstAmt = firstValid(visits, 'amount');
-            const lastAmt = lastValid(visits, 'amount');
-            if (firstAmt && lastAmt && firstAmt.visit !== lastAmt.visit && firstAmt.value > 0 && visits.length >= 3) {
-                const n = visits.length - 1;
-                const growthRate = Math.pow(lastAmt.value / firstAmt.value, 1 / n) - 1;
-                if (growthRate >= 0.12) {
-                    const predicted = lastAmt.value * (1 + growthRate);
-                    const upside = predicted - lastAmt.value;
-                    items.push({
-                        icon: '🔮',
-                        headline: `Predicted next spend: ${rupee(predicted)}`,
-                        text: `Their spend has grown an average of ${Math.round(growthRate * 100)}% every visit (${rupee(firstAmt.value)} → ${rupee(lastAmt.value)}). If that pattern holds, their next visit is worth ~${rupee(predicted)} — about ${rupee(upside)} more than last time, IF the right premium option is on hand to show them. Have it ready before they ask.`
-                    });
-                }
-            }
+        // Secondary, quick-scan chips — kept to short tags, not paragraphs.
+        const chips = [];
+        const categoryValue = { 'Sunglasses': 1800, 'Contact Lenses': 1200, 'Consumables': 600 };
+        const purchased = new Set(visits.map(v => v.product_type).filter(Boolean));
+        const missing = Object.keys(categoryValue).find(cat => !purchased.has(cat));
+        if (missing && purchased.has('Spectacles')) {
+            chips.push(`🛍️ Never bought ${missing.toLowerCase()} — ~${rupee(categoryValue[missing])} opportunity`);
         }
-
-        // 3. Missed category — a purchase this customer has never made,
-        //    valued at what similar purchases typically go for.
-        {
-            const categoryValue = { 'Sunglasses': 1800, 'Contact Lenses': 1200, 'Consumables': 600 };
-            const purchased = new Set(visits.map(v => v.product_type).filter(Boolean));
-            const missing = Object.keys(categoryValue).find(cat => !purchased.has(cat));
-            if (missing && purchased.has('Spectacles')) {
-                items.push({
-                    icon: '🛍️',
-                    headline: `~${rupee(categoryValue[missing])} left on the table`,
-                    text: `${visits.length} visits, but never a ${missing.toLowerCase()} purchase. A typical add-on sale in that category runs ~${rupee(categoryValue[missing])} — a one-line mention next visit ("want a pair of sunglasses to match?") could capture it at zero extra footfall cost.`
-                });
-            }
-        }
-
-        // 4. Same-weekday clustering, converted into a marketing-timing
-        //    number instead of just "they like Saturdays."
         if (dates.length >= 4) {
-            const dow = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+            const dow = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
             const counts = {};
             dates.forEach(d => { counts[d.getDay()] = (counts[d.getDay()] || 0) + 1; });
             const [topDay, topCount] = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
-            if (topCount >= Math.ceil(dates.length * 0.8) && amounts.length) {
-                const avgAmount = totalSpend / amounts.length;
-                items.push({
-                    icon: '🎯',
-                    headline: `Best send-time: the day before ${dow[topDay]}`,
-                    text: `${topCount} of their last ${dates.length} visits landed on a ${dow[topDay]} — that's a real habit, not chance. A targeted offer sent the evening before typically converts far better than a random-day blast, and this customer's average visit is worth ${rupee(avgAmount)} — a well-timed nudge is cheap, the payoff isn't.`
-                });
+            if (topCount >= Math.ceil(dates.length * 0.8)) {
+                chips.push(`🎯 Almost always visits on a ${dow[topDay]}`);
             }
         }
 
-        // 5. High-value flag with the number attached, not just a checkbox
-        //    suggestion.
-        if (amounts.length && !customer.high_value && (totalSpend >= 10000 || Math.max(...amounts) >= 6000)) {
-            items.push({
-                icon: '⭐',
-                headline: `${rupee(totalSpend)} lifetime spend so far`,
-                text: `Not yet flagged as high-value despite ${rupee(totalSpend)} across ${visits.length} visits. Flagging them makes sure every staff member treats them accordingly — priority service, first look at new stock, no discount-shopping them like a walk-in.`,
-                action: { label: 'Mark high-value', handler: 'markHighValue' }
-            });
+        // One clear next action.
+        let action;
+        if (growthRate >= 0.1) {
+            action = { text: `Have a ${rupee(predictedNext)}+ option ready for their next visit`, button: null };
+        } else if (!customer.high_value && totalSpend >= 10000) {
+            action = { text: `${rupee(totalSpend)} lifetime spend — not yet flagged as high-value`, button: { label: 'Mark high-value', handler: 'markHighValue' } };
+        } else {
+            action = { text: `Estimated ${rupee(annualValue)}/year relationship — worth a loyalty touch`, button: null };
         }
 
-        return { banner, items };
+        return {
+            annualValue,
+            chart: visits.map((v, i) => ({ amount: amounts[i], label: shortDate(dates[i]) })),
+            narrative,
+            chips,
+            action
+        };
     }
 
     function renderInsights(visits, customer) {
         const section = el('insights-section');
         const container = el('detail-insights');
-        const { banner, items } = computeInsights(visits, customer);
-        if (!items.length && !banner) {
+        const story = buildStory(visits, customer);
+        if (!story) {
             section.hidden = true;
             return;
         }
         section.hidden = false;
-        const bannerHtml = banner ? `
-            <div class="insight-banner">
-                <div class="insight-banner-label">${banner.label}</div>
-                <div class="insight-banner-value">${rupee(banner.value)}<span>/year</span></div>
-            </div>
-        ` : '';
-        container.innerHTML = bannerHtml + items.map((i) => `
-            <div class="insight-row">
-                <span class="icon">${i.icon}</span>
-                <div class="insight-body">
-                    ${i.headline ? `<div class="insight-headline">${i.headline}</div>` : ''}
-                    <span>${i.text}</span>
-                </div>
-                ${i.action ? `<button class="insight-action" data-handler="${i.action.handler}">${i.action.label}</button>` : ''}
+
+        const maxAmount = Math.max(...story.chart.map(c => c.amount));
+        const chartHtml = story.chart.map(c => `
+            <div class="story-bar-wrap">
+                <div class="story-bar" style="height:${Math.max(8, Math.round((c.amount / maxAmount) * 100))}%" title="${rupee(c.amount)}"></div>
+                <div class="story-bar-label">${c.label}</div>
             </div>
         `).join('');
-        container.querySelectorAll('[data-handler="markHighValue"]').forEach((btn) => {
+
+        container.innerHTML = `
+            <div class="story-card">
+                <div class="story-hero-label">Estimated value of this relationship</div>
+                <div class="story-hero-value">${rupee(story.annualValue)}<span>/year</span></div>
+                <div class="story-chart">${chartHtml}</div>
+                <div class="story-narrative">${story.narrative}</div>
+                <div class="story-action">
+                    <span>👉 ${story.action.text}</span>
+                    ${story.action.button ? `<button data-handler="${story.action.button.handler}">${story.action.button.label}</button>` : ''}
+                </div>
+                ${story.chips.length ? `<div class="story-chips">${story.chips.map(c => `<span class="story-chip">${c}</span>`).join('')}</div>` : ''}
+            </div>
+        `;
+        const btn = container.querySelector('[data-handler="markHighValue"]');
+        if (btn) {
             btn.addEventListener('click', async () => {
                 el('detail-high-value').checked = true;
                 const { error } = await supabase.from('customers').update({ high_value: true }).eq('id', currentCustomer.id);
                 setStatus(error ? 'Could not update: ' + error.message : 'Marked as high-value.', !!error);
                 if (!error) { btn.remove(); }
             });
-        });
+        }
     }
 
     function renderReminders(reminders) {
