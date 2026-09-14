@@ -66,7 +66,7 @@
         margin-bottom: 6px;
     }
 
-    input[type="text"], input[type="tel"], input[type="date"], select, textarea {
+    input[type="text"], input[type="tel"], input[type="date"], input[type="time"], select, textarea {
         width: 100%;
         padding: 13px 14px;
         border: 1.5px solid var(--line);
@@ -146,6 +146,10 @@
             <input type="date" id="date">
         </div>
         <div class="field">
+            <label for="time">Preferred Time (optional)</label>
+            <input type="time" id="time">
+        </div>
+        <div class="field">
             <label for="notes">Anything else? (optional)</label>
             <textarea id="notes" placeholder="e.g. Preferred time of day, specific concern"></textarea>
         </div>
@@ -195,6 +199,7 @@
             name,
             phone,
             preferred_date: date || null,
+            preferred_time: el('time').value || null,
             notes: el('notes').value.trim() || null
         });
 

@@ -182,6 +182,14 @@
         return new Date().toISOString().slice(0, 10);
     }
 
+    function formatTime(t) {
+        if (!t) return '';
+        const [h, m] = t.split(':').map(Number);
+        const period = h >= 12 ? 'PM' : 'AM';
+        const h12 = h % 12 || 12;
+        return `${h12}:${String(m).padStart(2, '0')} ${period}`;
+    }
+
     function daysOverdue(dueDate) {
         const due = new Date(dueDate + 'T00:00:00');
         const today = new Date(todayISO() + 'T00:00:00');
@@ -221,6 +229,7 @@
                 <div class="followup-info">
                     <div class="followup-name">${customer.name || 'Unknown customer'}</div>
                     <div class="followup-meta">${r.type} · due ${r.due_date}</div>
+                    ${r.notes ? `<div class="followup-meta">${r.notes}</div>` : ''}
                 </div>
                 <div class="followup-badge${isOverdue ? ' overdue' : ''}">${badgeText}</div>
                 <div class="followup-actions">
@@ -307,7 +316,7 @@
             row.innerHTML = `
                 <div class="followup-info">
                     <div class="followup-name">${req.name}</div>
-                    <div class="followup-meta">${req.phone} · wants ${req.preferred_date || 'no date specified'}</div>
+                    <div class="followup-meta">${req.phone} · wants ${req.preferred_date || 'no date specified'}${req.preferred_time ? ' at ' + formatTime(req.preferred_time) : ''}</div>
                     ${req.notes ? `<div class="followup-meta">${req.notes}</div>` : ''}
                 </div>
                 <div class="followup-actions">
@@ -329,12 +338,18 @@
                     customer = created;
                 }
 
+                // Reminders have no time column, so fold the requested time
+                // into notes — that's the only place it survives once this
+                // becomes a real follow-up (and it's what the Calendar shows).
+                const timeNote = req.preferred_time ? `Requested time: ${formatTime(req.preferred_time)}` : '';
+                const combinedNotes = [timeNote, req.notes].filter(Boolean).join(' — ') || null;
+
                 const { error: reminderError } = await supabase.from('reminders').insert({
                     customer_id: customer.id,
                     type: 'Eye test',
                     due_date: req.preferred_date || todayISO(),
                     status: 'pending',
-                    notes: req.notes || null
+                    notes: combinedNotes
                 });
                 if (reminderError) { setStatus('Could not create follow-up: ' + reminderError.message, true); return; }
 

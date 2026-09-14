@@ -10,9 +10,9 @@ Website prototype for M&K Optics
   rewards program themselves at the counter. No login; deliberately
   narrow write access (see Security below).
 - `book-appointment.html` — online appointment request form (Name,
-  Mobile, Preferred Date, Notes). No login; same narrow-write pattern
-  as rewards sign-up. Staff turn each request into a real follow-up
-  from the Follow-Ups page.
+  Mobile, Preferred Date, Preferred Time, Notes). No login; same
+  narrow-write pattern as rewards sign-up. Staff turn each request into
+  a real follow-up from the Follow-Ups page.
 
 **Staff (all behind login, all share the same sidebar/navigation)**
 - `dashboard.html` — the staff app's home page: key numbers (total
@@ -79,7 +79,9 @@ is enough).
    `reward_signups` table the public sign-up page writes to.
 7. SQL Editor → run `supabase-migration-004-appointments.sql`. Adds the
    `appointment_requests` table the booking page writes to.
-8. Open `counter-intake.html` (or any staff page) in a browser, or serve
+8. SQL Editor → run `supabase-migration-005-appointment-time.sql`. Adds
+   the preferred-time column to `appointment_requests`.
+9. Open `counter-intake.html` (or any staff page) in a browser, or serve
    the folder with any static file server. Sign in with the account from
    step 4.
 

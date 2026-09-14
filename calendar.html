@@ -274,6 +274,7 @@
                 return `<div class="day-detail-row">
                     <div class="name">${c.name || 'Unknown customer'}</div>
                     <div class="meta">${r.type} · ${c.phone || 'no phone on file'} · ${r.status}</div>
+                    ${r.notes ? `<div class="meta">${r.notes}</div>` : ''}
                 </div>`;
             }).join('');
         }
