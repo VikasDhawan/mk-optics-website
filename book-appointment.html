@@ -272,6 +272,24 @@
             return;
         }
 
+        // Ask a narrow yes/no question ("is this exact date+time already
+        // taken?") without ever showing the store's calendar to a customer
+        // — only staff can see who else is booked or when.
+        if (date && preferredTime) {
+            const { data: isTaken, error: checkError } = await supabase.rpc('is_time_slot_taken', {
+                p_date: date,
+                p_time: preferredTime
+            });
+            if (checkError) {
+                errorEl.textContent = 'Something went wrong — please call or WhatsApp us instead.';
+                return;
+            }
+            if (isTaken) {
+                errorEl.textContent = 'That time is already booked — please choose a different time.';
+                return;
+            }
+        }
+
         const { error } = await supabase.from('appointment_requests').insert({
             name,
             phone,

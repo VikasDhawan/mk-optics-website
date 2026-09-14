@@ -338,9 +338,10 @@
                     customer = created;
                 }
 
-                // Reminders have no time column, so fold the requested time
-                // into notes — that's the only place it survives once this
-                // becomes a real follow-up (and it's what the Calendar shows).
+                // Also show the requested time in notes (for a quick read at
+                // a glance), but store it as real data in preferred_time too
+                // — that's what keeps the slot marked "taken" for the online
+                // booking form's double-booking check once this is confirmed.
                 const timeNote = req.preferred_time ? `Requested time: ${formatTime(req.preferred_time)}` : '';
                 const combinedNotes = [timeNote, req.notes].filter(Boolean).join(' — ') || null;
 
@@ -348,6 +349,7 @@
                     customer_id: customer.id,
                     type: 'Eye test',
                     due_date: req.preferred_date || todayISO(),
+                    preferred_time: req.preferred_time || null,
                     status: 'pending',
                     notes: combinedNotes
                 });
@@ -363,7 +365,11 @@
             });
 
             row.querySelector('[data-action="dismiss"]').addEventListener('click', async () => {
-                const { error } = await supabase.from('appointment_requests').update({ status: 'reviewed' }).eq('id', req.id);
+                // Dismissed is its own status, distinct from "reviewed" (used
+                // when a request is converted) — otherwise a dismissed
+                // request would keep blocking its time slot on the booking
+                // form even though it was never actually confirmed.
+                const { error } = await supabase.from('appointment_requests').update({ status: 'dismissed' }).eq('id', req.id);
                 if (error) { setStatus('Could not update: ' + error.message, true); return; }
                 loadRequests();
             });

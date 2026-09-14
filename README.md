@@ -81,9 +81,12 @@ is enough).
    `appointment_requests` table the booking page writes to.
 8. SQL Editor → run `supabase-migration-005-appointment-time.sql`. Adds
    the preferred-time column to `appointment_requests`.
-9. Open `counter-intake.html` (or any staff page) in a browser, or serve
-   the folder with any static file server. Sign in with the account from
-   step 4.
+9. SQL Editor → run `supabase-migration-006-slot-conflicts.sql`. Adds a
+   preferred-time column to `reminders` and a narrow yes/no function the
+   booking page uses to stop double-booking the same date and time.
+10. Open `counter-intake.html` (or any staff page) in a browser, or serve
+    the folder with any static file server. Sign in with the account from
+    step 4.
 
 ### Staff login
 
@@ -104,6 +107,11 @@ same Users screen.
   can't see another's submission. Staff review and convert these into
   real records from the **Dashboard** (sign-ups) and **Follow-Ups**
   (appointment requests).
+- `book-appointment.html` also calls `is_time_slot_taken(date, time)`, a
+  database function that answers only true/false for one exact slot —
+  it can see into `reminders`/`appointment_requests` to check, but never
+  returns any row data, so a customer can check availability without
+  ever seeing the store's calendar or other people's bookings.
 - Per-staff permissions (e.g. restricting who sees sale amounts) aren't
   built — any logged-in staff account can do anything in the app.
 
