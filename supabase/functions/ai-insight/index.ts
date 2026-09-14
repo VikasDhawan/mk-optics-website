@@ -5,26 +5,36 @@
 // visit history and returns a short, actionable insight in plain
 // language — so staff never have to write a prompt themselves.
 //
-// Why this lives server-side rather than calling Anthropic from the
-// browser: the shop's API key must never be visible in a browser tab
-// (anyone could open dev tools and steal it). This function reads the
-// key with the service-role connection (bypassing RLS, same as any
-// other trusted server process) and makes the call itself; the
-// browser only ever sees the final text answer, never the key.
+// Provider strategy (all free-tier, in order):
+//   1. Google Gemini (gemini-2.5-flash) — primary, generous free quota.
+//   2. Groq (llama-3.3-70b-versatile) — automatic fallback, only tried
+//      if Gemini reports its free daily quota is exhausted (HTTP 429).
+//   3. If BOTH are exhausted or neither is configured: return a plain
+//      message suggesting a paid ChatGPT Plus/Pro account as a manual
+//      option. This is a suggestion only, never an automatic call —
+//      ChatGPT's consumer subscription isn't a programmatic API key,
+//      so there's nothing here to call automatically even if a shop
+//      has one.
+//
+// Why this lives server-side rather than calling providers from the
+// browser: API keys must never be visible in a browser tab (anyone
+// could open dev tools and steal them). This function reads keys with
+// the service-role connection (bypassing RLS, same as any other
+// trusted server process) and makes the calls itself; the browser
+// only ever sees the final text answer, never a key.
 //
 // Deploy with the Supabase CLI from the repo root:
 //   supabase functions deploy ai-insight --project-ref <your-project-ref>
 //
-// Requires no extra secrets to be set — the key comes from the
-// ai_settings table (see ai-settings.html), not from Edge Function
-// environment variables, so each shop's own key lives in their own
-// database, not in deployed code.
+// Requires no Edge Function secrets — keys come from the ai_settings
+// table (see ai-settings.html), so each shop's own keys live in their
+// own database, not in deployed code.
 // =====================================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const CLAUDE_MODEL = 'claude-3-5-haiku-latest'; // fast + inexpensive — plenty for this use case
-const CLAUDE_API_VERSION = '2023-06-01';
+const GEMINI_MODEL = 'gemini-2.5-flash';
+const GROQ_MODEL = 'llama-3.3-70b-versatile';
 
 // The pre-engineered prompt. Non-technical shop owners never see or
 // write this — it's baked into the app so "Ask AI" just works.
@@ -56,6 +66,7 @@ Deno.serve(async (req) => {
   const cors = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
   };
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
 
@@ -69,21 +80,22 @@ Deno.serve(async (req) => {
 
     const { data: settings, error: settingsError } = await supabaseAdmin
       .from('ai_settings')
-      .select('api_key')
+      .select('gemini_api_key, groq_api_key')
       .eq('id', true)
       .maybeSingle();
 
-    if (settingsError || !settings?.api_key) {
+    if (settingsError) return json({ error: settingsError.message }, cors);
+    const geminiKey = settings?.gemini_api_key || null;
+    const groqKey = settings?.groq_api_key || null;
+
+    if (!geminiKey && !groqKey) {
       return json({ error: 'No AI key configured yet — add one on the AI Setup page.' }, cors);
     }
-    const apiKey = settings.api_key;
 
-    // A cheap, tiny call just to confirm the key actually works, used by
-    // the "Test Connection" button on ai-settings.html.
     if (test) {
-      const testRes = await callClaude(apiKey, 'Reply with the single word: OK', 10);
-      if (!testRes.ok) return json({ error: testRes.error }, cors);
-      return json({ ok: true }, cors);
+      const result = await callWithFallback(geminiKey, groqKey, 'Reply with the single word: OK', 10);
+      if (!result.ok) return json({ error: result.error }, cors);
+      return json({ ok: true, provider: result.provider }, cors);
     }
 
     if (!customerId) return json({ error: 'Missing customerId.' }, cors);
@@ -117,44 +129,119 @@ Deno.serve(async (req) => {
       })),
     };
 
-    const result = await callClaude(
-      apiKey,
+    const result = await callWithFallback(
+      geminiKey,
+      groqKey,
       `Here is the visit history JSON:\n\n${JSON.stringify(payload, null, 2)}`,
       300,
       SYSTEM_PROMPT
     );
 
     if (!result.ok) return json({ error: result.error }, cors);
-    return json({ insight: result.text }, cors);
+    return json({ insight: result.text, provider: result.provider }, cors);
   } catch (err) {
     return json({ error: String(err) }, { 'Access-Control-Allow-Origin': '*' });
   }
 });
 
-async function callClaude(apiKey: string, userMessage: string, maxTokens: number, systemPrompt?: string) {
+// Tries Gemini first (if configured), falls back to Groq only when
+// Gemini reports its free quota is exhausted (or Gemini isn't
+// configured at all). If both are unavailable, suggests a paid
+// ChatGPT Plus/Pro account as a manual next step rather than failing
+// silently — that's a human decision, not something this function can
+// act on automatically.
+async function callWithFallback(
+  geminiKey: string | null,
+  groqKey: string | null,
+  userMessage: string,
+  maxTokens: number,
+  systemPrompt?: string
+) {
+  let geminiExhausted = false;
+  let groqExhausted = false;
+
+  if (geminiKey) {
+    const result = await callGemini(geminiKey, userMessage, maxTokens, systemPrompt);
+    if (result.ok) return { ...result, provider: 'gemini' };
+    if (!result.quotaExhausted) return result; // a real error, not a quota issue — surface it as-is
+    geminiExhausted = true;
+  }
+
+  if (groqKey) {
+    const result = await callGroq(groqKey, userMessage, maxTokens, systemPrompt);
+    if (result.ok) return { ...result, provider: 'groq' };
+    if (!result.quotaExhausted) return result;
+    groqExhausted = true;
+  }
+
+  // Everything configured was tried and every one hit its free daily
+  // limit (or nothing is configured at all) — say exactly what
+  // happened rather than a generic "both" message that may not be true.
+  if (geminiExhausted && groqExhausted) {
+    return { ok: false, error: quotaMessage("Both Gemini and Groq's free tiers have") };
+  }
+  if (geminiExhausted) {
+    return { ok: false, error: quotaMessage("Gemini's free tier has") + ' Add a Groq key too for an automatic backup next time.' };
+  }
+  if (groqExhausted) {
+    return { ok: false, error: quotaMessage("Groq's free tier has") };
+  }
+  return { ok: false, error: 'Add a Gemini or Groq API key on the AI Setup page to use this feature.' };
+}
+
+function quotaMessage(who: string) {
+  return `${who} hit today's usage limit. It resets daily, so try again tomorrow — or, for unlimited access right away, consider a paid ChatGPT Plus/Pro account and paste the customer's details in there manually.`;
+}
+
+async function callGemini(apiKey: string, userMessage: string, maxTokens: number, systemPrompt?: string) {
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          ...(systemPrompt ? { systemInstruction: { parts: [{ text: systemPrompt }] } } : {}),
+          contents: [{ parts: [{ text: userMessage }] }],
+          generationConfig: { maxOutputTokens: maxTokens },
+        }),
+      }
+    );
+    const data = await res.json();
+    if (!res.ok) {
+      const status = data?.error?.status;
+      const quotaExhausted = res.status === 429 || status === 'RESOURCE_EXHAUSTED';
+      return { ok: false, quotaExhausted, error: data?.error?.message || `Gemini API error (${res.status})` };
+    }
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    if (!text) return { ok: false, quotaExhausted: false, error: 'Gemini returned an empty response.' };
+    return { ok: true, text };
+  } catch (err) {
+    return { ok: false, quotaExhausted: false, error: String(err) };
+  }
+}
+
+async function callGroq(apiKey: string, userMessage: string, maxTokens: number, systemPrompt?: string) {
+  try {
+    const messages = [];
+    if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
+    messages.push({ role: 'user', content: userMessage });
+
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': CLAUDE_API_VERSION,
-      },
-      body: JSON.stringify({
-        model: CLAUDE_MODEL,
-        max_tokens: maxTokens,
-        ...(systemPrompt ? { system: systemPrompt } : {}),
-        messages: [{ role: 'user', content: userMessage }],
-      }),
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ model: GROQ_MODEL, messages, max_tokens: maxTokens }),
     });
     const data = await res.json();
     if (!res.ok) {
-      return { ok: false, error: data?.error?.message || `Anthropic API error (${res.status})` };
+      const quotaExhausted = res.status === 429;
+      return { ok: false, quotaExhausted, error: data?.error?.message || `Groq API error (${res.status})` };
     }
-    const text = data?.content?.[0]?.text?.trim();
+    const text = data?.choices?.[0]?.message?.content?.trim();
+    if (!text) return { ok: false, quotaExhausted: false, error: 'Groq returned an empty response.' };
     return { ok: true, text };
   } catch (err) {
-    return { ok: false, error: String(err) };
+    return { ok: false, quotaExhausted: false, error: String(err) };
   }
 }
 

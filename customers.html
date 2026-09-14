@@ -638,17 +638,18 @@
         btn.disabled = true;
         btn.textContent = 'Thinking…';
         box.hidden = false;
-        box.innerHTML = '<span class="ai-label">✨ AI-generated (Claude)</span>Reading this customer\'s full history…';
+        box.innerHTML = '<span class="ai-label">✨ AI-generated</span>Reading this customer\'s full history…';
 
         const { data, error } = await supabase.functions.invoke('ai-insight', { body: { customerId: currentCustomer.id } });
         btn.disabled = false;
         btn.textContent = '✨ Ask AI for a deeper read';
 
         if (error || (data && data.error)) {
-            box.innerHTML = `<span class="ai-label">✨ AI-generated (Claude)</span>${(data && data.error) || error.message}`;
+            box.innerHTML = `<span class="ai-label">✨ AI-generated</span>${(data && data.error) || error.message}`;
             return;
         }
-        box.innerHTML = `<span class="ai-label">✨ AI-generated (Claude)</span>${data.insight}`;
+        const providerLabel = data.provider === 'groq' ? 'via Groq (Gemini limit reached today)' : 'via Gemini';
+        box.innerHTML = `<span class="ai-label">✨ AI-generated — ${providerLabel}</span>${data.insight}`;
     });
 
     el('detail-high-value').addEventListener('change', async (e) => {

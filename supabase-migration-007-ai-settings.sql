@@ -1,25 +1,27 @@
 -- =====================================================================
--- MK Optics — Migration 007: bring-your-own AI key
+-- MK Optics — Migration 007: bring-your-own AI keys (Gemini + Groq)
 -- =====================================================================
 -- Run this in the SQL Editor after migration 006.
 --
--- A single settings row where staff paste their own Anthropic API key
--- (see ai-settings.html). Only logged-in staff can read or write it —
--- same "staff-only" pattern as every other table. The key never
--- reaches the AI provider from the customer's browser: the ai-insight
--- Edge Function (supabase/functions/ai-insight) reads it server-side
--- and makes the call itself, so the key is never sent to, or visible
--- from, any browser tab.
+-- A single settings row holding up to two free-tier AI keys:
+--   - gemini_api_key: primary. Google's free tier (no card needed).
+--   - groq_api_key: fallback, used automatically only if Gemini's
+--     free daily quota is exhausted.
 --
--- "id boolean primary key default true, check (id)" is a standard
--- trick to guarantee at most one row ever exists — a real singleton.
--- Safe to re-run.
+-- Only logged-in staff can read or write it — same "staff-only"
+-- pattern as every other table. Neither key ever reaches a customer's
+-- (or staff member's) browser: the ai-insight Edge Function
+-- (supabase/functions/ai-insight) reads them server-side and makes
+-- the calls itself.
+--
+-- "id boolean primary key default true, check (id)" guarantees at
+-- most one row can ever exist — a real singleton. Safe to re-run.
 -- =====================================================================
 
 create table if not exists ai_settings (
   id boolean primary key default true,
-  provider text not null default 'anthropic',
-  api_key text,
+  gemini_api_key text,
+  groq_api_key text,
   updated_at timestamptz not null default now(),
   constraint ai_settings_singleton check (id)
 );

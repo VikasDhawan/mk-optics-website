@@ -101,31 +101,47 @@
             </div>
 
             <div class="card">
-                <div id="ai-status" class="ai-status not-connected">Not connected — the Customers page will keep using the free, built-in Insights until you add a key.</div>
+                <div id="ai-status" class="ai-status not-connected">Not connected — the Customers page will keep using the free, built-in Quick Insight until you add a key.</div>
 
-                <h2>Anthropic (Claude) API Key</h2>
+                <h2>Google Gemini API Key <span style="font-weight:400;color:var(--grey);font-size:12px;text-transform:none">— primary, free tier</span></h2>
                 <p class="empty-hint" style="margin-top:-6px;margin-bottom:14px">
-                    Get a key from <strong>console.anthropic.com</strong> — this is a pay-as-you-go account you sign up
-                    for and pay directly; MK Optics never sees or is billed for your usage. Each AI insight costs a
-                    small fraction of a rupee.
+                    Get a free key at <strong>aistudio.google.com/apikey</strong> — no credit card needed. Google's free
+                    tier covers far more requests per day than this shop will ever use.
                 </p>
                 <div class="key-row">
-                    <input type="password" id="api-key" placeholder="sk-ant-...">
-                    <button class="btn btn-dark" id="save-key-btn">Save Key</button>
-                    <button class="btn btn-primary" id="test-key-btn">Test Connection</button>
+                    <input type="password" id="gemini-key" placeholder="AIza...">
+                    <button class="btn btn-dark" id="save-gemini-btn">Save</button>
                 </div>
-                <p id="clear-row" style="margin-top:10px" hidden>
-                    <a href="#" id="clear-key-btn" style="color:#8a2626;font-size:12px">Remove saved key</a>
+                <p id="clear-gemini-row" style="margin-top:10px" hidden>
+                    <a href="#" id="clear-gemini-btn" style="color:#8a2626;font-size:12px">Remove Gemini key</a>
                 </p>
+
+                <h2 style="margin-top:24px">Groq API Key <span style="font-weight:400;color:var(--grey);font-size:12px;text-transform:none">— optional automatic backup</span></h2>
+                <p class="empty-hint" style="margin-top:-6px;margin-bottom:14px">
+                    Get a free key at <strong>console.groq.com/keys</strong> — also no card needed. If Gemini's free
+                    daily limit is ever used up, the app automatically switches to Groq for the rest of the day, with
+                    nothing for staff to do.
+                </p>
+                <div class="key-row">
+                    <input type="password" id="groq-key" placeholder="gsk_...">
+                    <button class="btn btn-dark" id="save-groq-btn">Save</button>
+                </div>
+                <p id="clear-groq-row" style="margin-top:10px" hidden>
+                    <a href="#" id="clear-groq-btn" style="color:#8a2626;font-size:12px">Remove Groq key</a>
+                </p>
+
+                <button class="btn btn-primary" id="test-key-btn" style="margin-top:18px">Test Connection</button>
             </div>
 
             <div class="card">
                 <h2>How this works</h2>
                 <ul class="how-it-works">
-                    <li>Your key is stored only in this shop's own Supabase project — never shared with any other MK Optics install.</li>
-                    <li>When staff click "Ask AI" on a customer's page, a server-side function reads your key and calls Anthropic directly — your key is never sent to, or visible from, any browser.</li>
-                    <li>The prompt sent is already written for you — it asks specifically for revenue and cost-saving opportunities from that customer's visit history, in plain language. No prompt-writing needed.</li>
-                    <li>You are billed by Anthropic directly, only for what you actually use. Remove the key any time to stop.</li>
+                    <li>Both keys are stored only in this shop's own Supabase project — never shared with any other MK Optics install.</li>
+                    <li>When staff click "Ask AI" on a customer's page, a server-side function reads your keys and calls the provider directly — neither key is ever sent to, or visible from, any browser.</li>
+                    <li>Gemini is tried first. If (and only if) its free daily limit is used up, the app automatically retries with Groq — no interruption to staff, nothing to configure each time.</li>
+                    <li>If both free tiers are used up for the day, "Ask AI" will say so and suggest a paid ChatGPT Plus/Pro account as a manual option — the app can't call that automatically since it's a subscription for a person, not a programmable key.</li>
+                    <li>The prompt sent is already written for you — it asks specifically for revenue and cost-saving opportunities from that customer's visit history, in plain language. No prompt-writing needed, ever.</li>
+                    <li>Both free tiers reset daily, so normal use the next day just works again on its own.</li>
                 </ul>
             </div>
 
@@ -149,33 +165,51 @@
         statusEl.className = 'status-msg ' + (isError ? 'error' : 'ok');
     }
 
-    function setConnected(isConnected) {
+    function setConnected(hasGemini, hasGroq) {
         const badge = el('ai-status');
-        el('clear-row').hidden = !isConnected;
-        if (isConnected) {
+        el('clear-gemini-row').hidden = !hasGemini;
+        el('clear-groq-row').hidden = !hasGroq;
+        if (hasGemini && hasGroq) {
             badge.className = 'ai-status connected';
-            badge.textContent = '✓ Connected — "Ask AI" is now available on the Customers page.';
+            badge.textContent = '✓ Connected — Gemini primary, Groq as an automatic backup if Gemini runs out for the day.';
+        } else if (hasGemini) {
+            badge.className = 'ai-status connected';
+            badge.textContent = '✓ Connected — Gemini only. Add a Groq key too for an automatic backup if Gemini\'s daily limit is reached.';
+        } else if (hasGroq) {
+            badge.className = 'ai-status connected';
+            badge.textContent = '✓ Connected — Groq only. Add a Gemini key as the primary for a larger free daily limit.';
         } else {
             badge.className = 'ai-status not-connected';
-            badge.textContent = 'Not connected — the Customers page will keep using the free, built-in Insights until you add a key.';
+            badge.textContent = 'Not connected — the Customers page will keep using the free, built-in Quick Insight until you add a key.';
         }
     }
 
     async function loadSettings() {
         if (!supabase) return;
         const { data } = await supabase.from('ai_settings').select('*').eq('id', true).maybeSingle();
-        setConnected(!!(data && data.api_key));
+        setConnected(!!(data && data.gemini_api_key), !!(data && data.groq_api_key));
     }
 
-    el('save-key-btn').addEventListener('click', async () => {
-        const key = el('api-key').value.trim();
+    el('save-gemini-btn').addEventListener('click', async () => {
+        const key = el('gemini-key').value.trim();
         if (!key) { setStatus('Paste a key before saving.', true); return; }
         if (!supabase) { setStatus('Connect Supabase first.', true); return; }
-        const { error } = await supabase.from('ai_settings').upsert({ id: true, provider: 'anthropic', api_key: key, updated_at: new Date().toISOString() });
+        const { error } = await supabase.from('ai_settings').upsert({ id: true, gemini_api_key: key, updated_at: new Date().toISOString() });
         if (error) { setStatus('Could not save: ' + error.message, true); return; }
-        el('api-key').value = '';
-        setStatus('Key saved.', false);
-        setConnected(true);
+        el('gemini-key').value = '';
+        setStatus('Gemini key saved.', false);
+        loadSettings();
+    });
+
+    el('save-groq-btn').addEventListener('click', async () => {
+        const key = el('groq-key').value.trim();
+        if (!key) { setStatus('Paste a key before saving.', true); return; }
+        if (!supabase) { setStatus('Connect Supabase first.', true); return; }
+        const { error } = await supabase.from('ai_settings').upsert({ id: true, groq_api_key: key, updated_at: new Date().toISOString() });
+        if (error) { setStatus('Could not save: ' + error.message, true); return; }
+        el('groq-key').value = '';
+        setStatus('Groq key saved.', false);
+        loadSettings();
     });
 
     el('test-key-btn').addEventListener('click', async () => {
@@ -184,16 +218,25 @@
         const { data, error } = await supabase.functions.invoke('ai-insight', { body: { test: true } });
         if (error) { setStatus('Test failed: ' + error.message, true); return; }
         if (data && data.error) { setStatus('Test failed: ' + data.error, true); return; }
-        setStatus('Success — the AI connection is working.', false);
+        setStatus('Success — working via ' + data.provider + '.', false);
     });
 
-    el('clear-key-btn').addEventListener('click', async (e) => {
+    el('clear-gemini-btn').addEventListener('click', async (e) => {
         e.preventDefault();
         if (!supabase) return;
-        const { error } = await supabase.from('ai_settings').update({ api_key: null }).eq('id', true);
+        const { error } = await supabase.from('ai_settings').update({ gemini_api_key: null }).eq('id', true);
         if (error) { setStatus('Could not remove key: ' + error.message, true); return; }
-        setStatus('Key removed.', false);
-        setConnected(false);
+        setStatus('Gemini key removed.', false);
+        loadSettings();
+    });
+
+    el('clear-groq-btn').addEventListener('click', async (e) => {
+        e.preventDefault();
+        if (!supabase) return;
+        const { error } = await supabase.from('ai_settings').update({ groq_api_key: null }).eq('id', true);
+        if (error) { setStatus('Could not remove key: ' + error.message, true); return; }
+        setStatus('Groq key removed.', false);
+        loadSettings();
     });
 
     window.MKAuth.ready.then(loadSettings);

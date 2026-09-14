@@ -40,12 +40,17 @@ Website prototype for M&K Optics
   prompt, and returns a genuinely generated (not templated) insight —
   useful for reading the free-text staff notes across visits, which
   the free Quick Insight can't do.
-- `ai-settings.html` — add or remove your own Anthropic API key to turn
-  on the "Ask AI" feature above. Bring-your-own-key: the key lives only
-  in this shop's own Supabase project, billed directly by Anthropic to
-  whoever owns that key — this app and its other installs never see or
-  pay for anyone's AI usage. Leave it empty and the app works exactly
-  as before, using only the free Quick Insight.
+- `ai-settings.html` — add your own free-tier Google Gemini API key (and
+  optionally a Groq key as an automatic backup) to turn on the "Ask AI"
+  feature above. Bring-your-own-key: both keys live only in this shop's
+  own Supabase project — this app and its other installs never see or
+  are involved in anyone's AI usage. Gemini is tried first; if its free
+  daily limit is ever used up, the app automatically retries with Groq,
+  with nothing for staff to do. If both are used up for the day, "Ask
+  AI" says so and suggests a paid ChatGPT Plus/Pro account as a manual
+  option (not something the app can call automatically, since it's a
+  subscription for a person, not a programmable key). Leave both empty
+  and the app works exactly as before, using only the free Quick Insight.
 - `enquiries.html` — log walk-ins/enquiries who didn't buy, follow up via
   WhatsApp, and convert an enquiry into a real customer record (creating
   one if it doesn't already exist) or mark it lost.
@@ -102,14 +107,18 @@ is enough).
    preferred-time column to `reminders` and a narrow yes/no function the
    booking page uses to stop double-booking the same date and time.
 10. SQL Editor → run `supabase-migration-007-ai-settings.sql`. Adds the
-    (empty, optional) table that holds a shop's own AI key — required
+    (empty, optional) table that holds a shop's own AI keys — required
     for the "Ask AI" feature to exist at all, but the app works fully
     without ever filling it in.
-11. **Optional, only if you want "Ask AI" to work**: deploy the Edge
-    Function with the Supabase CLI: `supabase functions deploy
-    ai-insight --project-ref <your-project-ref>`. Then open
-    `ai-settings.html`, add your own Anthropic API key from
-    console.anthropic.com, and click "Test Connection." Skip this
+11. **Optional, only if you want "Ask AI" to work**: first install the
+    Supabase CLI if you don't have it (`npm install -g supabase`, or see
+    supabase.com/docs/guides/cli), then from this repo's folder run:
+    `supabase login`, `supabase link --project-ref <your-project-ref>`,
+    and `supabase functions deploy ai-insight`. Then open
+    `ai-settings.html`, get a free key at aistudio.google.com/apikey
+    (no card needed), paste it in under Gemini, and click "Test
+    Connection." Optionally also add a free Groq key from
+    console.groq.com/keys as an automatic backup. Skip this step
     entirely and the app works exactly as before.
 12. Open `counter-intake.html` (or any staff page) in a browser, or serve
     the folder with any static file server. Sign in with the account from
@@ -141,13 +150,14 @@ same Users screen.
   ever seeing the store's calendar or other people's bookings.
 - Per-staff permissions (e.g. restricting who sees sale amounts) aren't
   built — any logged-in staff account can do anything in the app.
-- The AI key (`ai_settings.api_key`) is readable/writable only by
-  logged-in staff, same as every other table — but more importantly,
-  it is never sent to or read from any browser during normal use. The
-  `ai-insight` Edge Function reads it server-side (using the
-  service-role connection, which bypasses RLS the same way any trusted
-  backend process would) and makes the Anthropic API call itself; the
-  browser only ever receives the finished text answer.
+- The AI keys (`ai_settings.gemini_api_key` / `groq_api_key`) are
+  readable/writable only by logged-in staff, same as every other
+  table — but more importantly, neither is ever sent to or read from
+  any browser during normal use. The `ai-insight` Edge Function reads
+  them server-side (using the service-role connection, which bypasses
+  RLS the same way any trusted backend process would) and makes the
+  Gemini/Groq API call itself; the browser only ever receives the
+  finished text answer.
 
 ### WhatsApp messages
 
