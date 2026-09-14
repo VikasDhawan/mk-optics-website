@@ -28,7 +28,15 @@ Website prototype for M&K Optics
   request show up in the list below and on the Calendar.
 - `customers.html` — search any customer and see their full contact
   details, preferences/notes (editable), pending reminders, and complete
-  purchase + prescription history across every visit.
+  purchase + prescription history across every visit. Once a customer
+  has 2+ visits, an **Insights** panel appears with simple, rule-based
+  observations computed from their own history — is their prescription
+  changing, is reading power (presbyopia) newly showing up, do they
+  keep buying the same kind of lens, roughly when are they due back,
+  and whether their spend suggests flagging them as high-value. This
+  is deliberately simple pattern-spotting, not a trained AI model (see
+  "Deliberately not built yet" below) — but it's real, useful signal
+  today, and gets more useful the more visits a customer has on file.
 - `enquiries.html` — log walk-ins/enquiries who didn't buy, follow up via
   WhatsApp, and convert an enquiry into a real customer record (creating
   one if it doesn't already exist) or mark it lost.
@@ -123,10 +131,13 @@ needed, but a staff member must tap send in the window that opens.
 
 ## Deliberately not built yet
 
-- **AI recommendation engine** (what to sell next, contact-lens refill
-  timing) — the growth-system plan this schema is based on marks this
-  "Future Feature, needs 6-12 months of data." Building UI for it now
-  would have nothing real behind it.
+- **A trained AI recommendation engine** (what to sell next across the
+  whole customer base, contact-lens refill timing patterns) — the
+  growth-system plan this schema is based on marks this "Future
+  Feature, needs 6-12 months of data" across many customers. The
+  Customers page's Insights panel is a first, simpler step: rule-based
+  observations from one customer's own history, available immediately
+  rather than after months of data collection.
 - **Per-staff permissions / roles.**
 
 ## Testing

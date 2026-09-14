@@ -87,6 +87,32 @@
 
     .toggle-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 
+    .insights-list { display: flex; flex-direction: column; gap: 8px; }
+    .insight-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        background: var(--green-pale);
+        border: 1.5px solid var(--green-dark);
+        font-size: 13px;
+        color: var(--ink);
+    }
+    .insight-row .icon { font-size: 15px; line-height: 1.3; }
+    .insight-row .insight-action {
+        margin-left: auto;
+        flex-shrink: 0;
+        background: var(--navy);
+        color: var(--white);
+        border: none;
+        border-radius: 6px;
+        padding: 5px 10px;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
     @media (max-width: 900px) {
         table.history-table { display: block; overflow-x: auto; white-space: nowrap; }
     }
@@ -199,6 +225,11 @@
                     <div class="detail-section">
                         <h3>Next Reminders</h3>
                         <div id="detail-reminders"><p class="empty-hint">None</p></div>
+                    </div>
+
+                    <div class="detail-section" id="insights-section" hidden>
+                        <h3>Insights <span style="text-transform:none;font-weight:400;color:var(--grey);letter-spacing:normal">— patterns spotted in this customer's own visit history</span></h3>
+                        <div id="detail-insights" class="insights-list"></div>
                     </div>
 
                     <div class="detail-section">
@@ -321,6 +352,127 @@
         `;
     }
 
+    // --- Insights ---------------------------------------------------
+    // This is deliberately simple, rule-based pattern-spotting over one
+    // customer's own visit history — not a trained AI model (the README
+    // notes a real recommendation engine needs 6-12 months of data
+    // across ALL customers, which the shop doesn't have yet). But once
+    // a customer has 2+ visits, a few plain rules already surface
+    // useful things: is their prescription changing, is reading power
+    // showing up for the first time, do they keep buying the same kind
+    // of lens, and roughly when are they due back.
+    function parseNum(v) {
+        if (v == null) return NaN;
+        const n = parseFloat(String(v).replace(/[^0-9.\-]/g, ''));
+        return Number.isFinite(n) ? n : NaN;
+    }
+
+    function firstValid(visits, field) {
+        for (const v of visits) { const n = parseNum(v[field]); if (!Number.isNaN(n)) return { visit: v, value: n }; }
+        return null;
+    }
+
+    function lastValid(visits, field) {
+        for (let i = visits.length - 1; i >= 0; i--) { const n = parseNum(visits[i][field]); if (!Number.isNaN(n)) return { visit: visits[i], value: n }; }
+        return null;
+    }
+
+    function computeInsights(visitsDesc, customer) {
+        if (visitsDesc.length < 2) return [];
+        const visits = [...visitsDesc].reverse(); // oldest first
+        const insights = [];
+
+        // 1. Visit cadence — average gap between visits, and a guess at
+        //    when they're due back.
+        const dates = visits.map(v => new Date((v.visit_date || v.created_at || '').slice(0, 10) + 'T00:00:00')).filter(d => !isNaN(d));
+        if (dates.length >= 2) {
+            const spanDays = (dates[dates.length - 1] - dates[0]) / 86400000;
+            const avgGap = Math.round(spanDays / (dates.length - 1));
+            if (avgGap > 0) {
+                const next = new Date(dates[dates.length - 1].getTime() + avgGap * 86400000);
+                insights.push({
+                    icon: '📅',
+                    text: `Visits about every ${avgGap} days on average — next visit likely due around ${next.toISOString().slice(0, 10)}.`
+                });
+            }
+        }
+
+        // 2. Prescription trend — power increasing over time.
+        ['od', 'os'].forEach((side) => {
+            const first = firstValid(visits, side + '_sphere');
+            const last = lastValid(visits, side + '_sphere');
+            if (first && last && first.visit !== last.visit && Math.abs(last.value - first.value) >= 0.25) {
+                const dir = last.value > first.value ? 'increased' : 'decreased';
+                insights.push({
+                    icon: '👁️',
+                    text: `${side.toUpperCase()} power has ${dir} from ${first.value} to ${last.value} across their visits — worth a prescription recheck conversation.`
+                });
+            }
+        });
+
+        // 3. Reading power (presbyopia) appearing for the first time.
+        const hadAddEarly = visits.slice(0, Math.ceil(visits.length / 2)).some(v => parseNum(v.add_od_sphere) || parseNum(v.add_os_sphere));
+        const hasAddNow = !!(parseNum(visits[visits.length - 1].add_od_sphere) || parseNum(visits[visits.length - 1].add_os_sphere));
+        if (!hadAddEarly && hasAddNow) {
+            insights.push({
+                icon: '🔎',
+                text: 'Reading (add) power appears in their most recent visit but not their earlier ones — near-vision needs may be emerging. A good candidate to pitch progressive or office lenses.'
+            });
+        }
+
+        // 4. Repeat lens preference — an upsell opening.
+        const lensCounts = {};
+        visits.forEach(v => { if (v.lens) lensCounts[v.lens] = (lensCounts[v.lens] || 0) + 1; });
+        const topLens = Object.entries(lensCounts).sort((a, b) => b[1] - a[1])[0];
+        if (topLens && topLens[1] >= 2) {
+            insights.push({
+                icon: '🕶️',
+                text: `Chose "${topLens[0]}" in ${topLens[1]} of their last ${visits.length} visits — a strong match for a matching coating or premium upgrade pitch next time.`
+            });
+        }
+
+        // 5. Spend — suggest flagging as high-value.
+        const amounts = visits.map(v => parseNum(v.amount)).filter(n => !Number.isNaN(n));
+        if (amounts.length) {
+            const total = amounts.reduce((a, b) => a + b, 0);
+            if (!customer.high_value && (total >= 10000 || Math.max(...amounts) >= 6000)) {
+                insights.push({
+                    icon: '⭐',
+                    text: `Total spend so far: ₹${total.toLocaleString('en-IN')} across ${visits.length} visits — consider flagging as a high-value customer.`,
+                    action: { label: 'Mark high-value', handler: 'markHighValue' }
+                });
+            }
+        }
+
+        return insights;
+    }
+
+    function renderInsights(visits, customer) {
+        const section = el('insights-section');
+        const container = el('detail-insights');
+        const insights = computeInsights(visits, customer);
+        if (!insights.length) {
+            section.hidden = true;
+            return;
+        }
+        section.hidden = false;
+        container.innerHTML = insights.map((i) => `
+            <div class="insight-row">
+                <span class="icon">${i.icon}</span>
+                <span>${i.text}</span>
+                ${i.action ? `<button class="insight-action" data-handler="${i.action.handler}">${i.action.label}</button>` : ''}
+            </div>
+        `).join('');
+        container.querySelectorAll('[data-handler="markHighValue"]').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                el('detail-high-value').checked = true;
+                const { error } = await supabase.from('customers').update({ high_value: true }).eq('id', currentCustomer.id);
+                setStatus(error ? 'Could not update: ' + error.message : 'Marked as high-value.', !!error);
+                if (!error) { btn.remove(); }
+            });
+        });
+    }
+
     function renderReminders(reminders) {
         const container = el('detail-reminders');
         if (!reminders.length) {
@@ -359,8 +511,10 @@
 
         if (visitsError) {
             el('detail-history').innerHTML = '<p class="empty-hint">Could not load history: ' + visitsError.message + '</p>';
+            el('insights-section').hidden = true;
         } else {
             renderHistory(visits || []);
+            renderInsights(visits || [], c);
         }
 
         if (!remindersError) renderReminders(reminders || []);
