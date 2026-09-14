@@ -29,9 +29,9 @@ Website prototype for M&K Optics
 - `customers.html` — search any customer and see their full contact
   details, preferences/notes (editable), pending reminders, and complete
   purchase + prescription history across every visit.
-- `leads.html` — log walk-ins/enquiries who didn't buy, follow up via
-  WhatsApp, and convert a lead into a real customer record (creating one
-  if it doesn't already exist) or mark it lost.
+- `enquiries.html` — log walk-ins/enquiries who didn't buy, follow up via
+  WhatsApp, and convert an enquiry into a real customer record (creating
+  one if it doesn't already exist) or mark it lost.
 - `referrals.html` — look up the referring customer, log who they
   referred, ask them via WhatsApp, advance status (invited → joined →
   purchased), and track whether each side's discount was given.
