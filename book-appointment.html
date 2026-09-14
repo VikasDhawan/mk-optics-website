@@ -66,7 +66,7 @@
         margin-bottom: 6px;
     }
 
-    input[type="text"], input[type="tel"], input[type="date"], input[type="time"], select, textarea {
+    input[type="text"], input[type="tel"], input[type="date"], select, textarea {
         width: 100%;
         padding: 13px 14px;
         border: 1.5px solid var(--line);
@@ -79,6 +79,27 @@
     .phone-row { display: flex; gap: 8px; }
     .phone-row select { flex: 0 0 108px; width: auto; padding-left: 8px; padding-right: 4px; }
     .phone-row input { flex: 1; min-width: 0; }
+
+    .time-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .time-row select { flex: 1 1 80px; width: auto; min-width: 70px; }
+    .ampm-toggle { display: flex; gap: 6px; flex: 1 1 140px; }
+    .ampm-btn {
+        flex: 1;
+        padding: 13px 8px;
+        border: 1.5px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--grey);
+        cursor: pointer;
+        font-family: inherit;
+    }
+    .ampm-btn.active {
+        background: var(--green);
+        border-color: var(--green-dark);
+        color: var(--navy-dark);
+    }
 
     textarea { resize: vertical; min-height: 70px; }
     input:focus, textarea:focus { outline: none; border-color: var(--green-dark); }
@@ -146,8 +167,34 @@
             <input type="date" id="date">
         </div>
         <div class="field">
-            <label for="time">Preferred Time (optional)</label>
-            <input type="time" id="time">
+            <label>Preferred Time (optional)</label>
+            <div class="time-row">
+                <select id="time-hour" aria-label="Hour">
+                    <option value="">Hour</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                </select>
+                <select id="time-minute" aria-label="Minute">
+                    <option value="00">:00</option>
+                    <option value="15">:15</option>
+                    <option value="30">:30</option>
+                    <option value="45">:45</option>
+                </select>
+                <div class="ampm-toggle">
+                    <button type="button" class="ampm-btn" id="ampm-am" data-value="AM">AM</button>
+                    <button type="button" class="ampm-btn" id="ampm-pm" data-value="PM">PM</button>
+                </div>
+            </div>
         </div>
         <div class="field">
             <label for="notes">Anything else? (optional)</label>
@@ -179,15 +226,45 @@
     const el = (id) => document.getElementById(id);
     const errorEl = el('error-msg');
 
+    // Tap-only AM/PM toggle — no ambiguity about whether "4" means 4am or
+    // 4pm, and nothing to scroll through like a native 24-hour time input.
+    let selectedAmPm = null;
+    el('ampm-am').addEventListener('click', () => setAmPm('AM'));
+    el('ampm-pm').addEventListener('click', () => setAmPm('PM'));
+    function setAmPm(value) {
+        selectedAmPm = value;
+        el('ampm-am').classList.toggle('active', value === 'AM');
+        el('ampm-pm').classList.toggle('active', value === 'PM');
+    }
+
+    // Converts the Hour/Minute/AM-PM picker into a 24-hour "HH:MM" string
+    // for the database. Returns undefined (valid, just "no time chosen")
+    // when the hour is blank, or null (invalid) when an hour was picked
+    // but AM/PM wasn't.
+    function getPreferredTime() {
+        const hour12 = el('time-hour').value;
+        if (!hour12) return undefined;
+        if (!selectedAmPm) return null;
+        let h = parseInt(hour12, 10) % 12;
+        if (selectedAmPm === 'PM') h += 12;
+        const m = el('time-minute').value || '00';
+        return String(h).padStart(2, '0') + ':' + m;
+    }
+
     el('book-btn').addEventListener('click', async () => {
         const name = el('name').value.trim();
         const phoneDigits = el('phone').value.replace(/\D/g, '');
         const phone = phoneDigits ? '+' + el('phone-code').value + phoneDigits : '';
         const date = el('date').value;
+        const preferredTime = getPreferredTime();
         errorEl.textContent = '';
 
         if (!name || !phone) {
             errorEl.textContent = 'Please enter your name and mobile number.';
+            return;
+        }
+        if (preferredTime === null) {
+            errorEl.textContent = 'Please choose AM or PM for your preferred time.';
             return;
         }
         if (!supabase) {
@@ -199,7 +276,7 @@
             name,
             phone,
             preferred_date: date || null,
-            preferred_time: el('time').value || null,
+            preferred_time: preferredTime || null,
             notes: el('notes').value.trim() || null
         });
 

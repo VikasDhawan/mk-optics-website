@@ -228,7 +228,7 @@
             row.innerHTML = `
                 <div class="followup-info">
                     <div class="followup-name">${customer.name || 'Unknown customer'}</div>
-                    <div class="followup-meta">${r.type} · due ${r.due_date}</div>
+                    <div class="followup-meta">${customer.phone || 'No phone on file'} · ${r.type} · due ${r.due_date}</div>
                     ${r.notes ? `<div class="followup-meta">${r.notes}</div>` : ''}
                 </div>
                 <div class="followup-badge${isOverdue ? ' overdue' : ''}">${badgeText}</div>
