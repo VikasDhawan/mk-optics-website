@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Join MK Optics Rewards</title>
+
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    [hidden] { display: none !important; }
+
+    :root {
+        --navy: #0d2a66;
+        --navy-dark: #081b45;
+        --green: #6fd66f;
+        --green-dark: #1c7a3e;
+        --ink: #101a33;
+        --grey: #5a6478;
+        --line: #dde3ef;
+    }
+
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        background: linear-gradient(160deg, var(--navy) 0%, var(--navy-dark) 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        color: var(--ink);
+    }
+
+    .card {
+        background: #fff;
+        border-radius: 14px;
+        max-width: 420px;
+        width: 100%;
+        padding: 36px 30px;
+        text-align: center;
+    }
+
+    .brand {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-family: Georgia, serif;
+        font-weight: 700;
+        font-size: 20px;
+        color: var(--navy);
+        margin-bottom: 22px;
+    }
+
+    h1 {
+        font-family: Georgia, serif;
+        font-size: 24px;
+        color: var(--navy);
+        margin-bottom: 8px;
+    }
+
+    p.sub { color: var(--grey); font-size: 14px; margin-bottom: 26px; }
+
+    .field { margin-bottom: 16px; text-align: left; }
+
+    label {
+        display: block;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: var(--grey);
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    input[type="text"], input[type="tel"] {
+        width: 100%;
+        padding: 13px 14px;
+        border: 1.5px solid var(--line);
+        border-radius: 8px;
+        font-size: 15px;
+        font-family: inherit;
+    }
+
+    input:focus { outline: none; border-color: var(--green-dark); }
+
+    .consent { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--grey); text-align: left; margin-bottom: 22px; }
+    .consent input { margin-top: 3px; }
+
+    .btn {
+        width: 100%;
+        padding: 15px;
+        border: none;
+        border-radius: 8px;
+        background: var(--green);
+        color: var(--navy-dark);
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .btn:hover { background: #5cc95c; }
+
+    .error-msg { color: #b02a2a; font-size: 13px; margin-top: 12px; }
+
+    .success-icon { font-size: 44px; margin-bottom: 14px; }
+</style>
+</head>
+<body>
+
+<div class="card">
+
+    <div id="form-view">
+        <div class="brand">
+            <svg width="26" height="13" viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" stroke="#1c7a3e" stroke-width="3"/>
+                <circle cx="36" cy="12" r="10" stroke="#1c7a3e" stroke-width="3"/>
+            </svg>
+            MK OPTICS
+        </div>
+        <h1>Join Our Rewards Program</h1>
+        <p class="sub">Exclusive offers, reward points, and special invites — just share your name and number.</p>
+
+        <div class="field">
+            <label for="name">Name</label>
+            <input type="text" id="name" placeholder="Your full name">
+        </div>
+        <div class="field">
+            <label for="phone">Mobile Number</label>
+            <input type="tel" id="phone" placeholder="+91 98450 12345">
+        </div>
+        <div class="consent">
+            <input type="checkbox" id="consent" checked>
+            <label for="consent" style="text-transform:none;font-weight:400;letter-spacing:normal;margin:0">
+                I'd like to receive offers and updates from MK Optics on WhatsApp.
+            </label>
+        </div>
+
+        <button class="btn" id="join-btn">Join Now</button>
+        <p id="error-msg" class="error-msg"></p>
+    </div>
+
+    <div id="success-view" hidden>
+        <div class="success-icon">🎉</div>
+        <h1>Welcome to MK Optics Rewards!</h1>
+        <p class="sub">Our team will confirm your enrollment shortly. See you soon!</p>
+    </div>
+
+</div>
+
+<script src="supabase-config.js" onerror="window.__SUPABASE_CONFIG_MISSING__ = true"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+(function () {
+    const cfg = window.SUPABASE_CONFIG;
+    let supabase = null;
+    if (cfg && cfg.url && cfg.url.indexOf('YOUR-PROJECT-REF') === -1) {
+        supabase = window.supabase.createClient(cfg.url, cfg.anonKey);
+    }
+
+    const el = (id) => document.getElementById(id);
+    const errorEl = el('error-msg');
+
+    el('join-btn').addEventListener('click', async () => {
+        const name = el('name').value.trim();
+        const phone = el('phone').value.trim();
+        errorEl.textContent = '';
+
+        if (!name || !phone) {
+            errorEl.textContent = 'Please enter your name and mobile number.';
+            return;
+        }
+        if (!supabase) {
+            errorEl.textContent = 'Sign-ups are temporarily unavailable — please ask our staff to add you.';
+            return;
+        }
+
+        const { error } = await supabase.from('reward_signups').insert({
+            name,
+            phone,
+            opted_in_offers: el('consent').checked
+        });
+
+        if (error) {
+            errorEl.textContent = 'Something went wrong — please ask our staff to add you instead.';
+            return;
+        }
+
+        el('form-view').hidden = true;
+        el('success-view').hidden = false;
+    });
+})();
+</script>
+
+</body>
+</html>

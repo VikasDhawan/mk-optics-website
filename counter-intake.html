@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Counter Intake | MK Optics</title>
+
+<link rel="stylesheet" href="app-shared.css">
+<style>
+    /* CUSTOMER SEARCH (page-specific to Counter Intake) */
+
+    .search-row {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+    }
+
+    .search-row input { flex: 1; min-width: 200px; }
+
+    .customer-results {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .customer-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 16px;
+        border-radius: 8px;
+        border: 1.5px solid var(--line);
+        cursor: pointer;
+        background: var(--cream);
+    }
+
+    .customer-row:hover { border-color: var(--green); }
+
+    .customer-row.selected {
+        background: var(--green-pale);
+        border-color: var(--green-dark);
+    }
+
+    .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--white);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: var(--navy);
+        flex-shrink: 0;
+    }
+
+    .customer-name { font-weight: 700; color: var(--ink); }
+    .customer-meta { font-size: 12px; color: var(--grey); }
+    .customer-tag {
+        margin-left: auto;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--green-dark);
+        text-align: right;
+    }
+
+    /* RX TABLE */
+
+    .rx-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+
+    .rx-table th {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--grey);
+        text-align: left;
+        padding: 6px 6px;
+        font-weight: 700;
+    }
+
+    .rx-table td {
+        padding: 5px 6px;
+    }
+
+    .rx-table td.rx-label {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--navy);
+        white-space: nowrap;
+        padding-right: 10px;
+    }
+
+    .rx-table input {
+        padding: 9px 10px;
+        font-size: 13px;
+        min-width: 60px;
+    }
+
+    .rx-section-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--navy);
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        padding: 10px 0 4px;
+    }
+
+    /* REMINDER CHIPS */
+
+    .chip-row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .chip {
+        padding: 10px 16px;
+        border-radius: 20px;
+        border: 1.5px solid var(--line);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        background: var(--white);
+        color: var(--ink);
+    }
+
+    .chip.active {
+        background: var(--navy);
+        color: var(--white);
+        border-color: var(--navy);
+    }
+
+    /* SUMMARY BAR */
+
+    .summary-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        background: var(--green-pale);
+        border: 1px solid var(--green);
+        border-radius: 10px;
+        padding: 20px 24px;
+    }
+
+    .summary-bar strong { color: var(--navy); display: block; margin-bottom: 4px; }
+    .summary-bar p { font-size: 13px; color: var(--grey); }
+
+    @media (max-width: 900px) {
+        .rx-table { display: block; overflow-x: auto; }
+        .summary-bar { flex-direction: column; align-items: stretch; text-align: left; }
+        .summary-bar .btn { width: 100%; }
+    }
+</style>
+</head>
+<body>
+
+<div id="login-screen" class="login-screen" hidden>
+    <div class="login-card">
+        <div class="sidebar-brand">
+            <svg viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" stroke="#1c7a3e" stroke-width="3"/>
+                <circle cx="36" cy="12" r="10" stroke="#1c7a3e" stroke-width="3"/>
+            </svg>
+            MK OPTICS
+        </div>
+        <h2>Staff Login</h2>
+        <p class="sub">Sign in with the email and password your manager set up for you.</p>
+        <div class="login-field">
+            <label class="field-label" for="login-email">Email</label>
+            <input type="email" id="login-email" placeholder="you@mkoptics.example" autocomplete="username">
+        </div>
+        <div class="login-field">
+            <label class="field-label" for="login-password">Password</label>
+            <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <button class="btn btn-dark" id="login-btn" style="width:100%">Log In</button>
+        <p id="login-error" class="status-msg error" style="margin-top:14px"></p>
+    </div>
+</div>
+
+<div class="app" id="app-root" hidden>
+
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <svg viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" stroke="#6fd66f" stroke-width="3"/>
+                <circle cx="36" cy="12" r="10" stroke="#6fd66f" stroke-width="3"/>
+            </svg>
+            MK OPTICS
+        </div>
+        <nav class="sidebar-nav">
+            <a href="dashboard.html">Dashboard</a>
+            <a href="counter-intake.html" class="active">Counter Intake</a>
+            <a href="follow-ups.html">Follow-Ups</a>
+            <a href="customers.html">Customers</a>
+            <a href="leads.html">Leads</a>
+            <a href="referrals.html">Referrals</a>
+        </nav>
+        <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">☰</button>
+        <div class="sidebar-footer" id="sidebar-footer">
+            <div class="staff-email" id="staff-email"></div>
+            <a class="sign-out-link" href="https://vikasdhawan.github.io/mk-optics-website/" target="_blank" rel="noopener">View Website ↗</a>
+            <div class="sign-out-link" id="sign-out-btn">Sign out</div>
+        </div>
+    </aside>
+
+    <main class="main">
+
+        <div class="topbar">
+            <h1>Counter Intake</h1>
+            <p>Capture a customer and record today's sale</p>
+        </div>
+
+        <div class="content">
+
+            <div id="config-banner" class="config-banner" hidden>
+                Supabase isn't configured yet, so nothing will be saved. Copy
+                <code>supabase-config.example.js</code> to <code>supabase-config.js</code>,
+                fill in your project URL and anon key, run
+                <code>supabase-schema.sql</code> in your Supabase project, and reload this page.
+            </div>
+
+            <!-- CUSTOMER SEARCH -->
+            <div class="card">
+                <h2>Find or add a customer</h2>
+                <label class="field-label" for="customer-phone-search">Enter the customer's mobile number</label>
+                <div class="search-row">
+                    <input type="tel" inputmode="numeric" id="customer-phone-search" placeholder="e.g. 9845012345">
+                    <button class="btn btn-primary" id="lookup-btn">Enter</button>
+                </div>
+                <p class="empty-hint" style="margin-top:-8px; margin-bottom:14px">
+                    The mobile number is this customer's unique ID — it's how we tell returning customers apart from new ones.
+                </p>
+
+                <div id="customer-results" class="customer-results">
+                    <p class="empty-hint">Type a mobile number and press Enter to look up a customer.</p>
+                </div>
+
+                <div id="new-customer-form" class="grid-2" style="margin-top:16px" hidden>
+                    <div style="grid-column: 1 / -1">
+                        <strong style="color:var(--navy)">This is a new customer — enter their details below.</strong>
+                    </div>
+                    <div>
+                        <label class="field-label" for="nc-name">Name</label>
+                        <input type="text" id="nc-name" placeholder="Full name">
+                    </div>
+                    <div>
+                        <label class="field-label" for="nc-phone">Mobile Number</label>
+                        <input type="tel" id="nc-phone" placeholder="+91 XXXXX XXXXX">
+                    </div>
+                    <div style="grid-column: 1 / -1">
+                        <button class="btn btn-dark" id="save-new-customer-btn">Save Customer</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+
+                <!-- PRESCRIPTION -->
+                <div class="card">
+                    <h2>Prescription</h2>
+
+                    <table class="rx-table">
+                        <tr>
+                            <th></th>
+                            <th>Sphere</th>
+                            <th>Cylinder</th>
+                            <th>Axis</th>
+                            <th>Prism</th>
+                            <th>Base</th>
+                        </tr>
+                        <tr><td colspan="6" class="rx-section-label">Distance</td></tr>
+                        <tr>
+                            <td class="rx-label">OD</td>
+                            <td><input type="text" id="od-sphere" placeholder="—"></td>
+                            <td><input type="text" id="od-cylinder" placeholder="—"></td>
+                            <td><input type="text" id="od-axis" placeholder="—"></td>
+                            <td><input type="text" id="od-prism" placeholder="—"></td>
+                            <td><input type="text" id="od-base" placeholder="—"></td>
+                        </tr>
+                        <tr>
+                            <td class="rx-label">OS</td>
+                            <td><input type="text" id="os-sphere" placeholder="—"></td>
+                            <td><input type="text" id="os-cylinder" placeholder="—"></td>
+                            <td><input type="text" id="os-axis" placeholder="—"></td>
+                            <td><input type="text" id="os-prism" placeholder="—"></td>
+                            <td><input type="text" id="os-base" placeholder="—"></td>
+                        </tr>
+                        <tr><td colspan="6" class="rx-section-label">Add</td></tr>
+                        <tr>
+                            <td class="rx-label">OD</td>
+                            <td><input type="text" id="add-od-sphere" placeholder="—"></td>
+                            <td colspan="4"></td>
+                        </tr>
+                        <tr>
+                            <td class="rx-label">OS</td>
+                            <td><input type="text" id="add-os-sphere" placeholder="—"></td>
+                            <td colspan="4"></td>
+                        </tr>
+                    </table>
+
+                    <div class="grid-2">
+                        <div>
+                            <label class="field-label" for="additional-info">Additional Information</label>
+                            <input type="text" id="additional-info" placeholder="—">
+                        </div>
+                        <div>
+                            <label class="field-label" for="prescribed-by">Prescribed By</label>
+                            <input type="text" id="prescribed-by" placeholder="Dr. Name">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PURCHASE -->
+                <div class="card">
+                    <h2>Purchase</h2>
+
+                    <div style="margin-bottom:16px">
+                        <label class="field-label" for="frame">Frame</label>
+                        <input type="text" id="frame" placeholder="e.g. Ray-Ban RB2140 — Tortoise, Round Metal">
+                    </div>
+
+                    <div class="grid-2" style="margin-bottom:16px">
+                        <div>
+                            <label class="field-label" for="lens">Lens</label>
+                            <input type="text" id="lens" placeholder="e.g. Progressive · Anti-glare">
+                        </div>
+                        <div>
+                            <label class="field-label" for="amount">Amount (₹)</label>
+                            <input type="number" id="amount" placeholder="0">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="field-label" for="channel">Channel</label>
+                        <select id="channel">
+                            <option>In-store</option>
+                            <option>Phone</option>
+                            <option>WhatsApp</option>
+                            <option>Online</option>
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- NOTES -->
+            <div class="card">
+                <h2>Notes for next visit</h2>
+                <div class="grid-2" style="margin-bottom:18px">
+                    <div>
+                        <label class="field-label" for="preferences-budget">Preferences &amp; Budget</label>
+                        <textarea id="preferences-budget" placeholder="e.g. Prefers metal frames, round shape. Budget ~₹6,000."></textarea>
+                    </div>
+                    <div>
+                        <label class="field-label" for="pitch-next">What to pitch next time</label>
+                        <textarea id="pitch-next" placeholder="e.g. Show titanium gunmetal frames when new stock arrives."></textarea>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div>
+                        <label class="field-label" for="reminder-date">Next Reminder Date</label>
+                        <input type="date" id="reminder-date">
+                    </div>
+                    <div>
+                        <label class="field-label">Reminder For</label>
+                        <div class="chip-row" id="reminder-chips">
+                            <div class="chip active" data-value="Eye test">Eye test</div>
+                            <div class="chip" data-value="Consumables">Consumables</div>
+                            <div class="chip" data-value="New collection">New collection</div>
+                            <div class="chip" data-value="Discount offer">Discount offer</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUMMARY / SAVE -->
+            <div class="summary-bar">
+                <div>
+                    <strong id="summary-title">Next visit reminder will be set from the date above.</strong>
+                    <p>Saving will store this visit and stage a WhatsApp confirmation for the customer.</p>
+                </div>
+                <button class="btn btn-dark" id="save-visit-btn">Save &amp; Send WhatsApp Confirmation</button>
+            </div>
+            <div id="status-msg" class="status-msg"></div>
+
+        </div>
+    </main>
+</div>
+
+<script src="supabase-config.js" onerror="window.__SUPABASE_CONFIG_MISSING__ = true"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="auth-gate.js"></script>
+<script>
+(function () {
+    // auth-gate.js already checked config, created the Supabase client,
+    // and wired up the login screen — we just reuse its client here.
+    const supabase = window.MKAuth.supabase;
+
+    let selectedCustomer = null;
+    let selectedReminder = 'Eye test';
+
+    const el = (id) => document.getElementById(id);
+    const resultsEl = el('customer-results');
+    const statusEl = el('status-msg');
+
+    function setStatus(message, isError) {
+        statusEl.textContent = message;
+        statusEl.className = 'status-msg ' + (isError ? 'error' : 'ok');
+    }
+
+    function initials(name) {
+        return name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+    }
+
+    function maskPhone(phone) {
+        if (!phone) return '';
+        const digits = phone.replace(/\D/g, '');
+        if (digits.length <= 4) return phone;
+        return phone.slice(0, phone.length - 5) + 'XXXXX';
+    }
+
+    // One shared list of {input id -> visits column} pairs, so saving,
+    // clearing, and pre-filling the form all stay in sync with a single
+    // source of truth instead of three separate hand-written lists.
+    const VISIT_FIELDS = [
+        ['od-sphere', 'od_sphere'], ['od-cylinder', 'od_cylinder'], ['od-axis', 'od_axis'],
+        ['od-prism', 'od_prism'], ['od-base', 'od_base'],
+        ['os-sphere', 'os_sphere'], ['os-cylinder', 'os_cylinder'], ['os-axis', 'os_axis'],
+        ['os-prism', 'os_prism'], ['os-base', 'os_base'],
+        ['add-od-sphere', 'add_od_sphere'], ['add-os-sphere', 'add_os_sphere'],
+        ['additional-info', 'additional_information'], ['prescribed-by', 'prescribed_by'],
+        ['frame', 'frame'], ['lens', 'lens'], ['amount', 'amount'], ['channel', 'channel'],
+        ['preferences-budget', 'preferences_budget'], ['pitch-next', 'pitch_next_time'],
+        ['reminder-date', 'next_reminder_date']
+    ];
+
+    function resetVisitForm() {
+        VISIT_FIELDS.forEach(([inputId]) => { el(inputId).value = ''; });
+        el('channel').value = 'In-store';
+        selectedReminder = 'Eye test';
+        document.querySelectorAll('#reminder-chips .chip').forEach(c => c.classList.remove('active'));
+        document.querySelector('#reminder-chips .chip[data-value="Eye test"]').classList.add('active');
+    }
+
+    function populateVisitForm(visit) {
+        resetVisitForm();
+        if (!visit) return;
+        VISIT_FIELDS.forEach(([inputId, column]) => {
+            if (visit[column] !== null && visit[column] !== undefined) {
+                el(inputId).value = visit[column];
+            }
+        });
+        if (visit.reminder_for) {
+            selectedReminder = visit.reminder_for;
+            document.querySelectorAll('#reminder-chips .chip').forEach((c) => {
+                c.classList.toggle('active', c.dataset.value === visit.reminder_for);
+            });
+        }
+    }
+
+    async function loadLatestVisit(customerId) {
+        const { data, error } = await supabase
+            .from('visits')
+            .select('*')
+            .eq('customer_id', customerId)
+            .order('created_at', { ascending: false })
+            .limit(1);
+        if (error) {
+            setStatus('Could not load this customer\'s last visit: ' + error.message, true);
+            return null;
+        }
+        return (data && data[0]) || null;
+    }
+
+    // Selects a customer and shows their card. `fetchHistory` controls
+    // whether we also load and pre-fill their last visit into the
+    // Prescription/Purchase form below — this must be true for a real
+    // lookup (staff expects to see history) and false right after
+    // creating a brand-new customer (there is no history, and doing
+    // this would wipe out anything staff already typed into the form
+    // before saving the new customer — that was the bug reported).
+    async function selectCustomer(c, { isNew, fetchHistory }) {
+        selectedCustomer = c;
+        el('new-customer-form').hidden = true;
+        resultsEl.innerHTML = '';
+
+        const row = document.createElement('div');
+        row.className = 'customer-row selected';
+        row.title = 'Click to reopen this customer\'s record';
+        row.innerHTML = `
+            <div class="avatar">${initials(c.name)}</div>
+            <div>
+                <div class="customer-name">${c.name}</div>
+                <div class="customer-meta">${maskPhone(c.phone)}</div>
+            </div>
+            <div class="customer-tag">${isNew ? 'New customer added ✓' : 'Existing customer — record open ✓'}</div>
+        `;
+        row.addEventListener('click', () => selectCustomer(c, { isNew: false, fetchHistory: true }));
+        resultsEl.appendChild(row);
+
+        if (fetchHistory) {
+            const latestVisit = await loadLatestVisit(c.id);
+            populateVisitForm(latestVisit);
+        }
+    }
+
+    function showNewCustomerPrompt(phone) {
+        selectedCustomer = null;
+        resultsEl.innerHTML = `<p class="empty-hint">No customer found for "${phone}".</p>`;
+        el('new-customer-form').hidden = false;
+        el('nc-phone').value = phone;
+        el('nc-name').value = '';
+        el('nc-name').focus();
+        resetVisitForm();
+    }
+
+    async function lookupCustomer() {
+        const phone = el('customer-phone-search').value.trim();
+        if (!phone) {
+            resultsEl.innerHTML = '<p class="empty-hint">Type a mobile number and press Enter to look up a customer.</p>';
+            el('new-customer-form').hidden = true;
+            return;
+        }
+        if (!supabase) {
+            resultsEl.innerHTML = '<p class="empty-hint">Connect Supabase to look up customers.</p>';
+            return;
+        }
+        const { data, error } = await supabase
+            .from('customers')
+            .select('*')
+            .ilike('phone', `%${phone}%`)
+            .limit(5);
+        if (error) {
+            resultsEl.innerHTML = '<p class="empty-hint">Lookup failed: ' + error.message + '</p>';
+            return;
+        }
+        if (data && data.length === 1) {
+            selectCustomer(data[0], { isNew: false, fetchHistory: true });
+        } else if (data && data.length > 1) {
+            // More than one match (e.g. a short/partial number) — let staff pick.
+            resultsEl.innerHTML = '';
+            data.forEach((c) => {
+                const row = document.createElement('div');
+                row.className = 'customer-row';
+                row.innerHTML = `
+                    <div class="avatar">${initials(c.name)}</div>
+                    <div>
+                        <div class="customer-name">${c.name}</div>
+                        <div class="customer-meta">${maskPhone(c.phone)}</div>
+                    </div>
+                    <div class="customer-tag">Select</div>
+                `;
+                row.addEventListener('click', () => selectCustomer(c, { isNew: false, fetchHistory: true }));
+                resultsEl.appendChild(row);
+            });
+            el('new-customer-form').hidden = true;
+        } else {
+            showNewCustomerPrompt(phone);
+        }
+    }
+
+    el('lookup-btn').addEventListener('click', lookupCustomer);
+    el('customer-phone-search').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            lookupCustomer();
+        }
+    });
+
+    // Shared by both the standalone "Save Customer" button and by the
+    // main "Save & Send" button, which auto-creates the customer if
+    // staff filled in the new-customer fields but never clicked Save
+    // Customer separately — so there's no longer a required, easy-to-miss
+    // step at the top of the page before the real work at the bottom.
+    async function createNewCustomer(name, phone) {
+        if (!name || !phone) {
+            return { error: 'Enter a name and mobile number to add a customer.' };
+        }
+        const { data, error } = await supabase
+            .from('customers')
+            .insert({ name, phone })
+            .select()
+            .single();
+        if (error) {
+            return { error: 'Could not save customer: ' + error.message };
+        }
+        return { customer: data };
+    }
+
+    el('save-new-customer-btn').addEventListener('click', async () => {
+        if (!supabase) {
+            setStatus('Connect Supabase before adding customers.', true);
+            return;
+        }
+        const result = await createNewCustomer(el('nc-name').value.trim(), el('nc-phone').value.trim());
+        if (result.error) {
+            setStatus(result.error, true);
+            return;
+        }
+        selectCustomer(result.customer, { isNew: true, fetchHistory: false });
+        setStatus('Customer added and selected — continue filling in the visit below.', false);
+    });
+
+    document.getElementById('reminder-chips').addEventListener('click', (e) => {
+        const chip = e.target.closest('.chip');
+        if (!chip) return;
+        document.querySelectorAll('#reminder-chips .chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        selectedReminder = chip.dataset.value;
+    });
+
+    function buildWhatsAppLink(phone, message) {
+        const digits = phone.replace(/\D/g, '');
+        return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+    }
+
+    el('save-visit-btn').addEventListener('click', async () => {
+        if (!supabase) {
+            setStatus('Connect Supabase before saving a visit.', true);
+            return;
+        }
+
+        // If staff typed a new customer's details but never clicked the
+        // separate "Save Customer" button, create the customer now
+        // instead of blocking with an error far from where the mistake
+        // actually is (the top of the page).
+        if (!selectedCustomer && !el('new-customer-form').hidden) {
+            const result = await createNewCustomer(el('nc-name').value.trim(), el('nc-phone').value.trim());
+            if (result.error) {
+                setStatus(result.error, true);
+                return;
+            }
+            selectCustomer(result.customer, { isNew: true, fetchHistory: false });
+        }
+
+        if (!selectedCustomer) {
+            setStatus('Search for a customer\'s mobile number above, or add a new one, before saving.', true);
+            return;
+        }
+
+        const visit = { customer_id: selectedCustomer.id, reminder_for: selectedReminder };
+        VISIT_FIELDS.forEach(([inputId, column]) => {
+            visit[column] = el(inputId).value || null;
+        });
+        if (visit.amount !== null) visit.amount = Number(visit.amount);
+
+        const { error } = await supabase.from('visits').insert(visit);
+        if (error) {
+            setStatus('Could not save visit: ' + error.message, true);
+            return;
+        }
+
+        // A visit's "next reminder date" is only useful if it actually
+        // shows up on a follow-up list somewhere — so every saved visit
+        // with a reminder date also creates a row in `reminders`, which
+        // is what the Follow-Ups page reads from.
+        if (visit.next_reminder_date) {
+            const { error: reminderError } = await supabase.from('reminders').insert({
+                customer_id: selectedCustomer.id,
+                type: selectedReminder,
+                due_date: visit.next_reminder_date,
+                status: 'pending'
+            });
+            if (reminderError) {
+                setStatus('Visit saved, but could not create the follow-up reminder: ' + reminderError.message, true);
+                return;
+            }
+        }
+
+        const message = `Hi ${selectedCustomer.name}, thanks for visiting MK Optics! We've recorded your purchase (${visit.frame || 'your order'}). We'll remind you about your ${selectedReminder.toLowerCase()} around ${visit.next_reminder_date || 'your next visit'}.`;
+        const link = buildWhatsAppLink(selectedCustomer.phone, message);
+        setStatus('Visit saved. Opening WhatsApp confirmation…', false);
+        window.open(link, '_blank');
+    });
+})();
+</script>
+
+</body>
+</html>
