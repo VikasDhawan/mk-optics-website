@@ -66,14 +66,19 @@
         margin-bottom: 6px;
     }
 
-    input[type="text"], input[type="tel"], input[type="date"], textarea {
+    input[type="text"], input[type="tel"], input[type="date"], select, textarea {
         width: 100%;
         padding: 13px 14px;
         border: 1.5px solid var(--line);
         border-radius: 8px;
         font-size: 15px;
         font-family: inherit;
+        background: #fff;
     }
+
+    .phone-row { display: flex; gap: 8px; }
+    .phone-row select { flex: 0 0 108px; width: auto; padding-left: 8px; padding-right: 4px; }
+    .phone-row input { flex: 1; min-width: 0; }
 
     textarea { resize: vertical; min-height: 70px; }
     input:focus, textarea:focus { outline: none; border-color: var(--green-dark); }
@@ -118,7 +123,23 @@
         </div>
         <div class="field">
             <label for="phone">Mobile Number</label>
-            <input type="tel" id="phone" placeholder="+91 98450 12345">
+            <div class="phone-row">
+                <select id="phone-code" aria-label="Country code">
+                    <option value="91" selected>🇮🇳 +91</option>
+                    <option value="971">🇦🇪 +971</option>
+                    <option value="966">🇸🇦 +966</option>
+                    <option value="965">🇰🇼 +965</option>
+                    <option value="974">🇶🇦 +974</option>
+                    <option value="973">🇧🇭 +973</option>
+                    <option value="968">🇴🇲 +968</option>
+                    <option value="1">🇺🇸 +1</option>
+                    <option value="44">🇬🇧 +44</option>
+                    <option value="65">🇸🇬 +65</option>
+                    <option value="60">🇲🇾 +60</option>
+                    <option value="61">🇦🇺 +61</option>
+                </select>
+                <input type="tel" id="phone" placeholder="98450 12345">
+            </div>
         </div>
         <div class="field">
             <label for="date">Preferred Date</label>
@@ -156,7 +177,8 @@
 
     el('book-btn').addEventListener('click', async () => {
         const name = el('name').value.trim();
-        const phone = el('phone').value.trim();
+        const phoneDigits = el('phone').value.replace(/\D/g, '');
+        const phone = phoneDigits ? '+' + el('phone-code').value + phoneDigits : '';
         const date = el('date').value;
         errorEl.textContent = '';
 

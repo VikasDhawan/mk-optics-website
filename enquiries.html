@@ -114,7 +114,23 @@
                     </div>
                     <div>
                         <label class="field-label" for="lead-phone">Mobile Number</label>
-                        <input type="tel" id="lead-phone" placeholder="+91 98450 12345">
+                        <div style="display:flex;gap:8px">
+                            <select id="lead-phone-code" aria-label="Country code" style="flex:0 0 100px">
+                                <option value="91" selected>🇮🇳 +91</option>
+                                <option value="971">🇦🇪 +971</option>
+                                <option value="966">🇸🇦 +966</option>
+                                <option value="965">🇰🇼 +965</option>
+                                <option value="974">🇶🇦 +974</option>
+                                <option value="973">🇧🇭 +973</option>
+                                <option value="968">🇴🇲 +968</option>
+                                <option value="1">🇺🇸 +1</option>
+                                <option value="44">🇬🇧 +44</option>
+                                <option value="65">🇸🇬 +65</option>
+                                <option value="60">🇲🇾 +60</option>
+                                <option value="61">🇦🇺 +61</option>
+                            </select>
+                            <input type="tel" id="lead-phone" placeholder="98450 12345" style="flex:1">
+                        </div>
                     </div>
                 </div>
                 <div class="grid-2" style="margin-bottom:16px">
@@ -267,9 +283,10 @@
             setStatus('Connect Supabase before logging a lead.', true);
             return;
         }
+        const leadPhoneDigits = el('lead-phone').value.replace(/\D/g, '');
         const { error } = await supabase.from('leads').insert({
             name,
-            phone: el('lead-phone').value.trim() || null,
+            phone: leadPhoneDigits ? '+' + el('lead-phone-code').value + leadPhoneDigits : null,
             interest: el('lead-interest').value.trim() || null,
             reason_not_bought: el('lead-reason').value.trim() || null,
             notes: el('lead-notes').value.trim() || null

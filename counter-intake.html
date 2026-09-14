@@ -254,7 +254,23 @@
                     </div>
                     <div>
                         <label class="field-label" for="nc-phone">Mobile Number</label>
-                        <input type="tel" id="nc-phone" placeholder="+91 XXXXX XXXXX">
+                        <div style="display:flex;gap:8px">
+                            <select id="nc-phone-code" aria-label="Country code" style="flex:0 0 100px">
+                                <option value="91" selected>🇮🇳 +91</option>
+                                <option value="971">🇦🇪 +971</option>
+                                <option value="966">🇸🇦 +966</option>
+                                <option value="965">🇰🇼 +965</option>
+                                <option value="974">🇶🇦 +974</option>
+                                <option value="973">🇧🇭 +973</option>
+                                <option value="968">🇴🇲 +968</option>
+                                <option value="1">🇺🇸 +1</option>
+                                <option value="44">🇬🇧 +44</option>
+                                <option value="65">🇸🇬 +65</option>
+                                <option value="60">🇲🇾 +60</option>
+                                <option value="61">🇦🇺 +61</option>
+                            </select>
+                            <input type="tel" id="nc-phone" placeholder="98450 12345" style="flex:1">
+                        </div>
                     </div>
                     <div style="grid-column: 1 / -1">
                         <button class="btn btn-dark" id="save-new-customer-btn">Save Customer</button>
@@ -582,6 +598,11 @@
     // staff filled in the new-customer fields but never clicked Save
     // Customer separately — so there's no longer a required, easy-to-miss
     // step at the top of the page before the real work at the bottom.
+    function getNcPhone() {
+        const digits = el('nc-phone').value.replace(/\D/g, '');
+        return digits ? '+' + el('nc-phone-code').value + digits : '';
+    }
+
     async function createNewCustomer(name, phone) {
         if (!name || !phone) {
             return { error: 'Enter a name and mobile number to add a customer.' };
@@ -602,7 +623,7 @@
             setStatus('Connect Supabase before adding customers.', true);
             return;
         }
-        const result = await createNewCustomer(el('nc-name').value.trim(), el('nc-phone').value.trim());
+        const result = await createNewCustomer(el('nc-name').value.trim(), getNcPhone());
         if (result.error) {
             setStatus(result.error, true);
             return;
@@ -644,7 +665,7 @@
         // instead of blocking with an error far from where the mistake
         // actually is (the top of the page).
         if (!selectedCustomer && !el('new-customer-form').hidden) {
-            const result = await createNewCustomer(el('nc-name').value.trim(), el('nc-phone').value.trim());
+            const result = await createNewCustomer(el('nc-name').value.trim(), getNcPhone());
             if (result.error) {
                 setStatus(result.error, true);
                 return;
