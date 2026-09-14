@@ -4,10 +4,15 @@ Website prototype for M&K Optics
 ## Pages
 
 **Public**
-- `index.html` — marketing site.
+- `index.html` — marketing site. "Book an Eye Test" / "Book an
+  Appointment" link to `book-appointment.html`.
 - `rewards-signup.html` — QR-code sign-up page for customers to join the
   rewards program themselves at the counter. No login; deliberately
   narrow write access (see Security below).
+- `book-appointment.html` — online appointment request form (Name,
+  Mobile, Preferred Date, Notes). No login; same narrow-write pattern
+  as rewards sign-up. Staff turn each request into a real follow-up
+  from the Follow-Ups page.
 
 **Staff (all behind login, all share the same sidebar/navigation)**
 - `dashboard.html` — the staff app's home page: key numbers (total
@@ -17,7 +22,10 @@ Website prototype for M&K Optics
 - `counter-intake.html` — look up or add a customer by mobile number,
   capture prescription + purchase, save, and send a WhatsApp confirmation.
 - `follow-ups.html` — every reminder due today or overdue, with a
-  one-tap WhatsApp message and "Mark Done."
+  one-tap WhatsApp message and "Mark Done." Also has a "New Appointment
+  Requests" queue (online bookings) — "Add to Follow-Ups" finds/creates
+  the customer and creates the actual reminder, which is what makes a
+  request show up in the list below and on the Calendar.
 - `customers.html` — search any customer and see their full contact
   details, preferences/notes (editable), pending reminders, and complete
   purchase + prescription history across every visit.
@@ -27,6 +35,14 @@ Website prototype for M&K Optics
 - `referrals.html` — look up the referring customer, log who they
   referred, ask them via WhatsApp, advance status (invited → joined →
   purchased), and track whether each side's discount was given.
+- `calendar.html` — a month-grid view of every reminder/appointment by
+  date (built ourselves rather than integrating an external calendar
+  service — no OAuth, no API keys, no free-tier limits, and it's
+  automatically staff-only since it's just another page behind login).
+  Click a day to see who's booked.
+
+Every staff page's sidebar shows a red count badge next to "Follow-Ups"
+when there are new, unreviewed appointment requests waiting.
 
 **Shared**
 - `app-shared.css` / `auth-gate.js` — layout, login screen, and the
@@ -61,7 +77,9 @@ is enough).
    step 4, so you have a way to log in once it's locked.
 6. SQL Editor → run `supabase-migration-003-reward-signups.sql`. Adds the
    `reward_signups` table the public sign-up page writes to.
-7. Open `counter-intake.html` (or any staff page) in a browser, or serve
+7. SQL Editor → run `supabase-migration-004-appointments.sql`. Adds the
+   `appointment_requests` table the booking page writes to.
+8. Open `counter-intake.html` (or any staff page) in a browser, or serve
    the folder with any static file server. Sign in with the account from
    step 4.
 
@@ -76,12 +94,14 @@ same Users screen.
 ### Security model
 
 - Staff pages: RLS requires a logged-in session for every read/write.
-- `rewards-signup.html`: no login, by design (customers fill it in
-  themselves). Rather than reopening the main `customers` table to
-  anonymous writes, anonymous visitors may only **insert** into the
-  separate `reward_signups` table — they can't read it back, so one
-  customer can't see another's submission. Staff review and merge these
-  into real customer records from the **Dashboard**.
+- `rewards-signup.html` and `book-appointment.html`: no login, by design
+  (customers fill these in themselves). Rather than reopening the main
+  `customers`/`reminders` tables to anonymous writes, anonymous visitors
+  may only **insert** into separate, narrow tables (`reward_signups`,
+  `appointment_requests`) — they can't read them back, so one customer
+  can't see another's submission. Staff review and convert these into
+  real records from the **Dashboard** (sign-ups) and **Follow-Ups**
+  (appointment requests).
 - Per-staff permissions (e.g. restricting who sees sale amounts) aren't
   built — any logged-in staff account can do anything in the app.
 
@@ -97,7 +117,6 @@ needed, but a staff member must tap send in the window that opens.
   timing) — the growth-system plan this schema is based on marks this
   "Future Feature, needs 6-12 months of data." Building UI for it now
   would have nothing real behind it.
-- **Public appointment booking** — a separate, larger feature.
 - **Per-staff permissions / roles.**
 
 ## Testing

@@ -100,10 +100,11 @@
         <nav class="sidebar-nav">
             <a href="dashboard.html">Dashboard</a>
             <a href="counter-intake.html">Counter Intake</a>
-            <a href="follow-ups.html" class="active">Follow-Ups</a>
+            <a href="follow-ups.html" class="active">Follow-Ups<span class="nav-badge" id="followups-badge" hidden>0</span></a>
             <a href="customers.html">Customers</a>
             <a href="leads.html">Leads</a>
             <a href="referrals.html">Referrals</a>
+            <a href="calendar.html">Calendar</a>
         </nav>
         <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">☰</button>
         <div class="sidebar-footer" id="sidebar-footer">
@@ -129,6 +130,16 @@
             </div>
 
             <div class="card">
+                <h2>New Appointment Requests</h2>
+                <p class="empty-hint" style="margin-top:-6px;margin-bottom:14px">
+                    Booked online via the website — add each to Follow-Ups so it shows up below and on the Calendar.
+                </p>
+                <div id="request-list" class="followup-list">
+                    <p class="empty-hint">Loading…</p>
+                </div>
+            </div>
+
+            <div class="card">
                 <h2>Due today or overdue</h2>
                 <div id="followup-list" class="followup-list">
                     <p class="empty-hint">Loading…</p>
@@ -148,6 +159,7 @@
 (function () {
     const supabase = window.MKAuth.supabase;
     const listEl = document.getElementById('followup-list');
+    const requestListEl = document.getElementById('request-list');
     const statusEl = document.getElementById('status-msg');
 
     function setStatus(message, isError) {
@@ -238,7 +250,89 @@
         renderReminders(data || []);
     }
 
-    window.MKAuth.ready.then(loadReminders);
+    // --- New Appointment Requests (booked online) -----------------------
+    // Turning a request into a real reminder is what makes it show up in
+    // the list above and on the Calendar — a request by itself is just a
+    // raw submission, not yet linked to a customer.
+    function renderRequests(requests) {
+        requestListEl.innerHTML = '';
+        if (!requests.length) {
+            requestListEl.innerHTML = '<p class="empty-hint">No new requests.</p>';
+            return;
+        }
+        requests.forEach((req) => {
+            const row = document.createElement('div');
+            row.className = 'followup-row';
+            row.innerHTML = `
+                <div class="followup-info">
+                    <div class="followup-name">${req.name}</div>
+                    <div class="followup-meta">${req.phone} · wants ${req.preferred_date || 'no date specified'}</div>
+                    ${req.notes ? `<div class="followup-meta">${req.notes}</div>` : ''}
+                </div>
+                <div class="followup-actions">
+                    <button class="btn btn-dark" data-action="add">Add to Follow-Ups</button>
+                    <button class="btn" style="background:#f3d3d3;color:#8a2626" data-action="dismiss">Dismiss</button>
+                </div>
+            `;
+
+            row.querySelector('[data-action="add"]').addEventListener('click', async () => {
+                const { data: existing } = await supabase.from('customers').select('*').eq('phone', req.phone).maybeSingle();
+                let customer = existing;
+                if (!customer) {
+                    const { data: created, error: createError } = await supabase
+                        .from('customers')
+                        .insert({ name: req.name, phone: req.phone })
+                        .select()
+                        .single();
+                    if (createError) { setStatus('Could not create customer: ' + createError.message, true); return; }
+                    customer = created;
+                }
+
+                const { error: reminderError } = await supabase.from('reminders').insert({
+                    customer_id: customer.id,
+                    type: 'Eye test',
+                    due_date: req.preferred_date || todayISO(),
+                    status: 'pending',
+                    notes: req.notes || null
+                });
+                if (reminderError) { setStatus('Could not create follow-up: ' + reminderError.message, true); return; }
+
+                const { error: updateError } = await supabase.from('appointment_requests').update({ status: 'reviewed' }).eq('id', req.id);
+                if (updateError) { setStatus('Follow-up created, but could not update the request: ' + updateError.message, true); return; }
+
+                setStatus(req.name + ' added to Follow-Ups.', false);
+                loadRequests();
+                loadReminders();
+            });
+
+            row.querySelector('[data-action="dismiss"]').addEventListener('click', async () => {
+                const { error } = await supabase.from('appointment_requests').update({ status: 'reviewed' }).eq('id', req.id);
+                if (error) { setStatus('Could not update: ' + error.message, true); return; }
+                loadRequests();
+            });
+
+            requestListEl.appendChild(row);
+        });
+    }
+
+    async function loadRequests() {
+        if (!supabase) {
+            requestListEl.innerHTML = '<p class="empty-hint">Connect Supabase to see appointment requests.</p>';
+            return;
+        }
+        const { data, error } = await supabase
+            .from('appointment_requests')
+            .select('*')
+            .eq('status', 'new')
+            .order('created_at', { ascending: false });
+        if (error) {
+            requestListEl.innerHTML = '<p class="empty-hint">Could not load requests: ' + error.message + '</p>';
+            return;
+        }
+        renderRequests(data || []);
+    }
+
+    window.MKAuth.ready.then(() => { loadReminders(); loadRequests(); });
 })();
 </script>
 

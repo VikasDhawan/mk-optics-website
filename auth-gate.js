@@ -97,4 +97,23 @@
     document.getElementById('sign-out-btn').addEventListener('click', () => {
         supabase.auth.signOut();
     });
+
+    // Sidebar badge on "Follow-Ups": a small red count of new, not-yet-
+    // reviewed appointment requests from the public booking page. Shown
+    // on every staff page (not just Follow-Ups itself) so staff notice
+    // it app-wide. #followups-badge is present in every page's sidebar
+    // markup; this just fills it in once we know the count.
+    const followupsBadge = document.getElementById('followups-badge');
+    if (followupsBadge) {
+        window.MKAuth.ready.then(async () => {
+            const { count } = await supabase
+                .from('appointment_requests')
+                .select('id', { count: 'exact', head: true })
+                .eq('status', 'new');
+            if (count) {
+                followupsBadge.textContent = count > 99 ? '99+' : String(count);
+                followupsBadge.hidden = false;
+            }
+        });
+    }
 })();
