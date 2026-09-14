@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Book an Eye Test | MK Optics</title>
 
 <style>
@@ -66,13 +69,39 @@
         margin-bottom: 6px;
     }
 
-    input[type="text"], input[type="tel"], input[type="date"], textarea {
+    input[type="text"], input[type="tel"], input[type="date"], select, textarea {
         width: 100%;
         padding: 13px 14px;
         border: 1.5px solid var(--line);
         border-radius: 8px;
         font-size: 15px;
         font-family: inherit;
+        background: #fff;
+    }
+
+    .phone-row { display: flex; gap: 8px; }
+    .phone-row select { flex: 0 0 108px; width: auto; padding-left: 8px; padding-right: 4px; }
+    .phone-row input { flex: 1; min-width: 0; }
+
+    .time-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .time-row select { flex: 1 1 80px; width: auto; min-width: 70px; }
+    .ampm-toggle { display: flex; gap: 6px; flex: 1 1 140px; }
+    .ampm-btn {
+        flex: 1;
+        padding: 13px 8px;
+        border: 1.5px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--grey);
+        cursor: pointer;
+        font-family: inherit;
+    }
+    .ampm-btn.active {
+        background: var(--green);
+        border-color: var(--green-dark);
+        color: var(--navy-dark);
     }
 
     textarea { resize: vertical; min-height: 70px; }
@@ -118,11 +147,57 @@
         </div>
         <div class="field">
             <label for="phone">Mobile Number</label>
-            <input type="tel" id="phone" placeholder="+91 98450 12345">
+            <div class="phone-row">
+                <select id="phone-code" aria-label="Country code">
+                    <option value="91" selected>🇮🇳 +91</option>
+                    <option value="971">🇦🇪 +971</option>
+                    <option value="966">🇸🇦 +966</option>
+                    <option value="965">🇰🇼 +965</option>
+                    <option value="974">🇶🇦 +974</option>
+                    <option value="973">🇧🇭 +973</option>
+                    <option value="968">🇴🇲 +968</option>
+                    <option value="1">🇺🇸 +1</option>
+                    <option value="44">🇬🇧 +44</option>
+                    <option value="65">🇸🇬 +65</option>
+                    <option value="60">🇲🇾 +60</option>
+                    <option value="61">🇦🇺 +61</option>
+                </select>
+                <input type="tel" id="phone" placeholder="98450 12345">
+            </div>
         </div>
         <div class="field">
             <label for="date">Preferred Date</label>
             <input type="date" id="date">
+        </div>
+        <div class="field">
+            <label>Preferred Time (optional)</label>
+            <div class="time-row">
+                <select id="time-hour" aria-label="Hour">
+                    <option value="">Hour</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                </select>
+                <select id="time-minute" aria-label="Minute">
+                    <option value="00">:00</option>
+                    <option value="15">:15</option>
+                    <option value="30">:30</option>
+                    <option value="45">:45</option>
+                </select>
+                <div class="ampm-toggle">
+                    <button type="button" class="ampm-btn" id="ampm-am" data-value="AM">AM</button>
+                    <button type="button" class="ampm-btn" id="ampm-pm" data-value="PM">PM</button>
+                </div>
+            </div>
         </div>
         <div class="field">
             <label for="notes">Anything else? (optional)</label>
@@ -154,14 +229,45 @@
     const el = (id) => document.getElementById(id);
     const errorEl = el('error-msg');
 
+    // Tap-only AM/PM toggle — no ambiguity about whether "4" means 4am or
+    // 4pm, and nothing to scroll through like a native 24-hour time input.
+    let selectedAmPm = null;
+    el('ampm-am').addEventListener('click', () => setAmPm('AM'));
+    el('ampm-pm').addEventListener('click', () => setAmPm('PM'));
+    function setAmPm(value) {
+        selectedAmPm = value;
+        el('ampm-am').classList.toggle('active', value === 'AM');
+        el('ampm-pm').classList.toggle('active', value === 'PM');
+    }
+
+    // Converts the Hour/Minute/AM-PM picker into a 24-hour "HH:MM" string
+    // for the database. Returns undefined (valid, just "no time chosen")
+    // when the hour is blank, or null (invalid) when an hour was picked
+    // but AM/PM wasn't.
+    function getPreferredTime() {
+        const hour12 = el('time-hour').value;
+        if (!hour12) return undefined;
+        if (!selectedAmPm) return null;
+        let h = parseInt(hour12, 10) % 12;
+        if (selectedAmPm === 'PM') h += 12;
+        const m = el('time-minute').value || '00';
+        return String(h).padStart(2, '0') + ':' + m;
+    }
+
     el('book-btn').addEventListener('click', async () => {
         const name = el('name').value.trim();
-        const phone = el('phone').value.trim();
+        const phoneDigits = el('phone').value.replace(/\D/g, '');
+        const phone = phoneDigits ? '+' + el('phone-code').value + phoneDigits : '';
         const date = el('date').value;
+        const preferredTime = getPreferredTime();
         errorEl.textContent = '';
 
         if (!name || !phone) {
             errorEl.textContent = 'Please enter your name and mobile number.';
+            return;
+        }
+        if (preferredTime === null) {
+            errorEl.textContent = 'Please choose AM or PM for your preferred time.';
             return;
         }
         if (!supabase) {
@@ -169,10 +275,29 @@
             return;
         }
 
+        // Ask a narrow yes/no question ("is this exact date+time already
+        // taken?") without ever showing the store's calendar to a customer
+        // — only staff can see who else is booked or when.
+        if (date && preferredTime) {
+            const { data: isTaken, error: checkError } = await supabase.rpc('is_time_slot_taken', {
+                p_date: date,
+                p_time: preferredTime
+            });
+            if (checkError) {
+                errorEl.textContent = 'Something went wrong — please call or WhatsApp us instead.';
+                return;
+            }
+            if (isTaken) {
+                errorEl.textContent = 'That time is already booked — please choose a different time.';
+                return;
+            }
+        }
+
         const { error } = await supabase.from('appointment_requests').insert({
             name,
             phone,
             preferred_date: date || null,
+            preferred_time: preferredTime || null,
             notes: el('notes').value.trim() || null
         });
 

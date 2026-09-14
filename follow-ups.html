@@ -102,9 +102,10 @@
             <a href="counter-intake.html">Counter Intake</a>
             <a href="follow-ups.html" class="active">Follow-Ups<span class="nav-badge" id="followups-badge" hidden>0</span></a>
             <a href="customers.html">Customers</a>
-            <a href="leads.html">Leads</a>
+            <a href="enquiries.html">Enquiries</a>
             <a href="referrals.html">Referrals</a>
             <a href="calendar.html">Calendar</a>
+            <a href="ai-settings.html">AI Setup</a>
         </nav>
         <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">☰</button>
         <div class="sidebar-footer" id="sidebar-footer">
@@ -140,6 +141,16 @@
             </div>
 
             <div class="card">
+                <h2>Upcoming</h2>
+                <p class="empty-hint" style="margin-top:-6px;margin-bottom:14px">
+                    Booked ahead — not due yet, so they won't appear below until their date arrives.
+                </p>
+                <div id="upcoming-list" class="followup-list">
+                    <p class="empty-hint">Loading…</p>
+                </div>
+            </div>
+
+            <div class="card">
                 <h2>Due today or overdue</h2>
                 <div id="followup-list" class="followup-list">
                     <p class="empty-hint">Loading…</p>
@@ -159,6 +170,7 @@
 (function () {
     const supabase = window.MKAuth.supabase;
     const listEl = document.getElementById('followup-list');
+    const upcomingEl = document.getElementById('upcoming-list');
     const requestListEl = document.getElementById('request-list');
     const statusEl = document.getElementById('status-msg');
 
@@ -171,36 +183,56 @@
         return new Date().toISOString().slice(0, 10);
     }
 
+    function formatTime(t) {
+        if (!t) return '';
+        const [h, m] = t.split(':').map(Number);
+        const period = h >= 12 ? 'PM' : 'AM';
+        const h12 = h % 12 || 12;
+        return `${h12}:${String(m).padStart(2, '0')} ${period}`;
+    }
+
     function daysOverdue(dueDate) {
         const due = new Date(dueDate + 'T00:00:00');
         const today = new Date(todayISO() + 'T00:00:00');
         return Math.round((today - due) / 86400000);
     }
 
+    // WhatsApp needs a full international number to look someone up who
+    // isn't already in the store's contacts. Staff usually type a plain
+    // 10-digit Indian mobile number, so default a bare 10-digit number to
+    // India's country code (91) rather than sending it as-is and failing.
     function buildWhatsAppLink(phone, message) {
-        const digits = phone.replace(/\D/g, '');
+        let digits = phone.replace(/\D/g, '');
+        if (digits.length === 10) {
+            digits = '91' + digits;
+        } else if (digits.length === 11 && digits.startsWith('0')) {
+            digits = '91' + digits.slice(1);
+        }
         return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
     }
 
-    function renderReminders(reminders) {
-        listEl.innerHTML = '';
+    function renderReminders(reminders, targetEl, emptyMessage, onChange) {
+        targetEl.innerHTML = '';
         if (!reminders.length) {
-            listEl.innerHTML = '<p class="empty-hint">Nothing due today — you\'re all caught up.</p>';
+            targetEl.innerHTML = `<p class="empty-hint">${emptyMessage}</p>`;
             return;
         }
         reminders.forEach((r) => {
             const overdueBy = daysOverdue(r.due_date);
             const isOverdue = overdueBy > 0;
+            const isFuture = overdueBy < 0;
             const customer = r.customers || {};
 
             const row = document.createElement('div');
             row.className = 'followup-row' + (isOverdue ? ' overdue' : '');
+            const badgeText = isFuture ? 'Upcoming' : (isOverdue ? overdueBy + ' day' + (overdueBy > 1 ? 's' : '') + ' overdue' : 'Due today');
             row.innerHTML = `
                 <div class="followup-info">
                     <div class="followup-name">${customer.name || 'Unknown customer'}</div>
-                    <div class="followup-meta">${r.type} · due ${r.due_date}</div>
+                    <div class="followup-meta">${customer.phone || 'No phone on file'} · ${r.type} · due ${r.due_date}</div>
+                    ${r.notes ? `<div class="followup-meta">${r.notes}</div>` : ''}
                 </div>
-                <div class="followup-badge${isOverdue ? ' overdue' : ''}">${isOverdue ? overdueBy + ' day' + (overdueBy > 1 ? 's' : '') + ' overdue' : 'Due today'}</div>
+                <div class="followup-badge${isOverdue ? ' overdue' : ''}">${badgeText}</div>
                 <div class="followup-actions">
                     <button class="btn btn-primary" data-action="whatsapp">WhatsApp</button>
                     <button class="btn btn-dark" data-action="done">Mark Done</button>
@@ -223,12 +255,13 @@
                     return;
                 }
                 row.remove();
-                if (!listEl.querySelector('.followup-row')) {
-                    renderReminders([]);
+                if (!targetEl.querySelector('.followup-row')) {
+                    targetEl.innerHTML = `<p class="empty-hint">${emptyMessage}</p>`;
                 }
+                if (onChange) onChange();
             });
 
-            listEl.appendChild(row);
+            targetEl.appendChild(row);
         });
     }
 
@@ -247,7 +280,25 @@
             listEl.innerHTML = '<p class="empty-hint">Could not load follow-ups: ' + error.message + '</p>';
             return;
         }
-        renderReminders(data || []);
+        renderReminders(data || [], listEl, "Nothing due today — you're all caught up.");
+    }
+
+    async function loadUpcoming() {
+        if (!supabase) {
+            upcomingEl.innerHTML = '<p class="empty-hint">Connect Supabase to see upcoming follow-ups.</p>';
+            return;
+        }
+        const { data, error } = await supabase
+            .from('reminders')
+            .select('*, customers(name, phone)')
+            .eq('status', 'pending')
+            .gt('due_date', todayISO())
+            .order('due_date', { ascending: true });
+        if (error) {
+            upcomingEl.innerHTML = '<p class="empty-hint">Could not load upcoming follow-ups: ' + error.message + '</p>';
+            return;
+        }
+        renderReminders(data || [], upcomingEl, 'Nothing booked ahead right now.');
     }
 
     // --- New Appointment Requests (booked online) -----------------------
@@ -266,7 +317,7 @@
             row.innerHTML = `
                 <div class="followup-info">
                     <div class="followup-name">${req.name}</div>
-                    <div class="followup-meta">${req.phone} · wants ${req.preferred_date || 'no date specified'}</div>
+                    <div class="followup-meta">${req.phone} · wants ${req.preferred_date || 'no date specified'}${req.preferred_time ? ' at ' + formatTime(req.preferred_time) : ''}</div>
                     ${req.notes ? `<div class="followup-meta">${req.notes}</div>` : ''}
                 </div>
                 <div class="followup-actions">
@@ -288,12 +339,20 @@
                     customer = created;
                 }
 
+                // Also show the requested time in notes (for a quick read at
+                // a glance), but store it as real data in preferred_time too
+                // — that's what keeps the slot marked "taken" for the online
+                // booking form's double-booking check once this is confirmed.
+                const timeNote = req.preferred_time ? `Requested time: ${formatTime(req.preferred_time)}` : '';
+                const combinedNotes = [timeNote, req.notes].filter(Boolean).join(' — ') || null;
+
                 const { error: reminderError } = await supabase.from('reminders').insert({
                     customer_id: customer.id,
                     type: 'Eye test',
                     due_date: req.preferred_date || todayISO(),
+                    preferred_time: req.preferred_time || null,
                     status: 'pending',
-                    notes: req.notes || null
+                    notes: combinedNotes
                 });
                 if (reminderError) { setStatus('Could not create follow-up: ' + reminderError.message, true); return; }
 
@@ -303,10 +362,15 @@
                 setStatus(req.name + ' added to Follow-Ups.', false);
                 loadRequests();
                 loadReminders();
+                loadUpcoming();
             });
 
             row.querySelector('[data-action="dismiss"]').addEventListener('click', async () => {
-                const { error } = await supabase.from('appointment_requests').update({ status: 'reviewed' }).eq('id', req.id);
+                // Dismissed is its own status, distinct from "reviewed" (used
+                // when a request is converted) — otherwise a dismissed
+                // request would keep blocking its time slot on the booking
+                // form even though it was never actually confirmed.
+                const { error } = await supabase.from('appointment_requests').update({ status: 'dismissed' }).eq('id', req.id);
                 if (error) { setStatus('Could not update: ' + error.message, true); return; }
                 loadRequests();
             });
@@ -332,7 +396,7 @@
         renderRequests(data || []);
     }
 
-    window.MKAuth.ready.then(() => { loadReminders(); loadRequests(); });
+    window.MKAuth.ready.then(() => { loadReminders(); loadUpcoming(); loadRequests(); });
 })();
 </script>
 

@@ -87,6 +87,119 @@
 
     .toggle-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 
+    .story-card {
+        background: linear-gradient(160deg, var(--navy) 0%, var(--navy-dark) 100%);
+        border-radius: 12px;
+        padding: 20px 20px 16px;
+        color: var(--white);
+    }
+
+    .story-hero-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        opacity: 0.75;
+        margin-bottom: 2px;
+    }
+    .story-hero-value {
+        font-family: Georgia, serif;
+        font-size: 38px;
+        font-weight: 700;
+        color: var(--green);
+        line-height: 1.15;
+    }
+    .story-hero-value span {
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 400;
+        color: var(--white);
+        opacity: 0.7;
+        margin-left: 4px;
+    }
+
+    .story-chart {
+        display: flex;
+        align-items: flex-end;
+        gap: 6px;
+        height: 70px;
+        margin: 16px 0 6px;
+    }
+    .story-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+    .story-bar {
+        width: 100%;
+        max-width: 34px;
+        border-radius: 4px 4px 0 0;
+        background: linear-gradient(180deg, var(--green) 0%, var(--green-dark) 100%);
+    }
+    .story-bar-label {
+        font-size: 9px;
+        opacity: 0.65;
+        margin-top: 5px;
+        white-space: nowrap;
+    }
+
+    .story-narrative {
+        font-size: 13.5px;
+        line-height: 1.55;
+        margin: 12px 0 14px;
+        opacity: 0.95;
+    }
+    .story-narrative b { color: var(--green); }
+
+    .story-action {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+    .story-action button {
+        flex-shrink: 0;
+        background: var(--green);
+        color: var(--navy-dark);
+        border: none;
+        border-radius: 6px;
+        padding: 7px 12px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .story-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .story-chip {
+        font-size: 11.5px;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 20px;
+        padding: 5px 11px;
+        opacity: 0.9;
+    }
+
+    #ai-insight-box {
+        margin-top: 12px;
+        padding: 14px 16px;
+        border-radius: 10px;
+        background: #f4edff;
+        border: 1.5px solid #c9a8f0;
+        font-size: 13px;
+        line-height: 1.55;
+        color: var(--ink);
+        white-space: pre-line;
+    }
+    #ai-insight-box .ai-label {
+        display: block;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: #6b2fb3;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
     @media (max-width: 900px) {
         table.history-table { display: block; overflow-x: auto; white-space: nowrap; }
     }
@@ -133,9 +246,10 @@
             <a href="counter-intake.html">Counter Intake</a>
             <a href="follow-ups.html">Follow-Ups<span class="nav-badge" id="followups-badge" hidden>0</span></a>
             <a href="customers.html" class="active">Customers</a>
-            <a href="leads.html">Leads</a>
+            <a href="enquiries.html">Enquiries</a>
             <a href="referrals.html">Referrals</a>
             <a href="calendar.html">Calendar</a>
+            <a href="ai-settings.html">AI Setup</a>
         </nav>
         <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">☰</button>
         <div class="sidebar-footer" id="sidebar-footer">
@@ -199,6 +313,13 @@
                     <div class="detail-section">
                         <h3>Next Reminders</h3>
                         <div id="detail-reminders"><p class="empty-hint">None</p></div>
+                    </div>
+
+                    <div class="detail-section" id="insights-section" hidden>
+                        <h3>💡 Quick Insight <span style="text-transform:none;font-weight:400;color:var(--grey);letter-spacing:normal">— free, built-in, always on</span></h3>
+                        <div id="detail-insights"></div>
+                        <button class="btn btn-dark" id="ask-ai-btn" style="margin-top:12px">✨ Ask AI for a deeper read</button>
+                        <div id="ai-insight-box" hidden></div>
                     </div>
 
                     <div class="detail-section">
@@ -321,6 +442,144 @@
         `;
     }
 
+    // --- AI Insight: one story, not a checklist -----------------------
+    // Deliberately simple, rule-based arithmetic on one customer's own
+    // visit history (no external AI service — a real trained model
+    // needs months of data across the whole customer base, per the
+    // README). But the point isn't the maths, it's the story: one
+    // number, one chart, one paragraph, one thing to do about it —
+    // built so a busy shopkeeper gets it in the 5 seconds they'll
+    // actually spend looking at it.
+    function parseNum(v) {
+        if (v == null) return NaN;
+        const n = parseFloat(String(v).replace(/[^0-9.\-]/g, ''));
+        return Number.isFinite(n) ? n : NaN;
+    }
+
+    function rupee(n) {
+        return '₹' + Math.round(n).toLocaleString('en-IN');
+    }
+
+    function shortDate(d) {
+        return d.toLocaleDateString('en-IN', { month: 'short', year: '2-digit' });
+    }
+
+    function buildStory(visitsDesc, customer) {
+        if (visitsDesc.length < 3) return null;
+        const visits = [...visitsDesc].reverse(); // oldest first
+        const dates = visits.map(v => new Date((v.visit_date || v.created_at || '').slice(0, 10) + 'T00:00:00'));
+        const amounts = visits.map(v => parseNum(v.amount));
+        if (amounts.some(n => Number.isNaN(n)) || dates.some(d => isNaN(d))) return null;
+
+        const totalSpend = amounts.reduce((a, b) => a + b, 0);
+        const spanDays = (dates[dates.length - 1] - dates[0]) / 86400000;
+        const avgGap = spanDays / (dates.length - 1);
+        if (!(avgGap > 0)) return null;
+        const annualValue = (totalSpend / amounts.length) * (365 / avgGap);
+
+        const firstAmt = amounts[0], lastAmt = amounts[amounts.length - 1];
+        const n = amounts.length - 1;
+        const growthRate = firstAmt > 0 ? Math.pow(lastAmt / firstAmt, 1 / n) - 1 : 0;
+        const predictedNext = lastAmt * (1 + growthRate);
+
+        // Frequency direction, for the narrative's opening line.
+        const gaps = [];
+        for (let i = 1; i < dates.length; i++) gaps.push((dates[i] - dates[i - 1]) / 86400000);
+        const mid = Math.floor(gaps.length / 2) || 1;
+        const earlyGap = gaps.slice(0, mid).reduce((a, b) => a + b, 0) / mid;
+        const recentGap = gaps.slice(mid).reduce((a, b) => a + b, 0) / (gaps.length - mid || 1);
+        const speedingUp = earlyGap > 0 && recentGap <= earlyGap * 0.75;
+
+        let narrative;
+        if (growthRate >= 0.1 && speedingUp) {
+            narrative = `${customer.name.split(' ')[0]} started as a ${rupee(firstAmt)} customer ${shortDate(dates[0])}, visiting roughly every ${Math.round(earlyGap)} days. Today they're spending <b>${rupee(lastAmt)} per visit</b> and coming back every ~${Math.round(recentGap)} days — buying more often, and paying more each time. If that trend holds, their next visit is worth around <b>${rupee(predictedNext)}</b>.`;
+        } else if (growthRate >= 0.1) {
+            narrative = `${customer.name.split(' ')[0]} has grown from a ${rupee(firstAmt)} customer to <b>${rupee(lastAmt)} per visit</b> over ${visits.length} visits — a steady upgrade pattern. Their next visit is projected to be worth around <b>${rupee(predictedNext)}</b>, if the right option is ready to show them.`;
+        } else if (speedingUp) {
+            narrative = `${customer.name.split(' ')[0]} is visiting more often lately — every ~${Math.round(recentGap)} days now, down from ~${Math.round(earlyGap)}. Based on their spending pattern, this relationship is worth an estimated <b>${rupee(annualValue)} a year</b>.`;
+        } else {
+            narrative = `Across ${visits.length} visits over ${Math.round(spanDays / 30)} months, ${customer.name.split(' ')[0]} has spent <b>${rupee(totalSpend)}</b> in total — an estimated <b>${rupee(annualValue)} a year</b> at their current pace.`;
+        }
+
+        // Secondary, quick-scan chips — kept to short tags, not paragraphs.
+        const chips = [];
+        const categoryValue = { 'Sunglasses': 1800, 'Contact Lenses': 1200, 'Consumables': 600 };
+        const purchased = new Set(visits.map(v => v.product_type).filter(Boolean));
+        const missing = Object.keys(categoryValue).find(cat => !purchased.has(cat));
+        if (missing && purchased.has('Spectacles')) {
+            chips.push(`🛍️ Never bought ${missing.toLowerCase()} — ~${rupee(categoryValue[missing])} opportunity`);
+        }
+        if (dates.length >= 4) {
+            const dow = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+            const counts = {};
+            dates.forEach(d => { counts[d.getDay()] = (counts[d.getDay()] || 0) + 1; });
+            const [topDay, topCount] = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+            if (topCount >= Math.ceil(dates.length * 0.8)) {
+                chips.push(`🎯 Almost always visits on a ${dow[topDay]}`);
+            }
+        }
+
+        // One clear next action.
+        let action;
+        if (growthRate >= 0.1) {
+            action = { text: `Have a ${rupee(predictedNext)}+ option ready for their next visit`, button: null };
+        } else if (!customer.high_value && totalSpend >= 10000) {
+            action = { text: `${rupee(totalSpend)} lifetime spend — not yet flagged as high-value`, button: { label: 'Mark high-value', handler: 'markHighValue' } };
+        } else {
+            action = { text: `Estimated ${rupee(annualValue)}/year relationship — worth a loyalty touch`, button: null };
+        }
+
+        return {
+            annualValue,
+            chart: visits.map((v, i) => ({ amount: amounts[i], label: shortDate(dates[i]) })),
+            narrative,
+            chips,
+            action
+        };
+    }
+
+    function renderInsights(visits, customer) {
+        const section = el('insights-section');
+        const container = el('detail-insights');
+        const story = buildStory(visits, customer);
+        if (!story) {
+            section.hidden = true;
+            return;
+        }
+        section.hidden = false;
+
+        const maxAmount = Math.max(...story.chart.map(c => c.amount));
+        const chartHtml = story.chart.map(c => `
+            <div class="story-bar-wrap">
+                <div class="story-bar" style="height:${Math.max(8, Math.round((c.amount / maxAmount) * 100))}%" title="${rupee(c.amount)}"></div>
+                <div class="story-bar-label">${c.label}</div>
+            </div>
+        `).join('');
+
+        container.innerHTML = `
+            <div class="story-card">
+                <div class="story-hero-label">Estimated value of this relationship</div>
+                <div class="story-hero-value">${rupee(story.annualValue)}<span>/year</span></div>
+                <div class="story-chart">${chartHtml}</div>
+                <div class="story-narrative">${story.narrative}</div>
+                <div class="story-action">
+                    <span>👉 ${story.action.text}</span>
+                    ${story.action.button ? `<button data-handler="${story.action.button.handler}">${story.action.button.label}</button>` : ''}
+                </div>
+                ${story.chips.length ? `<div class="story-chips">${story.chips.map(c => `<span class="story-chip">${c}</span>`).join('')}</div>` : ''}
+            </div>
+        `;
+        const btn = container.querySelector('[data-handler="markHighValue"]');
+        if (btn) {
+            btn.addEventListener('click', async () => {
+                el('detail-high-value').checked = true;
+                const { error } = await supabase.from('customers').update({ high_value: true }).eq('id', currentCustomer.id);
+                setStatus(error ? 'Could not update: ' + error.message : 'Marked as high-value.', !!error);
+                if (!error) { btn.remove(); }
+            });
+        }
+    }
+
     function renderReminders(reminders) {
         const container = el('detail-reminders');
         if (!reminders.length) {
@@ -344,6 +603,10 @@
         el('detail-referred-by').textContent = 'Loading…';
         el('detail-history').innerHTML = '<p class="empty-hint">Loading…</p>';
         el('detail-reminders').innerHTML = '<p class="empty-hint">Loading…</p>';
+        el('ai-insight-box').hidden = true;
+        el('ai-insight-box').innerHTML = '';
+        el('ask-ai-btn').disabled = false;
+        el('ask-ai-btn').textContent = '✨ Ask AI for a deeper read';
 
         if (c.referred_by) {
             const { data } = await supabase.from('customers').select('name').eq('id', c.referred_by).single();
@@ -359,12 +622,35 @@
 
         if (visitsError) {
             el('detail-history').innerHTML = '<p class="empty-hint">Could not load history: ' + visitsError.message + '</p>';
+            el('insights-section').hidden = true;
         } else {
             renderHistory(visits || []);
+            renderInsights(visits || [], c);
         }
 
         if (!remindersError) renderReminders(reminders || []);
     }
+
+    el('ask-ai-btn').addEventListener('click', async () => {
+        if (!currentCustomer) return;
+        const btn = el('ask-ai-btn');
+        const box = el('ai-insight-box');
+        btn.disabled = true;
+        btn.textContent = 'Thinking…';
+        box.hidden = false;
+        box.innerHTML = '<span class="ai-label">✨ AI-generated</span>Reading this customer\'s full history…';
+
+        const { data, error } = await supabase.functions.invoke('ai-insight', { body: { customerId: currentCustomer.id } });
+        btn.disabled = false;
+        btn.textContent = '✨ Ask AI for a deeper read';
+
+        if (error || (data && data.error)) {
+            box.innerHTML = `<span class="ai-label">✨ AI-generated</span>${(data && data.error) || error.message}`;
+            return;
+        }
+        const providerLabel = data.provider === 'groq' ? 'via Groq (Gemini limit reached today)' : 'via Gemini';
+        box.innerHTML = `<span class="ai-label">✨ AI-generated — ${providerLabel}</span>${data.insight}`;
+    });
 
     el('detail-high-value').addEventListener('change', async (e) => {
         if (!currentCustomer) return;

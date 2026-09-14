@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Leads | MK Optics</title>
+<title>Enquiries | MK Optics</title>
 
 <link rel="stylesheet" href="app-shared.css">
 <style>
@@ -78,9 +78,10 @@
             <a href="counter-intake.html">Counter Intake</a>
             <a href="follow-ups.html">Follow-Ups<span class="nav-badge" id="followups-badge" hidden>0</span></a>
             <a href="customers.html">Customers</a>
-            <a href="leads.html" class="active">Leads</a>
+            <a href="enquiries.html" class="active">Enquiries</a>
             <a href="referrals.html">Referrals</a>
             <a href="calendar.html">Calendar</a>
+            <a href="ai-settings.html">AI Setup</a>
         </nav>
         <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">☰</button>
         <div class="sidebar-footer" id="sidebar-footer">
@@ -93,7 +94,7 @@
     <main class="main">
 
         <div class="topbar">
-            <h1>Leads</h1>
+            <h1>Enquiries</h1>
             <p>People who enquired or tried something on but didn't buy — don't let them slip away</p>
         </div>
 
@@ -106,7 +107,7 @@
             </div>
 
             <div class="card">
-                <h2>Log a new lead</h2>
+                <h2>Log a new enquiry</h2>
                 <div class="grid-2" style="margin-bottom:16px">
                     <div>
                         <label class="field-label" for="lead-name">Name</label>
@@ -114,7 +115,23 @@
                     </div>
                     <div>
                         <label class="field-label" for="lead-phone">Mobile Number</label>
-                        <input type="tel" id="lead-phone" placeholder="+91 98450 12345">
+                        <div style="display:flex;gap:8px">
+                            <select id="lead-phone-code" aria-label="Country code" style="flex:0 0 100px">
+                                <option value="91" selected>🇮🇳 +91</option>
+                                <option value="971">🇦🇪 +971</option>
+                                <option value="966">🇸🇦 +966</option>
+                                <option value="965">🇰🇼 +965</option>
+                                <option value="974">🇶🇦 +974</option>
+                                <option value="973">🇧🇭 +973</option>
+                                <option value="968">🇴🇲 +968</option>
+                                <option value="1">🇺🇸 +1</option>
+                                <option value="44">🇬🇧 +44</option>
+                                <option value="65">🇸🇬 +65</option>
+                                <option value="60">🇲🇾 +60</option>
+                                <option value="61">🇦🇺 +61</option>
+                            </select>
+                            <input type="tel" id="lead-phone" placeholder="98450 12345" style="flex:1">
+                        </div>
                     </div>
                 </div>
                 <div class="grid-2" style="margin-bottom:16px">
@@ -131,11 +148,11 @@
                     <label class="field-label" for="lead-notes">Notes</label>
                     <textarea id="lead-notes" placeholder="Anything else worth remembering"></textarea>
                 </div>
-                <button class="btn btn-dark" id="add-lead-btn">Log Lead</button>
+                <button class="btn btn-dark" id="add-lead-btn">Log Enquiry</button>
             </div>
 
             <div class="card">
-                <h2>Open leads</h2>
+                <h2>Open enquiries</h2>
                 <div id="lead-list" class="lead-list">
                     <p class="empty-hint">Loading…</p>
                 </div>
@@ -162,15 +179,24 @@
         statusEl.className = 'status-msg ' + (isError ? 'error' : 'ok');
     }
 
+    // WhatsApp needs a full international number to look someone up who
+    // isn't already in the store's contacts. Staff usually type a plain
+    // 10-digit Indian mobile number, so default a bare 10-digit number to
+    // India's country code (91) rather than sending it as-is and failing.
     function buildWhatsAppLink(phone, message) {
-        const digits = phone.replace(/\D/g, '');
+        let digits = phone.replace(/\D/g, '');
+        if (digits.length === 10) {
+            digits = '91' + digits;
+        } else if (digits.length === 11 && digits.startsWith('0')) {
+            digits = '91' + digits.slice(1);
+        }
         return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
     }
 
     function renderLeads(leads) {
         listEl.innerHTML = '';
         if (!leads.length) {
-            listEl.innerHTML = '<p class="empty-hint">No open leads — nice work staying on top of things.</p>';
+            listEl.innerHTML = '<p class="empty-hint">No open enquiries — nice work staying on top of things.</p>';
             return;
         }
         leads.forEach((lead) => {
@@ -192,7 +218,7 @@
             `;
 
             row.querySelector('[data-action="whatsapp"]').addEventListener('click', () => {
-                if (!lead.phone) { setStatus('This lead has no phone number on file.', true); return; }
+                if (!lead.phone) { setStatus('This enquiry has no phone number on file.', true); return; }
                 const message = `Hi ${lead.name}, this is MK Optics — following up on your interest in ${lead.interest || 'our products'}. Happy to help if you have any questions!`;
                 window.open(buildWhatsAppLink(lead.phone, message), '_blank');
             });
@@ -205,7 +231,7 @@
 
             row.querySelector('[data-action="converted"]').addEventListener('click', async () => {
                 if (!lead.phone) {
-                    setStatus('Add a phone number to this lead before converting — a customer record needs one.', true);
+                    setStatus('Add a phone number to this enquiry before converting — a customer record needs one.', true);
                     return;
                 }
                 // If a customer with this phone already exists, link to them;
@@ -233,7 +259,7 @@
 
     async function loadLeads() {
         if (!supabase) {
-            listEl.innerHTML = '<p class="empty-hint">Connect Supabase to see leads.</p>';
+            listEl.innerHTML = '<p class="empty-hint">Connect Supabase to see enquiries.</p>';
             return;
         }
         const { data, error } = await supabase
@@ -251,16 +277,17 @@
     el('add-lead-btn').addEventListener('click', async () => {
         const name = el('lead-name').value.trim();
         if (!name) {
-            setStatus('Enter at least a name to log a lead.', true);
+            setStatus('Enter at least a name to log an enquiry.', true);
             return;
         }
         if (!supabase) {
             setStatus('Connect Supabase before logging a lead.', true);
             return;
         }
+        const leadPhoneDigits = el('lead-phone').value.replace(/\D/g, '');
         const { error } = await supabase.from('leads').insert({
             name,
-            phone: el('lead-phone').value.trim() || null,
+            phone: leadPhoneDigits ? '+' + el('lead-phone-code').value + leadPhoneDigits : null,
             interest: el('lead-interest').value.trim() || null,
             reason_not_bought: el('lead-reason').value.trim() || null,
             notes: el('lead-notes').value.trim() || null
@@ -270,7 +297,7 @@
             return;
         }
         ['lead-name', 'lead-phone', 'lead-interest', 'lead-reason', 'lead-notes'].forEach(id => el(id).value = '');
-        setStatus('Lead logged.', false);
+        setStatus('Enquiry logged.', false);
         loadLeads();
     });
 

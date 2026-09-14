@@ -123,9 +123,10 @@
             <a href="counter-intake.html">Counter Intake</a>
             <a href="follow-ups.html">Follow-Ups<span class="nav-badge" id="followups-badge" hidden>0</span></a>
             <a href="customers.html">Customers</a>
-            <a href="leads.html">Leads</a>
+            <a href="enquiries.html">Enquiries</a>
             <a href="referrals.html">Referrals</a>
             <a href="calendar.html" class="active">Calendar</a>
+            <a href="ai-settings.html">AI Setup</a>
         </nav>
         <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">☰</button>
         <div class="sidebar-footer" id="sidebar-footer">
@@ -254,28 +255,31 @@
             cell.className = 'cal-day' + (key === today ? ' today' : '') + (events.length ? ' has-events' : '');
             cell.innerHTML = `<div class="cal-day-num">${d}</div>` +
                 (events.length ? `<div class="cal-day-count">${events.length} booked</div>` : '');
-            cell.addEventListener('click', () => showDayDetail(key, events));
+            cell.addEventListener('click', () => showDayDetail(key, events, cell));
             grid.appendChild(cell);
         }
     }
 
-    function showDayDetail(key, events) {
+    function showDayDetail(key, events, cellEl) {
         document.querySelectorAll('.cal-day').forEach(c => c.classList.remove('selected'));
+        if (cellEl) cellEl.classList.add('selected');
         const card = el('day-detail-card');
         card.hidden = false;
         el('day-detail-title').textContent = key;
         const list = el('day-detail-list');
         if (!events.length) {
             list.innerHTML = '<p class="empty-hint">Nothing booked this day.</p>';
-            return;
+        } else {
+            list.innerHTML = events.map((r) => {
+                const c = r.customers || {};
+                return `<div class="day-detail-row">
+                    <div class="name">${c.name || 'Unknown customer'}</div>
+                    <div class="meta">${r.type} · ${c.phone || 'no phone on file'} · ${r.status}</div>
+                    ${r.notes ? `<div class="meta">${r.notes}</div>` : ''}
+                </div>`;
+            }).join('');
         }
-        list.innerHTML = events.map((r) => {
-            const c = r.customers || {};
-            return `<div class="day-detail-row">
-                <div class="name">${c.name || 'Unknown customer'}</div>
-                <div class="meta">${r.type} · ${c.phone || 'no phone on file'} · ${r.status}</div>
-            </div>`;
-        }).join('');
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     el('cal-prev-btn').addEventListener('click', () => {

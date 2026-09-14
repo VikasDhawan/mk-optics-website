@@ -10,9 +10,9 @@ Website prototype for M&K Optics
   rewards program themselves at the counter. No login; deliberately
   narrow write access (see Security below).
 - `book-appointment.html` — online appointment request form (Name,
-  Mobile, Preferred Date, Notes). No login; same narrow-write pattern
-  as rewards sign-up. Staff turn each request into a real follow-up
-  from the Follow-Ups page.
+  Mobile, Preferred Date, Preferred Time, Notes). No login; same
+  narrow-write pattern as rewards sign-up. Staff turn each request into
+  a real follow-up from the Follow-Ups page.
 
 **Staff (all behind login, all share the same sidebar/navigation)**
 - `dashboard.html` — the staff app's home page: key numbers (total
@@ -28,10 +28,32 @@ Website prototype for M&K Optics
   request show up in the list below and on the Calendar.
 - `customers.html` — search any customer and see their full contact
   details, preferences/notes (editable), pending reminders, and complete
-  purchase + prescription history across every visit.
-- `leads.html` — log walk-ins/enquiries who didn't buy, follow up via
-  WhatsApp, and convert a lead into a real customer record (creating one
-  if it doesn't already exist) or mark it lost.
+  purchase + prescription history across every visit. Once a customer
+  has 3+ visits, a **Quick Insight** story card appears: one headline
+  number (estimated annual value of the relationship), a small bar
+  chart of spend over time, one narrative paragraph, and one concrete
+  next action — all free, computed instantly in the browser from that
+  customer's own numbers, no external service involved. Below it, an
+  **"Ask AI for a deeper read"** button (only does anything once a key
+  is added on the AI Setup page) sends that same history to Claude via
+  the `ai-insight` Edge Function with a pre-written, sales-focused
+  prompt, and returns a genuinely generated (not templated) insight —
+  useful for reading the free-text staff notes across visits, which
+  the free Quick Insight can't do.
+- `ai-settings.html` — add your own free-tier Google Gemini API key (and
+  optionally a Groq key as an automatic backup) to turn on the "Ask AI"
+  feature above. Bring-your-own-key: both keys live only in this shop's
+  own Supabase project — this app and its other installs never see or
+  are involved in anyone's AI usage. Gemini is tried first; if its free
+  daily limit is ever used up, the app automatically retries with Groq,
+  with nothing for staff to do. If both are used up for the day, "Ask
+  AI" says so and suggests a paid ChatGPT Plus/Pro account as a manual
+  option (not something the app can call automatically, since it's a
+  subscription for a person, not a programmable key). Leave both empty
+  and the app works exactly as before, using only the free Quick Insight.
+- `enquiries.html` — log walk-ins/enquiries who didn't buy, follow up via
+  WhatsApp, and convert an enquiry into a real customer record (creating
+  one if it doesn't already exist) or mark it lost.
 - `referrals.html` — look up the referring customer, log who they
   referred, ask them via WhatsApp, advance status (invited → joined →
   purchased), and track whether each side's discount was given.
@@ -79,9 +101,28 @@ is enough).
    `reward_signups` table the public sign-up page writes to.
 7. SQL Editor → run `supabase-migration-004-appointments.sql`. Adds the
    `appointment_requests` table the booking page writes to.
-8. Open `counter-intake.html` (or any staff page) in a browser, or serve
-   the folder with any static file server. Sign in with the account from
-   step 4.
+8. SQL Editor → run `supabase-migration-005-appointment-time.sql`. Adds
+   the preferred-time column to `appointment_requests`.
+9. SQL Editor → run `supabase-migration-006-slot-conflicts.sql`. Adds a
+   preferred-time column to `reminders` and a narrow yes/no function the
+   booking page uses to stop double-booking the same date and time.
+10. SQL Editor → run `supabase-migration-007-ai-settings.sql`. Adds the
+    (empty, optional) table that holds a shop's own AI keys — required
+    for the "Ask AI" feature to exist at all, but the app works fully
+    without ever filling it in.
+11. **Optional, only if you want "Ask AI" to work**: first install the
+    Supabase CLI if you don't have it (`npm install -g supabase`, or see
+    supabase.com/docs/guides/cli), then from this repo's folder run:
+    `supabase login`, `supabase link --project-ref <your-project-ref>`,
+    and `supabase functions deploy ai-insight`. Then open
+    `ai-settings.html`, get a free key at aistudio.google.com/apikey
+    (no card needed), paste it in under Gemini, and click "Test
+    Connection." Optionally also add a free Groq key from
+    console.groq.com/keys as an automatic backup. Skip this step
+    entirely and the app works exactly as before.
+12. Open `counter-intake.html` (or any staff page) in a browser, or serve
+    the folder with any static file server. Sign in with the account from
+    step 4.
 
 ### Staff login
 
@@ -102,8 +143,21 @@ same Users screen.
   can't see another's submission. Staff review and convert these into
   real records from the **Dashboard** (sign-ups) and **Follow-Ups**
   (appointment requests).
+- `book-appointment.html` also calls `is_time_slot_taken(date, time)`, a
+  database function that answers only true/false for one exact slot —
+  it can see into `reminders`/`appointment_requests` to check, but never
+  returns any row data, so a customer can check availability without
+  ever seeing the store's calendar or other people's bookings.
 - Per-staff permissions (e.g. restricting who sees sale amounts) aren't
   built — any logged-in staff account can do anything in the app.
+- The AI keys (`ai_settings.gemini_api_key` / `groq_api_key`) are
+  readable/writable only by logged-in staff, same as every other
+  table — but more importantly, neither is ever sent to or read from
+  any browser during normal use. The `ai-insight` Edge Function reads
+  them server-side (using the service-role connection, which bypasses
+  RLS the same way any trusted backend process would) and makes the
+  Gemini/Groq API call itself; the browser only ever receives the
+  finished text answer.
 
 ### WhatsApp messages
 
@@ -113,10 +167,17 @@ needed, but a staff member must tap send in the window that opens.
 
 ## Deliberately not built yet
 
-- **AI recommendation engine** (what to sell next, contact-lens refill
-  timing) — the growth-system plan this schema is based on marks this
-  "Future Feature, needs 6-12 months of data." Building UI for it now
-  would have nothing real behind it.
+- **A trained AI recommendation engine** (what to sell next across the
+  whole customer base, contact-lens refill timing patterns learned from
+  many shops' data) — the growth-system plan this schema is based on
+  marks this "Future Feature, needs 6-12 months of data" across many
+  customers. What IS built: a free rule-based "Quick Insight" on every
+  customer's own history (no data collection period needed), plus an
+  optional "Ask AI" button that calls Claude directly with a
+  pre-written prompt if a shop adds their own API key (see
+  `ai-settings.html`) — genuinely generated insight, not a template,
+  but still reading one customer's history at a time rather than
+  learning patterns across the whole customer base.
 - **Per-staff permissions / roles.**
 
 ## Testing
