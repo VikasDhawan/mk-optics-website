@@ -420,6 +420,64 @@
             });
         }
 
+        // 3b. Accelerating visit frequency — comparing early gaps to recent
+        //     gaps requires arithmetic across the whole history, not just
+        //     glancing at a list of dates, so this is easy for staff to miss.
+        if (dates.length >= 4) {
+            const gaps = [];
+            for (let i = 1; i < dates.length; i++) gaps.push((dates[i] - dates[i - 1]) / 86400000);
+            const mid = Math.floor(gaps.length / 2);
+            const earlyAvg = gaps.slice(0, mid).reduce((a, b) => a + b, 0) / mid;
+            const recentAvg = gaps.slice(mid).reduce((a, b) => a + b, 0) / (gaps.length - mid);
+            if (earlyAvg > 0 && recentAvg <= earlyAvg * 0.65) {
+                insights.push({
+                    icon: '⏱️',
+                    text: `Visit frequency is speeding up — early gaps averaged ~${Math.round(earlyAvg)} days, recent ones only ~${Math.round(recentAvg)} days. Worth checking whether something's changed (comfort, vision, or just growing loyalty) rather than assuming routine care.`
+                });
+            } else if (recentAvg > 0 && earlyAvg <= recentAvg * 0.65) {
+                insights.push({
+                    icon: '⏱️',
+                    text: `Visits are spacing out — recent gaps average ~${Math.round(recentAvg)} days versus ~${Math.round(earlyAvg)} days early on. May be worth a proactive check-in before they drift away.`
+                });
+            }
+        }
+
+        // 3c. Same-weekday clustering — invisible unless someone actually
+        //     computes the day of week for every date.
+        if (dates.length >= 4) {
+            const dow = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+            const counts = {};
+            dates.forEach(d => { counts[d.getDay()] = (counts[d.getDay()] || 0) + 1; });
+            const [topDay, topCount] = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+            if (topCount >= Math.ceil(dates.length * 0.8)) {
+                insights.push({
+                    icon: '🗓️',
+                    text: `${topCount} of their last ${dates.length} visits fell on a ${dow[topDay]} — that's their habit, not a coincidence. Good day to schedule outreach or in-store promotions aimed at them.`
+                });
+            }
+        }
+
+        // 3d. Spend rising much faster than prescription is changing —
+        //     suggests they're paying for premium features/brand, not a
+        //     stronger correction. Only visible by comparing two separate
+        //     trends against each other.
+        {
+            const firstAmt = firstValid(visits, 'amount');
+            const lastAmt = lastValid(visits, 'amount');
+            const firstOd = firstValid(visits, 'od_sphere');
+            const lastOd = lastValid(visits, 'od_sphere');
+            if (firstAmt && lastAmt && firstAmt.visit !== lastAmt.visit && firstAmt.value > 0) {
+                const spendGrowth = (lastAmt.value - firstAmt.value) / firstAmt.value;
+                const rxChange = (firstOd && lastOd) ? Math.abs(lastOd.value - firstOd.value) : null;
+                if (spendGrowth >= 1 && rxChange !== null && rxChange <= 0.5) {
+                    insights.push({
+                        icon: '💎',
+                        text: `Spend per visit has grown ${Math.round(spendGrowth * 100)}% (₹${Math.round(firstAmt.value)} → ₹${Math.round(lastAmt.value)}) while their prescription barely moved (${rxChange}D change). They're upgrading for premium features or brand, not medical need — a better fit for premium pitches than discount offers.`
+                    });
+                }
+            }
+        }
+
         // 4. Repeat lens preference — an upsell opening.
         const lensCounts = {};
         visits.forEach(v => { if (v.lens) lensCounts[v.lens] = (lensCounts[v.lens] || 0) + 1; });
