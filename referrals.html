@@ -159,8 +159,17 @@
         statusEl.className = 'status-msg ' + (isError ? 'error' : 'ok');
     }
 
+    // WhatsApp needs a full international number to look someone up who
+    // isn't already in the store's contacts. Staff usually type a plain
+    // 10-digit Indian mobile number, so default a bare 10-digit number to
+    // India's country code (91) rather than sending it as-is and failing.
     function buildWhatsAppLink(phone, message) {
-        const digits = phone.replace(/\D/g, '');
+        let digits = phone.replace(/\D/g, '');
+        if (digits.length === 10) {
+            digits = '91' + digits;
+        } else if (digits.length === 11 && digits.startsWith('0')) {
+            digits = '91' + digits.slice(1);
+        }
         return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
     }
 
