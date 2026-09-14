@@ -29,14 +29,23 @@ Website prototype for M&K Optics
 - `customers.html` — search any customer and see their full contact
   details, preferences/notes (editable), pending reminders, and complete
   purchase + prescription history across every visit. Once a customer
-  has 2+ visits, an **Insights** panel appears with simple, rule-based
-  observations computed from their own history — is their prescription
-  changing, is reading power (presbyopia) newly showing up, do they
-  keep buying the same kind of lens, roughly when are they due back,
-  and whether their spend suggests flagging them as high-value. This
-  is deliberately simple pattern-spotting, not a trained AI model (see
-  "Deliberately not built yet" below) — but it's real, useful signal
-  today, and gets more useful the more visits a customer has on file.
+  has 3+ visits, a **Quick Insight** story card appears: one headline
+  number (estimated annual value of the relationship), a small bar
+  chart of spend over time, one narrative paragraph, and one concrete
+  next action — all free, computed instantly in the browser from that
+  customer's own numbers, no external service involved. Below it, an
+  **"Ask AI for a deeper read"** button (only does anything once a key
+  is added on the AI Setup page) sends that same history to Claude via
+  the `ai-insight` Edge Function with a pre-written, sales-focused
+  prompt, and returns a genuinely generated (not templated) insight —
+  useful for reading the free-text staff notes across visits, which
+  the free Quick Insight can't do.
+- `ai-settings.html` — add or remove your own Anthropic API key to turn
+  on the "Ask AI" feature above. Bring-your-own-key: the key lives only
+  in this shop's own Supabase project, billed directly by Anthropic to
+  whoever owns that key — this app and its other installs never see or
+  pay for anyone's AI usage. Leave it empty and the app works exactly
+  as before, using only the free Quick Insight.
 - `enquiries.html` — log walk-ins/enquiries who didn't buy, follow up via
   WhatsApp, and convert an enquiry into a real customer record (creating
   one if it doesn't already exist) or mark it lost.
@@ -92,7 +101,17 @@ is enough).
 9. SQL Editor → run `supabase-migration-006-slot-conflicts.sql`. Adds a
    preferred-time column to `reminders` and a narrow yes/no function the
    booking page uses to stop double-booking the same date and time.
-10. Open `counter-intake.html` (or any staff page) in a browser, or serve
+10. SQL Editor → run `supabase-migration-007-ai-settings.sql`. Adds the
+    (empty, optional) table that holds a shop's own AI key — required
+    for the "Ask AI" feature to exist at all, but the app works fully
+    without ever filling it in.
+11. **Optional, only if you want "Ask AI" to work**: deploy the Edge
+    Function with the Supabase CLI: `supabase functions deploy
+    ai-insight --project-ref <your-project-ref>`. Then open
+    `ai-settings.html`, add your own Anthropic API key from
+    console.anthropic.com, and click "Test Connection." Skip this
+    entirely and the app works exactly as before.
+12. Open `counter-intake.html` (or any staff page) in a browser, or serve
     the folder with any static file server. Sign in with the account from
     step 4.
 
@@ -122,6 +141,13 @@ same Users screen.
   ever seeing the store's calendar or other people's bookings.
 - Per-staff permissions (e.g. restricting who sees sale amounts) aren't
   built — any logged-in staff account can do anything in the app.
+- The AI key (`ai_settings.api_key`) is readable/writable only by
+  logged-in staff, same as every other table — but more importantly,
+  it is never sent to or read from any browser during normal use. The
+  `ai-insight` Edge Function reads it server-side (using the
+  service-role connection, which bypasses RLS the same way any trusted
+  backend process would) and makes the Anthropic API call itself; the
+  browser only ever receives the finished text answer.
 
 ### WhatsApp messages
 
@@ -132,12 +158,16 @@ needed, but a staff member must tap send in the window that opens.
 ## Deliberately not built yet
 
 - **A trained AI recommendation engine** (what to sell next across the
-  whole customer base, contact-lens refill timing patterns) — the
-  growth-system plan this schema is based on marks this "Future
-  Feature, needs 6-12 months of data" across many customers. The
-  Customers page's Insights panel is a first, simpler step: rule-based
-  observations from one customer's own history, available immediately
-  rather than after months of data collection.
+  whole customer base, contact-lens refill timing patterns learned from
+  many shops' data) — the growth-system plan this schema is based on
+  marks this "Future Feature, needs 6-12 months of data" across many
+  customers. What IS built: a free rule-based "Quick Insight" on every
+  customer's own history (no data collection period needed), plus an
+  optional "Ask AI" button that calls Claude directly with a
+  pre-written prompt if a shop adds their own API key (see
+  `ai-settings.html`) — genuinely generated insight, not a template,
+  but still reading one customer's history at a time rather than
+  learning patterns across the whole customer base.
 - **Per-staff permissions / roles.**
 
 ## Testing
