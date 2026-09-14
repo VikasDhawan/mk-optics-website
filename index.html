@@ -100,6 +100,10 @@
         font-weight: 700;
     }
 
+    .site-menu-btn {
+        display: none;
+    }
+
     /* HERO */
 
     .hero {
@@ -441,15 +445,47 @@
 
         header {
             padding: 16px 6%;
+            flex-wrap: wrap;
         }
 
+        /* Closed by default: only the CTA button and hamburger show.
+           Tapping the hamburger reveals the rest as full-width rows
+           below, pushing page content down (no scrolling, no overlay). */
         nav a:not(.nav-button) {
             display: none;
+            width: 100%;
+            padding: 12px 0;
+        }
+
+        nav.menu-open a:not(.nav-button) {
+            display: block;
         }
 
         nav {
             gap: 0;
+            width: auto;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
+
+        .site-menu-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            margin-left: 12px;
+            background: transparent;
+            border: none;
+            color: var(--white);
+            font-size: 22px;
+            line-height: 1;
+            cursor: pointer;
+            border-radius: 6px;
+            order: 1;
+        }
+
+        .nav-button { order: 0; }
 
         .hero,
         .personality,
@@ -524,7 +560,7 @@
         <div class="brand-name">MK OPTICS</div>
     </div>
 
-    <nav>
+    <nav id="site-nav">
         <a href="#arrivals">NEW ARRIVALS</a>
         <a href="#experience">OUR EXPERIENCE</a>
         <a href="#eye-test">EYE TEST</a>
@@ -535,9 +571,27 @@
         <a href="#eye-test" class="nav-button">
             BOOK AN EYE TEST
         </a>
+
+        <button class="site-menu-btn" id="site-menu-btn" aria-label="Menu">☰</button>
     </nav>
 
 </header>
+
+<script>
+(function () {
+    var btn = document.getElementById('site-menu-btn');
+    var nav = document.getElementById('site-nav');
+    btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        nav.classList.toggle('menu-open');
+    });
+    document.addEventListener('click', function (e) {
+        if (nav.classList.contains('menu-open') && !nav.contains(e.target)) {
+            nav.classList.remove('menu-open');
+        }
+    });
+})();
+</script>
 
 
 <!-- HERO -->
