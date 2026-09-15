@@ -43,14 +43,21 @@ retail store in India (eyeglasses, sunglasses, contact lenses, eye tests).
 You will be given one customer's full visit history as JSON — dates,
 prescriptions, frames, lenses, amounts spent, and free-text staff notes.
 
-Your job: find the ONE most useful, non-obvious insight in this data that
-connects directly to increasing revenue or reducing cost for the shop —
-never a purely clinical or descriptive observation with no rupee angle.
+Your job: look at this customer's history and tell staff specifically
+WHAT to offer them next and in WHAT BUDGET RANGE, to help the shop sell
+more — never a purely clinical or descriptive observation with no rupee
+angle, and never framed as a warning, risk, or concern about the
+customer. A customer spending more or buying often is a GOOD sign to
+build on, not a problem to flag. Do not use words like "excessive,"
+"risk," "concerning," "return," or anything implying the customer is
+overspending or behaving unusually in a bad way — that is never the
+message, even if true. The message is always: here is the specific
+opportunity, here is the product/category and price range that fits
+this customer, and here is what to do about it.
 Prioritize things a busy shop owner would NOT notice just by skimming the
-list — patterns across multiple visits, contradictions between what a
-customer says and what they buy, trends in spend or prescription, gaps in
-what they've never purchased, timing patterns, or signals of a customer
-about to leave.
+list — patterns across multiple visits, what they keep coming back for,
+gaps in what they've never purchased, timing patterns, or a trend that
+points to a specific upsell or cross-sell opportunity.
 
 You MUST respond with all three of these parts, each on its own line, in
 plain text, no markdown, no headers. A one-sentence answer is a FAILED
@@ -61,18 +68,19 @@ response — do not do that under any circumstances.
 2. WHY IT MATTERS: 2-3 full sentences explaining, in plain language a
    non-technical shop owner would immediately understand, why this
    connects to revenue or cost, and what would happen if ignored.
-3. ACTION: one sentence starting with the word "Action:" giving one
-   concrete, specific thing staff should do on this customer's very next
-   visit or contact.
+3. ACTION: one sentence starting with the word "Action:" naming the
+   SPECIFIC product/category and a rupee BUDGET RANGE to offer this
+   customer next, and when to offer it.
 
-Example of the required shape (do not reuse this content, it is only to
-show the format and level of detail expected):
+Example of the required shape and tone (do not reuse this content, it is
+only to show the format, detail level, and positive framing expected):
 "Spend per visit has grown 180% over three visits while the prescription
-barely changed. This customer is paying for premium features and brand,
-not a stronger correction — treating them like a price-sensitive walk-in
-risks losing that upgrade revenue to a competitor who pitches better.
-Action: show the top-tier frame and lens options first on their next
-visit, before anything mid-range."
+barely changed, showing this customer chooses premium features and
+brand over price. That's a strong opening for the shop's top-tier line
+rather than mid-range stock, and asking early avoids losing that
+upgrade sale to a competitor with better options on display.
+Action: on their next visit, lead with the ₹8,000-12,000 premium
+frame and photochromic lens range before showing anything mid-range."
 
 Target 70-100 words total across all three parts combined — never fewer
 than 50. If the data genuinely doesn't support a strong insight, still
@@ -239,8 +247,18 @@ async function callGemini(apiKey: string, userMessage: string, maxTokens: number
       const quotaExhausted = res.status === 429 || status === 'RESOURCE_EXHAUSTED';
       return { ok: false, quotaExhausted, error: data?.error?.message || `Gemini API error (${res.status})` };
     }
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-    if (!text) return { ok: false, quotaExhausted: false, error: 'Gemini returned an empty response.' };
+    // THE ACTUAL BUG behind every "truncated" response so far: Gemini can
+    // split its answer across multiple parts (and may include a separate
+    // "thought" part even at a low thinking budget), but this only ever
+    // read parts[0] — silently dropping the rest of the answer regardless
+    // of maxOutputTokens or thinkingConfig. Neither of those settings was
+    // ever the real problem. Concatenate every non-thought part instead.
+    const parts = data?.candidates?.[0]?.content?.parts || [];
+    const text = parts.filter((p: any) => !p.thought).map((p: any) => p.text || '').join('').trim();
+    const finishReason = data?.candidates?.[0]?.finishReason;
+    if (!text) {
+      return { ok: false, quotaExhausted: false, error: `Gemini returned an empty response (finishReason: ${finishReason || 'unknown'}).` };
+    }
     return { ok: true, text };
   } catch (err) {
     return { ok: false, quotaExhausted: false, error: String(err) };
