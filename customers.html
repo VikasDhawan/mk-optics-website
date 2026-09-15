@@ -105,6 +105,20 @@
         padding-top: 12px;
         border-top: 1px solid var(--line);
     }
+    .visit-card-followup {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid var(--line);
+        font-size: 13px;
+        color: var(--ink);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .visit-card-followup-label {
+        font-weight: 700;
+        color: var(--navy);
+    }
     table.rx-detail-table {
         width: 100%;
         border-collapse: collapse;
@@ -159,6 +173,59 @@
         color: var(--white);
         border-color: var(--navy);
     }
+
+    /* ADD VISIT PANEL — same editable Rx table + chip pattern as
+       Counter Intake, so entering a visit looks and works the same
+       whether staff are on that page or right here on a customer's
+       own record. */
+    .chip-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip {
+        padding: 10px 16px;
+        border-radius: 20px;
+        border: 1.5px solid var(--line);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        background: var(--white);
+        color: var(--ink);
+    }
+    .chip.active {
+        background: var(--navy);
+        color: var(--white);
+        border-color: var(--navy);
+    }
+    .av-rx-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+    .av-rx-table th {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--grey);
+        text-align: left;
+        padding: 6px 6px;
+        font-weight: 700;
+    }
+    .av-rx-table td { padding: 5px 6px; }
+    .av-rx-table td.rx-label {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--navy);
+        white-space: nowrap;
+        padding-right: 10px;
+    }
+    .av-rx-table input { padding: 9px 10px; font-size: 13px; min-width: 60px; }
+    .av-rx-section-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--navy);
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        padding: 10px 0 4px;
+    }
+    #add-visit-panel { margin-bottom: 22px; }
 
     .toggle-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 
@@ -279,6 +346,7 @@
 
     @media (max-width: 900px) {
         table.rx-detail-table { display: block; overflow-x: auto; white-space: nowrap; }
+        .av-rx-table { display: block; overflow-x: auto; }
     }
 </style>
 </head>
@@ -365,6 +433,179 @@
 
                 <div class="card" id="detail-card" hidden>
                     <h2 id="detail-name">—</h2>
+
+                    <button class="btn btn-dark" id="add-visit-btn" style="margin-bottom:18px">➕ Add Visit Details</button>
+
+                    <div class="detail-section" id="add-visit-panel" hidden>
+                        <h3>New Visit</h3>
+
+                        <div class="chip-row" id="av-type-toggle" style="margin-bottom:18px">
+                            <div class="chip active" data-type="Spectacles">👓 Eyewear</div>
+                            <div class="chip" data-type="Contact Lenses">👁️ Contact Lens</div>
+                        </div>
+
+                        <div id="av-rx-eyewear">
+                            <h3 style="margin-bottom:8px">Prescription</h3>
+                            <table class="av-rx-table">
+                                <tr>
+                                    <th></th><th>Sphere</th><th>Cylinder</th><th>Axis</th><th>Prism</th><th>Base</th>
+                                </tr>
+                                <tr><td colspan="6" class="av-rx-section-label">Distance</td></tr>
+                                <tr>
+                                    <td class="rx-label">Rt Eye</td>
+                                    <td><input type="text" id="av-od-sphere" placeholder="—"></td>
+                                    <td><input type="text" id="av-od-cylinder" placeholder="—"></td>
+                                    <td><input type="text" id="av-od-axis" placeholder="—"></td>
+                                    <td><input type="text" id="av-od-prism" placeholder="—"></td>
+                                    <td><input type="text" id="av-od-base" placeholder="—"></td>
+                                </tr>
+                                <tr>
+                                    <td class="rx-label">Lt Eye</td>
+                                    <td><input type="text" id="av-os-sphere" placeholder="—"></td>
+                                    <td><input type="text" id="av-os-cylinder" placeholder="—"></td>
+                                    <td><input type="text" id="av-os-axis" placeholder="—"></td>
+                                    <td><input type="text" id="av-os-prism" placeholder="—"></td>
+                                    <td><input type="text" id="av-os-base" placeholder="—"></td>
+                                </tr>
+                                <tr><td colspan="6" class="av-rx-section-label">Add</td></tr>
+                                <tr>
+                                    <td class="rx-label">Rt Eye</td>
+                                    <td><input type="text" id="av-add-od-sphere" placeholder="—"></td>
+                                    <td colspan="4"></td>
+                                </tr>
+                                <tr>
+                                    <td class="rx-label">Lt Eye</td>
+                                    <td><input type="text" id="av-add-os-sphere" placeholder="—"></td>
+                                    <td colspan="4"></td>
+                                </tr>
+                            </table>
+                            <div class="grid-2" style="margin-bottom:18px">
+                                <div>
+                                    <label class="field-label" for="av-additional-info">Additional Information</label>
+                                    <input type="text" id="av-additional-info" placeholder="—">
+                                </div>
+                                <div>
+                                    <label class="field-label" for="av-prescribed-by">Prescribed By</label>
+                                    <input type="text" id="av-prescribed-by" placeholder="Dr. Name">
+                                </div>
+                            </div>
+
+                            <h3 style="margin-bottom:8px">Purchase</h3>
+                            <div style="margin-bottom:16px">
+                                <label class="field-label" for="av-frame">Frame</label>
+                                <input type="text" id="av-frame" placeholder="e.g. Ray-Ban RB2140 — Tortoise, Round Metal">
+                            </div>
+                            <div class="grid-2" style="margin-bottom:16px">
+                                <div>
+                                    <label class="field-label" for="av-lens">Lens</label>
+                                    <input type="text" id="av-lens" placeholder="e.g. Progressive · Anti-glare">
+                                </div>
+                                <div>
+                                    <label class="field-label" for="av-amount">Amount (₹)</label>
+                                    <input type="number" id="av-amount" placeholder="0">
+                                </div>
+                            </div>
+                            <div style="margin-bottom:18px">
+                                <label class="field-label" for="av-channel">Channel</label>
+                                <select id="av-channel">
+                                    <option>In-store</option><option>Phone</option><option>WhatsApp</option><option>Online</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="av-rx-contactlens" hidden>
+                            <h3 style="margin-bottom:8px">Prescription</h3>
+                            <table class="av-rx-table">
+                                <tr><th></th><th>Sphere</th><th>Cylinder</th><th>Axis</th></tr>
+                                <tr>
+                                    <td class="rx-label">Rt Eye</td>
+                                    <td><input type="text" id="av-cl-od-sphere" placeholder="—"></td>
+                                    <td><input type="text" id="av-cl-od-cylinder" placeholder="—"></td>
+                                    <td><input type="text" id="av-cl-od-axis" placeholder="—"></td>
+                                </tr>
+                                <tr>
+                                    <td class="rx-label">Lt Eye</td>
+                                    <td><input type="text" id="av-cl-os-sphere" placeholder="—"></td>
+                                    <td><input type="text" id="av-cl-os-cylinder" placeholder="—"></td>
+                                    <td><input type="text" id="av-cl-os-axis" placeholder="—"></td>
+                                </tr>
+                            </table>
+                            <div class="grid-2" style="margin-bottom:16px">
+                                <div>
+                                    <label class="field-label" for="av-cl-base-curve">Base Curve</label>
+                                    <input type="text" id="av-cl-base-curve" placeholder="e.g. 8.6">
+                                </div>
+                                <div>
+                                    <label class="field-label" for="av-cl-diameter">Diameter</label>
+                                    <input type="text" id="av-cl-diameter" placeholder="e.g. 14.2">
+                                </div>
+                            </div>
+                            <div class="grid-2" style="margin-bottom:18px">
+                                <div>
+                                    <label class="field-label" for="av-cl-additional-info">Additional Information</label>
+                                    <input type="text" id="av-cl-additional-info" placeholder="—">
+                                </div>
+                                <div>
+                                    <label class="field-label" for="av-cl-prescribed-by">Prescribed By</label>
+                                    <input type="text" id="av-cl-prescribed-by" placeholder="Dr. Name">
+                                </div>
+                            </div>
+
+                            <h3 style="margin-bottom:8px">Purchase</h3>
+                            <div class="grid-2" style="margin-bottom:16px">
+                                <div>
+                                    <label class="field-label" for="av-cl-brand">Brand</label>
+                                    <input type="text" id="av-cl-brand" placeholder="e.g. Acuvue Oasys">
+                                </div>
+                                <div>
+                                    <label class="field-label" for="av-cl-color">Color</label>
+                                    <input type="text" id="av-cl-color" placeholder="e.g. Hazel, or leave blank if clear">
+                                </div>
+                            </div>
+                            <div class="grid-2" style="margin-bottom:18px">
+                                <div>
+                                    <label class="field-label" for="av-cl-amount">Amount (₹)</label>
+                                    <input type="number" id="av-cl-amount" placeholder="0">
+                                </div>
+                                <div>
+                                    <label class="field-label" for="av-cl-channel">Channel</label>
+                                    <select id="av-cl-channel">
+                                        <option>In-store</option><option>Phone</option><option>WhatsApp</option><option>Online</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3 style="margin-bottom:8px">Notes for Next Visit</h3>
+                        <div class="grid-2" style="margin-bottom:18px">
+                            <div>
+                                <label class="field-label" for="av-preferences-budget">Preferences &amp; Budget</label>
+                                <textarea id="av-preferences-budget" placeholder="e.g. Prefers metal frames, round shape. Budget ~₹6,000."></textarea>
+                            </div>
+                            <div>
+                                <label class="field-label" for="av-pitch-next">What to pitch next time</label>
+                                <textarea id="av-pitch-next" placeholder="e.g. Show titanium gunmetal frames when new stock arrives."></textarea>
+                            </div>
+                        </div>
+                        <div class="grid-2" style="margin-bottom:18px">
+                            <div>
+                                <label class="field-label" for="av-reminder-date">Next Reminder Date</label>
+                                <input type="date" id="av-reminder-date">
+                            </div>
+                            <div>
+                                <label class="field-label">Reminder For</label>
+                                <div class="chip-row" id="av-reminder-chips">
+                                    <div class="chip active" data-value="Eye test">Eye test</div>
+                                    <div class="chip" data-value="Consumables">Consumables</div>
+                                    <div class="chip" data-value="New collection">New collection</div>
+                                    <div class="chip" data-value="Discount offer">Discount offer</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-dark" id="save-add-visit-btn">Save &amp; Send WhatsApp Confirmation</button>
+                        <button class="btn" id="cancel-add-visit-btn" style="margin-left:8px">Cancel</button>
+                    </div>
 
                     <div class="detail-section">
                         <h3>Contact Details</h3>
@@ -561,9 +802,15 @@
                 </div>
                 <div class="visit-card-meta">${isContactLens
                     ? `${v.cl_brand || '—'}${v.cl_color ? ' · ' + escapeHtml(v.cl_color) : ''}`
-                    : `${v.frame || '—'} · ${v.lens || '—'}`}</div>
-                ${(v.preferences_budget || v.pitch_next_time) ? `<div class="visit-card-notes">${escapeHtml(v.preferences_budget || v.pitch_next_time)}</div>` : ''}
+                    : `${v.frame || '—'} · ${v.lens || '—'}`}${v.channel ? ' · ' + escapeHtml(v.channel) : ''}</div>
                 <div class="rx-detail-inline">${isContactLens ? clRxDetailTable(v) : rxDetailTable(v)}</div>
+                ${(v.preferences_budget || v.pitch_next_time || v.next_reminder_date) ? `
+                    <div class="visit-card-followup">
+                        ${v.preferences_budget ? `<div><span class="visit-card-followup-label">Preferences &amp; Budget:</span> ${escapeHtml(v.preferences_budget)}</div>` : ''}
+                        ${v.pitch_next_time ? `<div><span class="visit-card-followup-label">What to pitch next time:</span> ${escapeHtml(v.pitch_next_time)}</div>` : ''}
+                        ${v.next_reminder_date ? `<div><span class="visit-card-followup-label">Next reminder:</span> ${v.next_reminder_date}${v.reminder_for ? ' — ' + escapeHtml(v.reminder_for) : ''}</div>` : ''}
+                    </div>
+                ` : ''}
             </div>
         `).join('');
     }
@@ -740,6 +987,7 @@
     async function openCustomer(c) {
         currentCustomer = c;
         detailCard.hidden = false;
+        el('add-visit-panel').hidden = true;
         el('detail-name').textContent = c.name;
         el('detail-phone').textContent = c.phone;
         el('detail-since').textContent = (c.created_at || '').slice(0, 10);
@@ -836,6 +1084,124 @@
         if (!currentCustomer) return;
         const { error } = await supabase.from('customers').update({ general_notes: el('detail-notes').value }).eq('id', currentCustomer.id);
         setStatus(error ? 'Could not save notes: ' + error.message : 'Notes saved.', !!error);
+    });
+
+    // --- Add Visit Details ---------------------------------------------
+    // Lets staff log a visit for an existing, returning customer right
+    // from their own record — same field set and save behavior as
+    // Counter Intake (including the Eyewear/Contact Lens toggle and the
+    // WhatsApp confirmation), just embedded here instead of a separate
+    // page, for when a customer is already open on this screen.
+    let avPurchaseType = 'Spectacles';
+
+    const AV_EYEWEAR_FIELDS = [
+        ['av-od-sphere', 'od_sphere'], ['av-od-cylinder', 'od_cylinder'], ['av-od-axis', 'od_axis'],
+        ['av-od-prism', 'od_prism'], ['av-od-base', 'od_base'],
+        ['av-os-sphere', 'os_sphere'], ['av-os-cylinder', 'os_cylinder'], ['av-os-axis', 'os_axis'],
+        ['av-os-prism', 'os_prism'], ['av-os-base', 'os_base'],
+        ['av-add-od-sphere', 'add_od_sphere'], ['av-add-os-sphere', 'add_os_sphere'],
+        ['av-additional-info', 'additional_information'], ['av-prescribed-by', 'prescribed_by'],
+        ['av-frame', 'frame'], ['av-lens', 'lens'], ['av-amount', 'amount'], ['av-channel', 'channel']
+    ];
+    const AV_CONTACT_LENS_FIELDS = [
+        ['av-cl-od-sphere', 'od_sphere'], ['av-cl-od-cylinder', 'od_cylinder'], ['av-cl-od-axis', 'od_axis'],
+        ['av-cl-os-sphere', 'os_sphere'], ['av-cl-os-cylinder', 'os_cylinder'], ['av-cl-os-axis', 'os_axis'],
+        ['av-cl-base-curve', 'cl_base_curve'], ['av-cl-diameter', 'cl_diameter'],
+        ['av-cl-additional-info', 'additional_information'], ['av-cl-prescribed-by', 'prescribed_by'],
+        ['av-cl-brand', 'cl_brand'], ['av-cl-color', 'cl_color'],
+        ['av-cl-amount', 'amount'], ['av-cl-channel', 'channel']
+    ];
+    const AV_SHARED_FIELDS = [
+        ['av-preferences-budget', 'preferences_budget'], ['av-pitch-next', 'pitch_next_time'],
+        ['av-reminder-date', 'next_reminder_date']
+    ];
+    function avActiveFields() {
+        return (avPurchaseType === 'Contact Lenses' ? AV_CONTACT_LENS_FIELDS : AV_EYEWEAR_FIELDS).concat(AV_SHARED_FIELDS);
+    }
+    let avSelectedReminder = 'Eye test';
+
+    function setAvPurchaseType(type) {
+        avPurchaseType = type;
+        document.querySelectorAll('#av-type-toggle .chip').forEach(c => c.classList.toggle('active', c.dataset.type === type));
+        el('av-rx-eyewear').hidden = type !== 'Spectacles';
+        el('av-rx-contactlens').hidden = type !== 'Contact Lenses';
+    }
+
+    function resetAddVisitForm() {
+        AV_EYEWEAR_FIELDS.concat(AV_CONTACT_LENS_FIELDS, AV_SHARED_FIELDS).forEach(([inputId]) => { el(inputId).value = ''; });
+        el('av-channel').value = 'In-store';
+        el('av-cl-channel').value = 'In-store';
+        avSelectedReminder = 'Eye test';
+        document.querySelectorAll('#av-reminder-chips .chip').forEach(c => c.classList.remove('active'));
+        document.querySelector('#av-reminder-chips .chip[data-value="Eye test"]').classList.add('active');
+        setAvPurchaseType('Spectacles');
+    }
+
+    function avBuildWhatsAppLink(phone, message) {
+        let digits = phone.replace(/\D/g, '');
+        if (digits.length === 10) digits = '91' + digits;
+        else if (digits.length === 11 && digits.startsWith('0')) digits = '91' + digits.slice(1);
+        return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+    }
+
+    document.getElementById('av-type-toggle').addEventListener('click', (e) => {
+        const chip = e.target.closest('.chip');
+        if (chip) setAvPurchaseType(chip.dataset.type);
+    });
+
+    document.getElementById('av-reminder-chips').addEventListener('click', (e) => {
+        const chip = e.target.closest('.chip');
+        if (!chip) return;
+        document.querySelectorAll('#av-reminder-chips .chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        avSelectedReminder = chip.dataset.value;
+    });
+
+    el('add-visit-btn').addEventListener('click', () => {
+        resetAddVisitForm();
+        el('add-visit-panel').hidden = false;
+        el('add-visit-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    el('cancel-add-visit-btn').addEventListener('click', () => {
+        el('add-visit-panel').hidden = true;
+    });
+
+    el('save-add-visit-btn').addEventListener('click', async () => {
+        if (!currentCustomer) return;
+        if (!supabase) { setStatus('Connect Supabase before saving a visit.', true); return; }
+
+        const visit = { customer_id: currentCustomer.id, reminder_for: avSelectedReminder, product_type: avPurchaseType };
+        avActiveFields().forEach(([inputId, column]) => { visit[column] = el(inputId).value || null; });
+        if (visit.amount !== null) visit.amount = Number(visit.amount);
+
+        const { error } = await supabase.from('visits').insert(visit);
+        if (error) { setStatus('Could not save visit: ' + error.message, true); return; }
+
+        if (visit.next_reminder_date) {
+            const { error: reminderError } = await supabase.from('reminders').insert({
+                customer_id: currentCustomer.id,
+                type: avSelectedReminder,
+                due_date: visit.next_reminder_date,
+                status: 'pending'
+            });
+            if (reminderError) {
+                setStatus('Visit saved, but could not create the follow-up reminder: ' + reminderError.message, true);
+                return;
+            }
+        }
+
+        el('add-visit-panel').hidden = true;
+        setStatus('Visit saved. Opening WhatsApp confirmation…', false);
+
+        const purchaseDescription = visit.frame || (visit.cl_brand ? `${visit.cl_brand}${visit.cl_color ? ' (' + visit.cl_color + ')' : ''}` : null) || 'your order';
+        const message = `Hi ${currentCustomer.name}, thanks for visiting MK Optics! We've recorded your purchase (${purchaseDescription}). We'll remind you about your ${avSelectedReminder.toLowerCase()} around ${visit.next_reminder_date || 'your next visit'}.`;
+        window.open(avBuildWhatsAppLink(currentCustomer.phone, message), '_blank');
+
+        // Refresh this customer's record so the new visit shows up
+        // immediately in the history tabs and the Quick Insight updates
+        // to reflect it, instead of staff having to search again.
+        openCustomer(currentCustomer);
     });
 
     window.MKAuth.ready.then(() => searchCustomers(''));
