@@ -221,6 +221,13 @@
         return match ? match[1] : email;
     }
 
+    // Only staff who log in with a mobile number (not a real email) have
+    // a dialable number at all, so the Call button only shows up for them.
+    function phoneDigits(email) {
+        const match = /^(\d{10,15})@staff\.mkoptics\.local$/.exec(email || '');
+        return match ? match[1] : null;
+    }
+
     function renderStaff(staff) {
         const container = el('staff-list');
         if (!staff.length) { container.innerHTML = '<p class="empty-hint">No staff yet.</p>'; return; }
@@ -229,6 +236,7 @@
             const row = document.createElement('div');
             row.className = 'staff-row';
             const canReset = myRole === 'super_admin' || (myRole === 'admin' && s.role === 'employee');
+            const phone = phoneDigits(s.email);
             row.innerHTML = `
                 <img class="staff-row-avatar" src="${s.photo_url ? escapeHtml(s.photo_url) : ''}" ${s.photo_url ? '' : 'hidden'} alt="">
                 <div class="staff-row-info">
@@ -236,6 +244,7 @@
                     <div class="staff-row-meta">${escapeHtml(friendlyLogin(s.email))}</div>
                 </div>
                 <div class="staff-row-actions">
+                    ${phone ? `<a class="btn btn-dark" href="tel:${phone}">📞 Call</a>` : ''}
                     ${canReset ? '<button class="btn" data-action="reset">Reset Password</button>' : ''}
                 </div>
             `;
