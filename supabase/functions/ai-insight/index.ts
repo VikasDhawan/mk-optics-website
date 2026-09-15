@@ -34,6 +34,10 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const GEMINI_MODEL = 'gemini-2.5-flash';
+// Bump this string on every deploy while debugging so we can confirm
+// from the UI whether a redeploy actually picked up new code, rather
+// than assuming it did.
+const DEBUG_VERSION = 'debug-1';
 const GROQ_MODEL = 'llama-3.3-70b-versatile';
 
 // The pre-engineered prompt. Non-technical shop owners never see or
@@ -168,7 +172,7 @@ Deno.serve(async (req) => {
     );
 
     if (!result.ok) return json({ error: result.error }, cors);
-    return json({ insight: result.text, provider: result.provider }, cors);
+    return json({ insight: result.text, provider: result.provider, debug: result.debug, VERSION: DEBUG_VERSION }, cors);
   } catch (err) {
     return json({ error: String(err) }, { 'Access-Control-Allow-Origin': '*' });
   }
@@ -261,10 +265,20 @@ async function callGemini(apiKey: string, userMessage: string, maxTokens: number
     const parts = data?.candidates?.[0]?.content?.parts || [];
     const text = parts.filter((p: any) => !p.thought).map((p: any) => p.text || '').join('').trim();
     const finishReason = data?.candidates?.[0]?.finishReason;
+    // Temporary diagnostics, surfaced all the way to the UI, so we can
+    // see exactly what Gemini actually did instead of guessing again —
+    // part count/lengths and token usage explain a short answer far
+    // better than staring at the visible text alone.
+    const debug = {
+      finishReason,
+      partCount: parts.length,
+      partLengths: parts.map((p: any) => ({ thought: !!p.thought, len: (p.text || '').length })),
+      usage: data?.usageMetadata,
+    };
     if (!text) {
-      return { ok: false, quotaExhausted: false, error: `Gemini returned an empty response (finishReason: ${finishReason || 'unknown'}).` };
+      return { ok: false, quotaExhausted: false, error: `Gemini returned an empty response (finishReason: ${finishReason || 'unknown'}).`, debug };
     }
-    return { ok: true, text };
+    return { ok: true, text, debug };
   } catch (err) {
     return { ok: false, quotaExhausted: false, error: String(err) };
   }
