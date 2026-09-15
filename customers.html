@@ -282,7 +282,7 @@
                         <input type="search" id="customer-search" placeholder="Search by name or mobile number">
                     </div>
                     <div id="customer-list" class="customer-list">
-                        <p class="empty-hint">Start typing a name or mobile number.</p>
+                        <p class="empty-hint">Loading…</p>
                     </div>
                 </div>
 
@@ -389,18 +389,15 @@
 
     async function searchCustomers(term) {
         if (!supabase) return;
-        if (!term) {
-            listEl.innerHTML = '<p class="empty-hint">Start typing a name or mobile number.</p>';
-            return;
-        }
-        const { data, error } = await supabase
-            .from('customers')
-            .select('*')
-            .or(`name.ilike.%${term}%,phone.ilike.%${term}%`)
-            .order('name')
-            .limit(25);
+        listEl.innerHTML = '<p class="empty-hint">Loading…</p>';
+        // No search term: list everyone, A-Z, so the page is never empty —
+        // typing then narrows this same list rather than replacing an
+        // empty state with results.
+        let query = supabase.from('customers').select('*').order('name', { ascending: true });
+        query = term ? query.or(`name.ilike.%${term}%,phone.ilike.%${term}%`).limit(25) : query.limit(200);
+        const { data, error } = await query;
         if (error) {
-            listEl.innerHTML = '<p class="empty-hint">Search failed: ' + error.message + '</p>';
+            listEl.innerHTML = '<p class="empty-hint">Could not load customers: ' + error.message + '</p>';
             return;
         }
         renderList(data || []);
@@ -669,6 +666,8 @@
         const { error } = await supabase.from('customers').update({ general_notes: el('detail-notes').value }).eq('id', currentCustomer.id);
         setStatus(error ? 'Could not save notes: ' + error.message : 'Notes saved.', !!error);
     });
+
+    window.MKAuth.ready.then(() => searchCustomers(''));
 })();
 </script>
 
