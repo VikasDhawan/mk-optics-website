@@ -142,15 +142,16 @@ is enough).
    project's URL and anon/public key (Project Settings → API Keys).
    `supabase-config.js` is gitignored — your keys don't need to be
    committed.
-4. Create at least one staff account: Authentication → Users → **Add
+4. Create your own first staff account: Authentication → Users → **Add
    user** — Email + password (doesn't need to be a real inbox; accounts
-   are created directly here, not via self-signup). Turn on "Auto
-   Confirm" if offered.
-
-   (We initially tried phone-number login to match the customer-ID
-   convention, but Supabase's "Phone" sign-in method is off by default
-   and enabling it may require a paid SMS provider even for
-   password-only logins — not worth the friction, so it's email.)
+   are created directly here, not via self-signup — this is the one
+   account that has to be made this way, since Admin Settings itself
+   doesn't exist yet without being logged in as someone). Turn on "Auto
+   Confirm" if offered. Every staff account *after* this one is created
+   through Admin Settings instead (see the Roles section below), where
+   you can type a mobile number instead of an email — see "Staff
+   login" for why this one bootstrap account still needs a real email
+   typed directly into Supabase.
 5. SQL Editor → run `supabase-migration-002-require-login.sql`. Locks the
    database to "only logged-in staff can read/write" — run this *after*
    step 4, so you have a way to log in once it's locked.
@@ -215,10 +216,24 @@ is enough).
 ### Staff login
 
 Supabase's built-in login (Supabase Auth) — no custom password code.
-Email + password; no self-registration (add/remove accounts from
-Authentication → Users). Sessions persist until "Sign out" (bottom of
-the sidebar). Forgotten password → admin resets it manually from the
-same Users screen.
+Staff can sign in with **either a mobile number or an email**, plus a
+password; no self-registration (accounts are only created via Admin
+Settings, or directly in Authentication → Users). Sessions persist
+until "Sign out" (bottom of the sidebar). Forgotten password → Admin
+or Super Admin resets it from Admin Settings.
+
+Supabase Auth itself only understands email+password — its native
+phone sign-in needs a paid SMS provider even just to verify a number,
+which isn't worth the friction for a password-only login. So a plain
+10-digit mobile number typed on the login screen (or in Admin
+Settings' "Add New Staff" form) is converted, only inside the browser,
+into a fake address like `9876543210@staff.mkoptics.local` before
+being sent to Supabase — nothing is ever actually emailed there, it's
+just used as a unique login ID. Everywhere the app shows who's logged
+in (the sidebar, My Profile, the Admin Settings staff list), that fake
+address is converted back to just the number for display. A real email
+address, if someone prefers one, is passed through unchanged — both
+work side by side.
 
 ### Security model
 

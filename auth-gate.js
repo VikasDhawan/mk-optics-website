@@ -22,11 +22,37 @@
         supabase = window.supabase.createClient(cfg.url, cfg.anonKey);
     }
 
+    // Staff log in with either a mobile number or an email — Supabase
+    // Auth itself only understands email+password (its native phone
+    // sign-in needs a paid SMS provider, even just to verify the
+    // number), so a plain 10-digit number is converted to a fake
+    // internal address like "9876543210@staff.mkoptics.local" that's
+    // never actually emailed, just used as a unique login ID. A real
+    // email is passed through unchanged. Shared here so the login form
+    // and Admin Settings' "Add New Staff" form use the exact same rule.
+    function toLoginEmail(raw) {
+        const value = (raw || '').trim();
+        if (!value) return null;
+        if (value.indexOf('@') !== -1) return value.toLowerCase();
+        const digits = value.replace(/\D/g, '');
+        if (digits.length < 10 || digits.length > 15) return null;
+        return digits + '@staff.mkoptics.local';
+    }
+
+    // The reverse of toLoginEmail — for display only, so staff see the
+    // number they actually typed rather than the internal fake address.
+    function friendlyLogin(email) {
+        const match = /^(\d{10,15})@staff\.mkoptics\.local$/.exec(email || '');
+        return match ? match[1] : (email || '');
+    }
+
     let resolveRoleReady;
     window.MKAuth = {
         supabase: supabase,
         role: null,
         profile: null,
+        toLoginEmail: toLoginEmail,
+        friendlyLogin: friendlyLogin,
         // Resolves with the current user's role ('employee' by default)
         // once their staff_profiles row has been fetched (or created).
         // Pages that need to hide/show something by role should wait on
@@ -43,7 +69,7 @@
         loginScreen.hidden = true;
         appRoot.hidden = false;
         if (staffEmailEl) {
-            staffEmailEl.textContent = session && session.user ? (session.user.email || '') : '';
+            staffEmailEl.textContent = session && session.user ? friendlyLogin(session.user.email || '') : '';
         }
         if (session && session.user) loadProfile(session.user.id);
     }
@@ -128,11 +154,16 @@
     });
 
     document.getElementById('login-btn').addEventListener('click', async () => {
-        const email = document.getElementById('login-email').value.trim();
+        const raw = document.getElementById('login-email').value.trim();
         const password = document.getElementById('login-password').value;
         loginError.textContent = '';
-        if (!email || !password) {
-            loginError.textContent = 'Enter both email and password.';
+        if (!raw || !password) {
+            loginError.textContent = 'Enter both a mobile number (or email) and password.';
+            return;
+        }
+        const email = window.MKAuth.toLoginEmail(raw);
+        if (!email) {
+            loginError.textContent = 'Enter a 10-digit mobile number or a valid email.';
             return;
         }
         const { error } = await supabase.auth.signInWithPassword({ email, password });
