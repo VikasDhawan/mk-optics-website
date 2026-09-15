@@ -382,16 +382,84 @@
         align-items: center;
     }
 
-    .split-image {
-        min-height: 420px;
-        border-radius: 12px;
-        background-size: cover;
-        background-position: center;
+    /* STYLE BRIEF (a step-by-step private consultation, not a form dump) */
+
+    .wizard-progress {
+        font-size: 11px;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--green-dark);
+        font-weight: 700;
+        margin-bottom: 24px;
     }
 
-    .split-image.frame-one {
-        background-image:
-        url("https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=900&q=85");
+    .wizard-step[hidden] {
+        display: none;
+    }
+
+    .wizard-nav {
+        display: flex;
+        gap: 12px;
+        margin-top: 6px;
+    }
+
+    .button.ghost {
+        background: transparent;
+        border: 1.5px solid var(--line);
+        color: var(--navy);
+    }
+
+    .brief-panel {
+        min-height: 420px;
+        border-radius: 12px;
+        background: linear-gradient(160deg, var(--navy) 0%, var(--navy-dark) 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 50px 40px;
+        color: var(--white);
+    }
+
+    .brief-panel svg {
+        width: 100px;
+        height: 50px;
+        margin-bottom: 34px;
+    }
+
+    .brief-panel .brief-quote {
+        font-family: Georgia, serif;
+        font-style: italic;
+        font-size: 21px;
+        line-height: 1.5;
+        max-width: 320px;
+        margin-bottom: 16px;
+        color: var(--white);
+    }
+
+    .brief-panel .brief-sign {
+        font-size: 11px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--green);
+        font-weight: 700;
+    }
+
+    .brief-result-rule {
+        width: 40px;
+        height: 2px;
+        background: var(--green);
+        margin-bottom: 18px;
+    }
+
+    .brief-result-text {
+        font-family: Georgia, serif;
+        font-style: italic;
+        font-size: 18px;
+        line-height: 1.6;
+        color: var(--navy);
+        margin-bottom: 24px;
     }
 
     /* PERSONALITY */
@@ -572,6 +640,65 @@
         color: var(--green);
     }
 
+    .faq-list {
+        max-width: 720px;
+        margin: 0 auto 50px;
+        text-align: left;
+    }
+
+    .faq-item {
+        border-bottom: 1px solid rgba(255,255,255,0.2);
+        padding: 18px 4px;
+    }
+
+    .faq-item summary {
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 15px;
+        color: var(--white);
+        list-style: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .faq-item summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .faq-item summary::after {
+        content: "+";
+        font-size: 20px;
+        color: var(--green);
+        flex-shrink: 0;
+    }
+
+    .faq-item[open] summary::after {
+        content: "–";
+    }
+
+    .faq-item p {
+        margin-top: 12px;
+        font-size: 14px;
+        color: #cdd9f5;
+        max-width: 620px;
+    }
+
+    .ask-subheading {
+        font-family: Georgia, serif;
+        font-size: 22px;
+        color: var(--white);
+        margin-bottom: 10px;
+    }
+
+    .ask-sublabel {
+        color: #cdd9f5;
+        font-size: 14px;
+        max-width: 480px;
+        margin: 0 auto 30px;
+    }
+
     /* APPOINTMENT */
 
     .appointment {
@@ -729,9 +856,8 @@
             min-height: 320px;
         }
 
-        .split-image {
+        .brief-panel {
             min-height: 260px;
-            order: -1;
         }
 
         .stories-grid,
@@ -803,7 +929,7 @@
 
     <nav id="site-nav">
         <a href="#screen-check">EYE CHECK</a>
-        <a href="#frame-finder">FRAME FINDER</a>
+        <a href="#style-brief">STYLE BRIEF</a>
         <a href="#personality">YOUR STYLE</a>
         <a href="#stories">STORIES</a>
         <a href="#ask">ASK US</a>
@@ -951,26 +1077,26 @@
 </section>
 
 
-<!-- FRAME FINDER (no products shown — a style brief, not a catalogue) -->
+<!-- STYLE BRIEF (a private consultation, not a form — no products shown) -->
 
-<section class="section-block alt" id="frame-finder">
+<section class="section-block alt" id="style-brief">
 
     <div class="section-heading">
 
         <div>
             <div class="eyebrow">
-                A starting point, not a catalogue
+                A private style brief
             </div>
 
             <h2>
-                What kind of frame actually suits you?
+                Let us tell you what to look for.
             </h2>
         </div>
 
         <p>
-            Answer three quick questions and we'll describe the shape
-            and style worth trying — not a specific product, since the
-            only real test is trying it on in person.
+            Three short questions, answered one at a time. The result
+            is a considered recommendation, not a product — the only
+            real test is trying it on in person.
         </p>
 
     </div>
@@ -979,48 +1105,79 @@
 
         <div class="quiz-card">
 
-            <div class="quiz-q">
-                <div class="q-text">1. How would you describe your face shape?</div>
-                <div class="quiz-options">
-                    <input type="radio" name="ff1" id="ff1-round" value="round"><label for="ff1-round">Round</label>
-                    <input type="radio" name="ff1" id="ff1-oval" value="oval"><label for="ff1-oval">Oval</label>
-                    <input type="radio" name="ff1" id="ff1-square" value="square"><label for="ff1-square">Square / strong jawline</label>
-                    <input type="radio" name="ff1" id="ff1-heart" value="heart"><label for="ff1-heart">Heart-shaped / narrow chin</label>
+            <div class="wizard-progress" id="sb-progress">Step <span id="sb-step-num">1</span> of 3</div>
+
+            <div class="wizard-step" data-step="1">
+                <div class="quiz-q">
+                    <div class="q-text">How would you describe your face shape?</div>
+                    <div class="quiz-options">
+                        <input type="radio" name="ff1" id="ff1-round" value="round"><label for="ff1-round">Round</label>
+                        <input type="radio" name="ff1" id="ff1-oval" value="oval"><label for="ff1-oval">Oval</label>
+                        <input type="radio" name="ff1" id="ff1-square" value="square"><label for="ff1-square">Square / strong jawline</label>
+                        <input type="radio" name="ff1" id="ff1-heart" value="heart"><label for="ff1-heart">Heart-shaped / narrow chin</label>
+                    </div>
+                </div>
+                <div class="quiz-note error" id="sb-error-1">Please choose one option.</div>
+                <div class="wizard-nav">
+                    <button class="button dark" id="sb-next-1" type="button">NEXT →</button>
                 </div>
             </div>
 
-            <div class="quiz-q">
-                <div class="q-text">2. What will you mostly use them for?</div>
-                <div class="quiz-options">
-                    <input type="radio" name="ff2" id="ff2-everyday" value="everyday"><label for="ff2-everyday">Everyday & work</label>
-                    <input type="radio" name="ff2" id="ff2-reading" value="reading"><label for="ff2-reading">Reading & close-up work</label>
-                    <input type="radio" name="ff2" id="ff2-screen" value="screen"><label for="ff2-screen">Computer & screens</label>
-                    <input type="radio" name="ff2" id="ff2-sun" value="sun"><label for="ff2-sun">Sun & outdoors</label>
+            <div class="wizard-step" data-step="2" hidden>
+                <div class="quiz-q">
+                    <div class="q-text">What will you mostly use them for?</div>
+                    <div class="quiz-options">
+                        <input type="radio" name="ff2" id="ff2-everyday" value="everyday"><label for="ff2-everyday">Everyday & work</label>
+                        <input type="radio" name="ff2" id="ff2-reading" value="reading"><label for="ff2-reading">Reading & close-up work</label>
+                        <input type="radio" name="ff2" id="ff2-screen" value="screen"><label for="ff2-screen">Computer & screens</label>
+                        <input type="radio" name="ff2" id="ff2-sun" value="sun"><label for="ff2-sun">Sun & outdoors</label>
+                    </div>
+                </div>
+                <div class="quiz-note error" id="sb-error-2">Please choose one option.</div>
+                <div class="wizard-nav">
+                    <button class="button ghost" id="sb-back-2" type="button">← BACK</button>
+                    <button class="button dark" id="sb-next-2" type="button">NEXT →</button>
                 </div>
             </div>
 
-            <div class="quiz-q">
-                <div class="q-text">3. Which side do you lean towards?</div>
-                <div class="quiz-options">
-                    <input type="radio" name="ff3" id="ff3-minimal" value="minimal"><label for="ff3-minimal">Minimal & light</label>
-                    <input type="radio" name="ff3" id="ff3-classic" value="classic"><label for="ff3-classic">Classic & timeless</label>
-                    <input type="radio" name="ff3" id="ff3-bold" value="bold"><label for="ff3-bold">Bold & expressive</label>
+            <div class="wizard-step" data-step="3" hidden>
+                <div class="quiz-q">
+                    <div class="q-text">Which side do you lean towards?</div>
+                    <div class="quiz-options">
+                        <input type="radio" name="ff3" id="ff3-minimal" value="minimal"><label for="ff3-minimal">Minimal & light</label>
+                        <input type="radio" name="ff3" id="ff3-classic" value="classic"><label for="ff3-classic">Classic & timeless</label>
+                        <input type="radio" name="ff3" id="ff3-bold" value="bold"><label for="ff3-bold">Bold & expressive</label>
+                    </div>
+                </div>
+                <div class="quiz-note error" id="sb-error-3">Please choose one option.</div>
+                <div class="wizard-nav">
+                    <button class="button ghost" id="sb-back-3" type="button">← BACK</button>
+                    <button class="button dark" id="sb-finish" type="button">SHOW MY RECOMMENDATION</button>
                 </div>
             </div>
-
-            <button class="button dark" id="ff-submit" type="button">SHOW MY RECOMMENDATION</button>
-            <div class="quiz-note error" id="ff-error">Please answer all 3 questions first.</div>
 
             <div class="quiz-result" id="ff-result" hidden>
-                <div class="result-label">Worth trying</div>
-                <h3>A shape to look for</h3>
-                <p id="ff-result-text"></p>
-                <a href="book-appointment.html" class="button dark">COME TRY IT ON</a>
+                <div class="brief-result-rule"></div>
+                <p class="brief-result-text" id="ff-result-text"></p>
+                <div class="buttons">
+                    <a href="book-appointment.html" class="button dark">COME TRY IT ON</a>
+                    <button class="button ghost" id="sb-restart" type="button">START OVER</button>
+                </div>
             </div>
 
         </div>
 
-        <div class="split-image frame-one"></div>
+        <div class="brief-panel">
+            <svg viewBox="0 0 96 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="24" cy="24" r="20" stroke="#6fd66f" stroke-width="3"/>
+                <circle cx="72" cy="24" r="20" stroke="#6fd66f" stroke-width="3"/>
+                <path d="M44 22h8" stroke="#6fd66f" stroke-width="3"/>
+                <path d="M4 22c0-6 4-9 8-9" stroke="#6fd66f" stroke-width="3"/>
+                <path d="M92 22c0-6-4-9-8-9" stroke="#6fd66f" stroke-width="3"/>
+            </svg>
+            <p class="brief-quote">"The right frame should feel inevitable, not accidental."</p>
+            <div class="brief-sign">— MK Optics</div>
+        </div>
 
     </div>
 
@@ -1236,9 +1393,48 @@
     </h2>
 
     <p>
-        You don't need to figure everything out on this website. A
-        real person is one tap away on WhatsApp.
+        A few honest answers before you call — and if your question
+        isn't here, a real person is one tap away on WhatsApp.
     </p>
+
+    <div class="faq-list">
+
+        <details class="faq-item">
+            <summary>Do I need an appointment, or can I walk in?</summary>
+            <p>Either works. An appointment just means shorter waiting time — walk-ins are always welcome.</p>
+        </details>
+
+        <details class="faq-item">
+            <summary>How long does an eye test take?</summary>
+            <p>Usually 20 to 30 minutes, start to finish, including a discussion of what the results mean for you.</p>
+        </details>
+
+        <details class="faq-item">
+            <summary>I already have a prescription from another clinic — can I just get glasses made?</summary>
+            <p>Yes. Bring your existing prescription and we'll help you choose the right frame and lenses for it.</p>
+        </details>
+
+        <details class="faq-item">
+            <summary>My eyes feel fine — do I still need a test?</summary>
+            <p>Many vision changes are gradual enough that you don't notice them day to day. An annual check catches these early, even when nothing feels wrong.</p>
+        </details>
+
+        <details class="faq-item">
+            <summary>Can children get an eye test here?</summary>
+            <p>Yes — we regularly test children, including first-time tests for kids struggling at school.</p>
+        </details>
+
+        <details class="faq-item">
+            <summary>What should I bring with me?</summary>
+            <p>Your current glasses (if you have them) and any previous prescription. Nothing else is required.</p>
+        </details>
+
+    </div>
+
+    <div class="ask-subheading">Still have a question specific to you?</div>
+    <div class="ask-sublabel">
+        Tell us what's on your mind — a real person will reply, not a bot.
+    </div>
 
     <div class="ask-grid">
 
@@ -1311,9 +1507,10 @@
         </p>
 
         <p>
-            <strong>M&K Optics</strong><br>
-            Address coming soon<br>
-            Phone: +91 XXXXX XXXXX
+            <strong>M&K Optics & Eye Clinic</strong><br>
+            Opp. Iyengar Bakery, Near Vegetable Yard,<br>
+            Sikh Village Road, Secunderabad 500 009<br>
+            Phone: +91 89778 61457
         </p>
 
         <a href="#" class="button light wa-ask" data-msg="Hi MK Optics, I'd like to know more before I visit.">
@@ -1366,10 +1563,7 @@
 
 
 <script>
-// TODO: replace with MK Optics' real WhatsApp Business number —
-// country code + number, digits only, no "+" and no spaces.
-// Example: "919876543210"
-var WA_NUMBER = "91XXXXXXXXXX";
+var WA_NUMBER = "918977861457";
 
 document.querySelectorAll('.wa-ask').forEach(function (el) {
     var message = el.getAttribute('data-msg') || 'Hi MK Optics, I have a question.';
@@ -1424,7 +1618,7 @@ document.querySelectorAll('.wa-ask').forEach(function (el) {
 
 
 <script>
-// FRAME FINDER (style brief — no products, no photos of stock)
+// STYLE BRIEF (a one-question-at-a-time consultation — no products, no stock photos)
 (function () {
     var faceShapeAdvice = {
         round: "Look for an angular, rectangular frame — it adds definition to softer, rounder features.",
@@ -1446,24 +1640,66 @@ document.querySelectorAll('.wa-ask').forEach(function (el) {
         bold: "Given your bolder taste, don't be afraid of a thicker frame with real colour or pattern."
     };
 
-    document.getElementById('ff-submit').addEventListener('click', function () {
-        var face = document.querySelector('input[name="ff1"]:checked');
-        var use = document.querySelector('input[name="ff2"]:checked');
-        var style = document.querySelector('input[name="ff3"]:checked');
+    var stepEls = document.querySelectorAll('#style-brief .wizard-step');
+    var progress = document.getElementById('sb-progress');
+    var stepNum = document.getElementById('sb-step-num');
 
-        if (!face || !use || !style) {
-            document.getElementById('ff-error').style.display = 'block';
+    function showStep(n) {
+        stepEls.forEach(function (el) {
+            el.hidden = (parseInt(el.dataset.step, 10) !== n);
+        });
+        stepNum.textContent = n;
+    }
+
+    function goNext(groupName, errorId, nextStep) {
+        var checked = document.querySelector('input[name="' + groupName + '"]:checked');
+        if (!checked) {
+            document.getElementById(errorId).style.display = 'block';
             return;
         }
-        document.getElementById('ff-error').style.display = 'none';
+        document.getElementById(errorId).style.display = 'none';
+        showStep(nextStep);
+    }
+
+    document.getElementById('sb-next-1').addEventListener('click', function () {
+        goNext('ff1', 'sb-error-1', 2);
+    });
+    document.getElementById('sb-next-2').addEventListener('click', function () {
+        goNext('ff2', 'sb-error-2', 3);
+    });
+    document.getElementById('sb-back-2').addEventListener('click', function () { showStep(1); });
+    document.getElementById('sb-back-3').addEventListener('click', function () { showStep(2); });
+
+    document.getElementById('sb-finish').addEventListener('click', function () {
+        var style = document.querySelector('input[name="ff3"]:checked');
+        if (!style) {
+            document.getElementById('sb-error-3').style.display = 'block';
+            return;
+        }
+        document.getElementById('sb-error-3').style.display = 'none';
+
+        var face = document.querySelector('input[name="ff1"]:checked');
+        var use = document.querySelector('input[name="ff2"]:checked');
 
         var text = faceShapeAdvice[face.value] + ' ' + useAdvice[use.value] + ' ' + styleAdvice[style.value] +
             ' This is a starting point, not a final answer — the only real way to know is to try a few on when you visit.';
 
         document.getElementById('ff-result-text').textContent = text;
+
+        stepEls.forEach(function (el) { el.hidden = true; });
+        progress.hidden = true;
         var result = document.getElementById('ff-result');
         result.hidden = false;
         result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+
+    document.getElementById('sb-restart').addEventListener('click', function () {
+        document.querySelectorAll('#style-brief input[type="radio"]').forEach(function (i) {
+            i.checked = false;
+        });
+        document.getElementById('ff-result').hidden = true;
+        progress.hidden = false;
+        showStep(1);
     });
 })();
 </script>
