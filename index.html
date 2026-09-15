@@ -81,15 +81,26 @@
     nav {
         display: flex;
         align-items: center;
-        gap: 28px;
+        gap: 26px;
         font-size: 12px;
-        font-weight: 600;
-        letter-spacing: 0.5px;
+        font-weight: 500;
+        letter-spacing: 0.6px;
         flex-wrap: wrap;
     }
 
-    nav a:not(.nav-button) {
+    nav a:not(.nav-button):not(.nav-button-ghost) {
         color: #cdd9f5;
+        transition: color 0.15s ease;
+    }
+
+    nav a:not(.nav-button):not(.nav-button-ghost):hover {
+        color: var(--green);
+    }
+
+    .nav-ctas {
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
     .nav-button {
@@ -98,6 +109,19 @@
         padding: 12px 20px;
         border-radius: 6px;
         font-weight: 700;
+    }
+
+    .nav-button-ghost {
+        border: 1.5px solid rgba(255,255,255,0.4);
+        color: var(--white);
+        padding: 10.5px 18px;
+        border-radius: 6px;
+        font-weight: 700;
+    }
+
+    .nav-button-ghost:hover {
+        border-color: var(--green);
+        color: var(--green);
     }
 
     .site-menu-btn {
@@ -160,6 +184,8 @@
         font-weight: 700;
         border-radius: 6px;
         border: 1.5px solid var(--green);
+        cursor: pointer;
+        background: none;
     }
 
     .button.dark {
@@ -181,11 +207,15 @@
         min-height: 590px;
     }
 
-    /* COLLECTION */
+    /* GENERIC "WHITE SECTION" (used by Screen Check, Frame Finder, Stories) */
 
-    .collection {
+    .section-block {
         padding: 90px 5%;
         background: var(--white);
+    }
+
+    .section-block.alt {
+        background: var(--cream);
     }
 
     .section-heading {
@@ -211,67 +241,337 @@
         font-size: 15px;
     }
 
-    .frames {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 24px;
-    }
+    /* QUIZ COMPONENTS (shared by Screen Check, Frame Finder, Personality) */
 
-    .frame-card {
+    .quiz-card {
         background: var(--cream);
         border: 1px solid var(--line);
-        border-radius: 10px;
-        overflow: hidden;
+        border-radius: 12px;
+        padding: 36px;
     }
 
-    .frame-image {
-        height: 300px;
-        background-size: cover;
-        background-position: center;
+    .quiz-card.on-dark {
+        background: rgba(255,255,255,0.06);
+        border-color: rgba(255,255,255,0.2);
     }
 
-    .frame-one {
-        background-image:
-        url("https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=900&q=85");
+    .quiz-q {
+        margin-bottom: 26px;
     }
 
-    .frame-two {
-        background-image:
-        url("https://images.unsplash.com/photo-1509695507497-903c140c43b0?auto=format&fit=crop&w=900&q=85");
+    .quiz-q:last-of-type {
+        margin-bottom: 30px;
     }
 
-    .frame-three {
-        background-image:
-        url("https://images.unsplash.com/photo-1577803645773-f96470509666?auto=format&fit=crop&w=900&q=85");
-    }
-
-    .frame-info {
-        padding: 20px;
-    }
-
-    .frame-info h3 {
-        font-family: Georgia, serif;
-        font-size: 20px;
+    .quiz-q .q-text {
         font-weight: 700;
-        margin-bottom: 6px;
+        font-size: 15px;
+        margin-bottom: 12px;
         color: var(--navy);
     }
 
-    .frame-info p {
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 1.5px;
+    .on-dark .quiz-q .q-text {
+        color: var(--white);
+    }
+
+    .quiz-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .quiz-options input {
+        position: absolute;
+        opacity: 0;
+        width: 1px;
+        height: 1px;
+    }
+
+    .quiz-options label {
+        display: inline-block;
+        padding: 11px 18px;
+        border: 1.5px solid var(--line);
+        border-radius: 999px;
+        font-size: 13px;
+        color: var(--ink);
+        background: var(--white);
+        cursor: pointer;
+    }
+
+    .on-dark .quiz-options label {
+        border-color: rgba(255,255,255,0.35);
+        background: transparent;
+        color: var(--white);
+    }
+
+    .quiz-options input:checked + label {
+        background: var(--green);
+        border-color: var(--green);
+        color: var(--navy-dark);
+        font-weight: 700;
+    }
+
+    .quiz-hint {
+        font-size: 12px;
         color: var(--grey);
+        margin-top: -6px;
+        margin-bottom: 24px;
     }
 
-    .explore {
-        margin-top: 40px;
-        text-align: center;
+    .on-dark .quiz-hint {
+        color: #b6c3e6;
     }
 
-    .collection .button.light {
+    .quiz-note {
+        font-size: 13px;
+        font-weight: 700;
+        margin-top: 14px;
+        display: none;
+    }
+
+    .quiz-note.error {
+        color: #e0433b;
+        display: block;
+    }
+
+    .on-dark .quiz-note.error {
+        color: #ff8f8a;
+    }
+
+    .quiz-result {
+        margin-top: 26px;
+        padding: 22px 24px;
+        background: var(--white);
+        border-radius: 10px;
+        border: 1px solid var(--line);
+    }
+
+    .on-dark .quiz-result {
+        background: rgba(255,255,255,0.08);
+        border-color: rgba(255,255,255,0.2);
+    }
+
+    .quiz-result[hidden] {
+        display: none;
+    }
+
+    .quiz-result .result-label {
+        font-size: 11px;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--green-dark);
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .on-dark .quiz-result .result-label {
+        color: var(--green);
+    }
+
+    .quiz-result h3 {
+        font-family: Georgia, serif;
         color: var(--navy);
-        border-color: var(--navy);
+        font-size: 22px;
+        margin-bottom: 10px;
+    }
+
+    .on-dark .quiz-result h3 {
+        color: var(--white);
+    }
+
+    .quiz-result p {
+        color: var(--grey);
+        font-size: 14px;
+        margin-bottom: 18px;
+    }
+
+    .on-dark .quiz-result p {
+        color: #cdd9f5;
+    }
+
+    /* SCREEN CHECK layout */
+
+    .screen-check-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 640px);
+        justify-content: center;
+    }
+
+    /* FRAME FINDER layout */
+
+    .split-block {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 60px;
+        align-items: center;
+    }
+
+    /* STYLE BRIEF (a step-by-step private consultation, not a form dump) */
+
+    .wizard-progress {
+        font-size: 11px;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--green-dark);
+        font-weight: 700;
+        margin-bottom: 24px;
+    }
+
+    .wizard-step[hidden] {
+        display: none;
+    }
+
+    .wizard-nav {
+        display: flex;
+        gap: 12px;
+        margin-top: 6px;
+    }
+
+    .button.ghost {
+        background: transparent;
+        border: 1.5px solid var(--line);
+        color: var(--navy);
+    }
+
+    .brief-panel {
+        min-height: 420px;
+        border-radius: 12px;
+        background: linear-gradient(160deg, var(--navy) 0%, var(--navy-dark) 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 50px 40px;
+        color: var(--white);
+    }
+
+    .brief-panel svg {
+        width: 100px;
+        height: 50px;
+        margin-bottom: 34px;
+    }
+
+    .brief-panel .brief-quote {
+        font-family: Georgia, serif;
+        font-style: italic;
+        font-size: 21px;
+        line-height: 1.5;
+        max-width: 320px;
+        margin-bottom: 16px;
+        color: var(--white);
+    }
+
+    .brief-panel .brief-sign {
+        font-size: 11px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--green);
+        font-weight: 700;
+    }
+
+    .brief-result-rule {
+        width: 40px;
+        height: 2px;
+        background: var(--green);
+        margin-bottom: 18px;
+    }
+
+    .brief-result-text {
+        font-family: Georgia, serif;
+        font-style: italic;
+        font-size: 18px;
+        line-height: 1.6;
+        color: var(--navy);
+        margin-bottom: 24px;
+    }
+
+    /* MAKEOVERS */
+
+    .section-block.dark {
+        background: linear-gradient(160deg, var(--navy) 0%, var(--navy-dark) 100%);
+        color: var(--white);
+    }
+
+    .section-block.dark .section-heading p {
+        color: #cdd9f5;
+    }
+
+    .section-block.dark h2 {
+        color: var(--white);
+    }
+
+    .makeover-hero {
+        display: grid;
+        grid-template-columns: 42% 58%;
+        gap: 50px;
+        align-items: center;
+        margin-bottom: 50px;
+    }
+
+    .makeover-hero-copy h3 {
+        font-family: Georgia, serif;
+        font-size: 36px;
+        line-height: 1.2;
+        margin-bottom: 20px;
+        color: var(--white);
+    }
+
+    .makeover-hero-copy h3 em {
+        font-style: normal;
+        color: var(--green);
+    }
+
+    .makeover-hero-copy p {
+        color: #cdd9f5;
+        font-size: 15px;
+        margin-bottom: 26px;
+        max-width: 420px;
+    }
+
+    .makeover-hero-photo img {
+        width: 100%;
+        display: block;
+        border-radius: 14px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+    }
+
+    .makeover-feature-bar {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        border-top: 1px solid rgba(255,255,255,0.15);
+        padding-top: 36px;
+    }
+
+    .makeover-feature {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 0 20px;
+        border-left: 1px solid rgba(255,255,255,0.15);
+    }
+
+    .makeover-feature:first-child {
+        border-left: none;
+        padding-left: 0;
+    }
+
+    .makeover-feature .icon {
+        font-size: 22px;
+        flex-shrink: 0;
+    }
+
+    .makeover-feature h4 {
+        font-size: 12px;
+        letter-spacing: 0.6px;
+        color: var(--white);
+        margin-bottom: 4px;
+    }
+
+    .makeover-feature p {
+        font-size: 12px;
+        color: #b6c3e6;
+        margin: 0;
     }
 
     /* PERSONALITY */
@@ -285,7 +585,7 @@
     }
 
     .personality-copy {
-        padding: 80px 10%;
+        padding: 80px 8%;
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -296,15 +596,16 @@
     }
 
     .personality-copy h2 {
-        font-size: 42px;
-        margin-bottom: 22px;
+        font-size: 38px;
+        margin-bottom: 16px;
         color: var(--white);
     }
 
-    .personality-copy p {
+    .personality-copy > p {
         color: #c7d0e8;
         max-width: 460px;
-        margin-bottom: 28px;
+        margin-bottom: 22px;
+        font-size: 15px;
     }
 
     .personality-image {
@@ -313,15 +614,45 @@
             center center / cover;
     }
 
-    .white-button {
-        display: inline-block;
-        background: var(--green);
-        color: var(--navy-dark);
-        padding: 15px 24px;
-        border-radius: 6px;
-        font-size: 12px;
+    /* STORIES */
+
+    .stories-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+    }
+
+    .story-card {
+        background: var(--cream);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 28px 24px;
+    }
+
+    .story-icon {
+        font-size: 26px;
+        margin-bottom: 16px;
+    }
+
+    .story-card h3 {
+        font-family: Georgia, serif;
+        font-size: 19px;
+        color: var(--navy);
+        margin-bottom: 10px;
+    }
+
+    .story-card p {
+        font-size: 14px;
+        color: var(--grey);
+        margin-bottom: 10px;
+    }
+
+    .story-tag {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--green-dark);
         font-weight: 700;
-        width: fit-content;
     }
 
     /* SERVICES */
@@ -362,6 +693,122 @@
         font-size: 13px;
         color: var(--grey);
         max-width: 280px;
+    }
+
+    /* ASK MK OPTICS */
+
+    .ask {
+        padding: 90px 7%;
+        background: linear-gradient(160deg, var(--navy) 0%, var(--navy-dark) 100%);
+        color: var(--white);
+        text-align: center;
+    }
+
+    .ask .eyebrow {
+        color: var(--green);
+    }
+
+    .ask h2 {
+        font-size: 40px;
+        margin-bottom: 16px;
+        color: var(--white);
+    }
+
+    .ask > p {
+        color: #cdd9f5;
+        max-width: 560px;
+        margin: 0 auto 40px;
+    }
+
+    .ask-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .ask-card {
+        background: rgba(255,255,255,0.07);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 10px;
+        padding: 22px 18px;
+        text-align: left;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        justify-content: space-between;
+    }
+
+    .ask-card p {
+        font-size: 14px;
+        color: #dfe6f7;
+    }
+
+    .ask-card a {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        color: var(--green);
+    }
+
+    .faq-list {
+        max-width: 720px;
+        margin: 0 auto 50px;
+        text-align: left;
+    }
+
+    .faq-item {
+        border-bottom: 1px solid rgba(255,255,255,0.2);
+        padding: 18px 4px;
+    }
+
+    .faq-item summary {
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 15px;
+        color: var(--white);
+        list-style: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .faq-item summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .faq-item summary::after {
+        content: "+";
+        font-size: 20px;
+        color: var(--green);
+        flex-shrink: 0;
+    }
+
+    .faq-item[open] summary::after {
+        content: "–";
+    }
+
+    .faq-item p {
+        margin-top: 12px;
+        font-size: 14px;
+        color: #cdd9f5;
+        max-width: 620px;
+    }
+
+    .ask-subheading {
+        font-family: Georgia, serif;
+        font-size: 22px;
+        color: var(--white);
+        margin-bottom: 10px;
+    }
+
+    .ask-sublabel {
+        color: #cdd9f5;
+        font-size: 14px;
+        max-width: 480px;
+        margin: 0 auto 30px;
     }
 
     /* APPOINTMENT */
@@ -426,6 +873,25 @@
             center / cover;
     }
 
+    /* FLOATING WHATSAPP BUTTON */
+
+    .wa-float {
+        position: fixed;
+        bottom: 22px;
+        right: 22px;
+        width: 58px;
+        height: 58px;
+        border-radius: 50%;
+        background: var(--green);
+        color: var(--navy-dark);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        box-shadow: 0 8px 20px rgba(8,27,69,0.35);
+        z-index: 300;
+    }
+
     /* FOOTER */
 
     footer {
@@ -461,6 +927,13 @@
             display: block;
         }
 
+        nav.menu-open .nav-ctas {
+            flex-direction: column;
+            width: 100%;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
         nav {
             gap: 0;
             width: auto;
@@ -485,11 +958,12 @@
             order: 1;
         }
 
-        .nav-button { order: 0; }
+        .nav-ctas { order: 0; }
 
         .hero,
         .personality,
-        .visit {
+        .visit,
+        .split-block {
             grid-template-columns: 1fr;
         }
 
@@ -501,12 +975,37 @@
             min-height: 320px;
         }
 
-        .frames,
+        .brief-panel {
+            min-height: 260px;
+        }
+
+        .makeover-hero {
+            grid-template-columns: 1fr;
+            gap: 24px;
+            margin-bottom: 44px;
+        }
+
+        .makeover-feature-bar {
+            grid-template-columns: 1fr 1fr;
+            row-gap: 24px;
+        }
+
+        .makeover-feature {
+            border-left: none;
+            padding-left: 0;
+        }
+
+        .makeover-feature:nth-child(even) {
+            border-left: 1px solid rgba(255,255,255,0.15);
+            padding-left: 20px;
+        }
+
+        .stories-grid,
         .services {
             grid-template-columns: 1fr;
         }
 
-        .frame-card {
+        .story-card {
             margin-bottom: 4px;
         }
 
@@ -529,11 +1028,19 @@
             min-height: 240px;
         }
 
+        .quiz-card {
+            padding: 24px;
+        }
+
         h1 {
             font-size: clamp(34px, 9vw, 48px);
         }
 
         h2 {
+            font-size: 30px;
+        }
+
+        .ask h2 {
             font-size: 30px;
         }
 
@@ -561,37 +1068,27 @@
     </div>
 
     <nav id="site-nav">
-        <a href="#arrivals">NEW ARRIVALS</a>
-        <a href="#experience">OUR EXPERIENCE</a>
-        <a href="#eye-test">EYE TEST</a>
+        <a href="#screen-check">EYE CHECK</a>
+        <a href="#style-brief">STYLE BRIEF</a>
+        <a href="#personality">YOUR STYLE</a>
+        <a href="#stories">STORIES</a>
+        <a href="#ask">ASK US</a>
         <a href="#visit">VISIT US</a>
-        <a href="rewards-signup.html">JOIN REWARDS</a>
-        <a href="counter-intake.html">STAFF LOGIN</a>
 
-        <a href="book-appointment.html" class="nav-button">
-            BOOK AN EYE TEST
-        </a>
+        <div class="nav-ctas">
+            <a href="rewards-signup.html" class="nav-button-ghost">
+                REWARDS
+            </a>
+
+            <a href="book-appointment.html" class="nav-button">
+                BOOK AN EYE TEST
+            </a>
+        </div>
 
         <button class="site-menu-btn" id="site-menu-btn" aria-label="Menu">☰</button>
     </nav>
 
 </header>
-
-<script>
-(function () {
-    var btn = document.getElementById('site-menu-btn');
-    var nav = document.getElementById('site-nav');
-    btn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        nav.classList.toggle('menu-open');
-    });
-    document.addEventListener('click', function (e) {
-        if (nav.classList.contains('menu-open') && !nav.contains(e.target)) {
-            nav.classList.remove('menu-open');
-        }
-    });
-})();
-</script>
 
 
 <!-- HERO -->
@@ -610,8 +1107,9 @@
         </h1>
 
         <p>
-            Curated eyewear that complements your face,
-            your style and the way you see the world.
+            Eyewear that suits your face, your style and the way you
+            see the world — plus a couple of quick, honest ways to
+            check whether your eyes need attention.
         </p>
 
         <div class="buttons">
@@ -620,8 +1118,8 @@
                 BOOK AN EYE TEST
             </a>
 
-            <a href="#arrivals" class="button light">
-                EXPLORE FRAMES
+            <a href="#screen-check" class="button light">
+                TAKE THE 2-MINUTE EYE CHECK
             </a>
 
         </div>
@@ -633,99 +1131,286 @@
 </section>
 
 
-<!-- NEW ARRIVALS -->
+<!-- SCREEN-EYE HABITS CHECK -->
 
-<section class="collection" id="arrivals">
+<section class="section-block" id="screen-check">
 
     <div class="section-heading">
 
         <div>
             <div class="eyebrow">
-                The latest collection
+                A 2-minute check
             </div>
 
             <h2>
-                New arrivals.
+                How are your eyes really doing?
             </h2>
         </div>
 
         <p>
-            Discover frames selected for people who want
-            their eyewear to be more than just a prescription.
+            Answer honestly. This isn't a diagnosis — just a quick,
+            plain-English way to see whether it's worth booking a
+            proper eye test.
         </p>
 
     </div>
 
+    <div class="screen-check-layout">
 
-    <div class="frames">
+        <div class="quiz-card">
 
-        <div class="frame-card">
+            <div class="quiz-q">
+                <div class="q-text">1. How many hours a day do you spend looking at a screen (phone, computer, TV)?</div>
+                <div class="quiz-options">
+                    <input type="radio" name="sq1" id="sq1-0" value="0"><label for="sq1-0">Less than 2 hours</label>
+                    <input type="radio" name="sq1" id="sq1-1" value="1"><label for="sq1-1">2 to 6 hours</label>
+                    <input type="radio" name="sq1" id="sq1-2" value="2"><label for="sq1-2">More than 6 hours</label>
+                </div>
+            </div>
 
-            <div class="frame-image frame-one"></div>
+            <div class="quiz-q">
+                <div class="q-text">2. Do you get headaches or tired eyes by the end of the day?</div>
+                <div class="quiz-options">
+                    <input type="radio" name="sq2" id="sq2-0" value="0"><label for="sq2-0">Rarely</label>
+                    <input type="radio" name="sq2" id="sq2-1" value="1"><label for="sq2-1">Sometimes</label>
+                    <input type="radio" name="sq2" id="sq2-2" value="2"><label for="sq2-2">Most days</label>
+                </div>
+            </div>
 
-            <div class="frame-info">
+            <div class="quiz-q">
+                <div class="q-text">3. Do you notice yourself squinting at distant signs, screens or the TV?</div>
+                <div class="quiz-options">
+                    <input type="radio" name="sq3" id="sq3-0" value="0"><label for="sq3-0">Never</label>
+                    <input type="radio" name="sq3" id="sq3-1" value="1"><label for="sq3-1">Occasionally</label>
+                    <input type="radio" name="sq3" id="sq3-2" value="2"><label for="sq3-2">Often</label>
+                </div>
+            </div>
 
-                <h3>Modern Classics</h3>
+            <div class="quiz-q">
+                <div class="q-text">4. Do you take a break from your screen every hour or so?</div>
+                <div class="quiz-options">
+                    <input type="radio" name="sq4" id="sq4-0" value="0"><label for="sq4-0">Yes, regularly</label>
+                    <input type="radio" name="sq4" id="sq4-1" value="1"><label for="sq4-1">Sometimes</label>
+                    <input type="radio" name="sq4" id="sq4-2" value="2"><label for="sq4-2">Rarely</label>
+                </div>
+            </div>
 
-                <p>
-                    Refined • Timeless • Everyday
-                </p>
+            <div class="quiz-q">
+                <div class="q-text">5. When did you last get your eyes tested?</div>
+                <div class="quiz-options">
+                    <input type="radio" name="sq5" id="sq5-0" value="0"><label for="sq5-0">Within the last year</label>
+                    <input type="radio" name="sq5" id="sq5-1" value="1"><label for="sq5-1">1 to 2 years ago</label>
+                    <input type="radio" name="sq5" id="sq5-2" value="2"><label for="sq5-2">More than 2 years ago, or never</label>
+                </div>
+            </div>
 
+            <button class="button dark" id="sq-submit" type="button">SEE MY RESULT</button>
+            <div class="quiz-note error" id="sq-error">Please answer all 5 questions first.</div>
+
+            <div class="quiz-result" id="sq-result" hidden>
+                <div class="result-label" id="sq-result-label"></div>
+                <h3 id="sq-result-title"></h3>
+                <p id="sq-result-text"></p>
+                <a href="book-appointment.html" class="button dark">BOOK AN EYE TEST</a>
             </div>
 
         </div>
-
-
-        <div class="frame-card">
-
-            <div class="frame-image frame-two"></div>
-
-            <div class="frame-info">
-
-                <h3>Bold Expressions</h3>
-
-                <p>
-                    Confident • Distinctive • Modern
-                </p>
-
-            </div>
-
-        </div>
-
-
-        <div class="frame-card">
-
-            <div class="frame-image frame-three"></div>
-
-            <div class="frame-info">
-
-                <h3>Everyday Essential</h3>
-
-                <p>
-                    Comfortable • Elegant • Versatile
-                </p>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <div class="explore">
-
-        <a href="#" class="button light">
-            VIEW ALL COLLECTIONS →
-        </a>
 
     </div>
 
 </section>
 
 
-<!-- PERSONALITY -->
+<!-- STYLE BRIEF (a private consultation, not a form — no products shown) -->
 
-<section class="personality" id="experience">
+<section class="section-block alt" id="style-brief">
+
+    <div class="section-heading">
+
+        <div>
+            <div class="eyebrow">
+                A private style brief
+            </div>
+
+            <h2>
+                Let us tell you what to look for.
+            </h2>
+        </div>
+
+        <p>
+            Three short questions, answered one at a time. The result
+            is a considered recommendation, not a product — the only
+            real test is trying it on in person.
+        </p>
+
+    </div>
+
+    <div class="split-block">
+
+        <div class="quiz-card">
+
+            <div class="wizard-progress" id="sb-progress">Step <span id="sb-step-num">1</span> of 3</div>
+
+            <div class="wizard-step" data-step="1">
+                <div class="quiz-q">
+                    <div class="q-text">How would you describe your face shape?</div>
+                    <div class="quiz-options">
+                        <input type="radio" name="ff1" id="ff1-round" value="round"><label for="ff1-round">Round</label>
+                        <input type="radio" name="ff1" id="ff1-oval" value="oval"><label for="ff1-oval">Oval</label>
+                        <input type="radio" name="ff1" id="ff1-square" value="square"><label for="ff1-square">Square / strong jawline</label>
+                        <input type="radio" name="ff1" id="ff1-heart" value="heart"><label for="ff1-heart">Heart-shaped / narrow chin</label>
+                    </div>
+                </div>
+                <div class="quiz-note error" id="sb-error-1">Please choose one option.</div>
+                <div class="wizard-nav">
+                    <button class="button dark" id="sb-next-1" type="button">NEXT →</button>
+                </div>
+            </div>
+
+            <div class="wizard-step" data-step="2" hidden>
+                <div class="quiz-q">
+                    <div class="q-text">What will you mostly use them for?</div>
+                    <div class="quiz-options">
+                        <input type="radio" name="ff2" id="ff2-everyday" value="everyday"><label for="ff2-everyday">Everyday & work</label>
+                        <input type="radio" name="ff2" id="ff2-reading" value="reading"><label for="ff2-reading">Reading & close-up work</label>
+                        <input type="radio" name="ff2" id="ff2-screen" value="screen"><label for="ff2-screen">Computer & screens</label>
+                        <input type="radio" name="ff2" id="ff2-sun" value="sun"><label for="ff2-sun">Sun & outdoors</label>
+                    </div>
+                </div>
+                <div class="quiz-note error" id="sb-error-2">Please choose one option.</div>
+                <div class="wizard-nav">
+                    <button class="button ghost" id="sb-back-2" type="button">← BACK</button>
+                    <button class="button dark" id="sb-next-2" type="button">NEXT →</button>
+                </div>
+            </div>
+
+            <div class="wizard-step" data-step="3" hidden>
+                <div class="quiz-q">
+                    <div class="q-text">Which side do you lean towards?</div>
+                    <div class="quiz-options">
+                        <input type="radio" name="ff3" id="ff3-minimal" value="minimal"><label for="ff3-minimal">Minimal & light</label>
+                        <input type="radio" name="ff3" id="ff3-classic" value="classic"><label for="ff3-classic">Classic & timeless</label>
+                        <input type="radio" name="ff3" id="ff3-bold" value="bold"><label for="ff3-bold">Bold & expressive</label>
+                    </div>
+                </div>
+                <div class="quiz-note error" id="sb-error-3">Please choose one option.</div>
+                <div class="wizard-nav">
+                    <button class="button ghost" id="sb-back-3" type="button">← BACK</button>
+                    <button class="button dark" id="sb-finish" type="button">SHOW MY RECOMMENDATION</button>
+                </div>
+            </div>
+
+            <div class="quiz-result" id="ff-result" hidden>
+                <div class="brief-result-rule"></div>
+                <p class="brief-result-text" id="ff-result-text"></p>
+                <div class="buttons">
+                    <a href="book-appointment.html" class="button dark">COME TRY IT ON</a>
+                    <button class="button ghost" id="sb-restart" type="button">START OVER</button>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="brief-panel">
+            <svg viewBox="0 0 96 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="24" cy="24" r="20" stroke="#6fd66f" stroke-width="3"/>
+                <circle cx="72" cy="24" r="20" stroke="#6fd66f" stroke-width="3"/>
+                <path d="M44 22h8" stroke="#6fd66f" stroke-width="3"/>
+                <path d="M4 22c0-6 4-9 8-9" stroke="#6fd66f" stroke-width="3"/>
+                <path d="M92 22c0-6-4-9-8-9" stroke="#6fd66f" stroke-width="3"/>
+            </svg>
+            <p class="brief-quote">"The right frame should feel inevitable, not accidental."</p>
+            <div class="brief-sign">— MK Optics</div>
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- MAKEOVERS -->
+
+<section class="section-block dark" id="makeovers">
+
+    <div class="section-heading">
+
+        <div>
+            <div class="eyebrow">
+                It's not just glasses
+            </div>
+
+            <h2>
+                The frame you wear becomes the person people see.
+            </h2>
+        </div>
+
+        <p>
+            Same face. Same features. A completely different energy —
+            just from choosing a shape that actually fits you.
+        </p>
+
+    </div>
+
+    <div class="makeover-hero">
+
+        <div class="makeover-hero-copy">
+            <h3>The right frame changes <em>more than your look.</em></h3>
+            <p>
+                Same you. A fresher perspective. The right frame can
+                change how you feel, how you show up, and how the
+                world sees you.
+            </p>
+            <a href="#style-brief" class="button dark">FIND YOUR FRAME →</a>
+        </div>
+
+        <div class="makeover-hero-photo">
+            <img src="images/makeover-woman.jpg" alt="Before and after: a young woman's look transformed by choosing the right frame shape">
+        </div>
+
+    </div>
+
+    <div class="makeover-feature-bar">
+
+        <div class="makeover-feature">
+            <div class="icon">👓</div>
+            <div>
+                <h4>PREMIUM BRANDS</h4>
+                <p>A look for every you</p>
+            </div>
+        </div>
+
+        <div class="makeover-feature">
+            <div class="icon">❤️</div>
+            <div>
+                <h4>EXPERT GUIDANCE</h4>
+                <p>Personalised recommendations</p>
+            </div>
+        </div>
+
+        <div class="makeover-feature">
+            <div class="icon">👁️</div>
+            <div>
+                <h4>COMPREHENSIVE EYE TEST</h4>
+                <p>See the world, more clearly</p>
+            </div>
+        </div>
+
+        <div class="makeover-feature">
+            <div class="icon">🧑‍🤝‍🧑</div>
+            <div>
+                <h4>A BETTER YOU</h4>
+                <p>Because you deserve it</p>
+            </div>
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- EYEWEAR PERSONALITY -->
+
+<section class="personality" id="personality">
 
     <div class="personality-copy">
 
@@ -738,20 +1423,129 @@
         </h2>
 
         <p>
-            We help you discover frames that complement
-            your face, your style and your personality.
+            Three quick questions. No right answers — just an honest
+            read on your style, so you know what to look for when
+            you're here.
         </p>
 
-        <!-- Future AI feature -->
+        <div class="quiz-card on-dark">
 
-        <a href="#" class="white-button">
-            FIND YOUR FRAME
-        </a>
+            <div class="quiz-q">
+                <div class="q-text">1. Which sounds most like your day-to-day?</div>
+                <div class="quiz-options">
+                    <input type="radio" name="pq1" id="pq1-a" value="A"><label for="pq1-a">Corporate / client-facing</label>
+                    <input type="radio" name="pq1" id="pq1-b" value="B"><label for="pq1-b">Creative / design work</label>
+                    <input type="radio" name="pq1" id="pq1-c" value="C"><label for="pq1-c">Run my own business</label>
+                    <input type="radio" name="pq1" id="pq1-d" value="D"><label for="pq1-d">Relaxed / casual</label>
+                </div>
+            </div>
+
+            <div class="quiz-q">
+                <div class="q-text">2. Which look do you gravitate to?</div>
+                <div class="quiz-options">
+                    <input type="radio" name="pq2" id="pq2-a" value="A"><label for="pq2-a">Clean & understated</label>
+                    <input type="radio" name="pq2" id="pq2-b" value="B"><label for="pq2-b">Unique & expressive</label>
+                    <input type="radio" name="pq2" id="pq2-c" value="C"><label for="pq2-c">Bold & eye-catching</label>
+                    <input type="radio" name="pq2" id="pq2-d" value="D"><label for="pq2-d">Simple & comfortable</label>
+                </div>
+            </div>
+
+            <div class="quiz-q">
+                <div class="q-text">3. How do you like to be noticed?</div>
+                <div class="quiz-options">
+                    <input type="radio" name="pq3" id="pq3-a" value="A"><label for="pq3-a">I'd rather blend in comfortably</label>
+                    <input type="radio" name="pq3" id="pq3-b" value="B"><label for="pq3-b">A subtle, unique detail is enough</label>
+                    <input type="radio" name="pq3" id="pq3-c" value="C"><label for="pq3-c">I like making a statement</label>
+                    <input type="radio" name="pq3" id="pq3-d" value="D"><label for="pq3-d">Honestly, I'm not fussed</label>
+                </div>
+            </div>
+
+            <button class="button dark" id="pq-submit" type="button">REVEAL MY STYLE</button>
+            <div class="quiz-note error" id="pq-error">Please answer all 3 questions first.</div>
+
+            <div class="quiz-result" id="pq-result" hidden>
+                <div class="result-label">You are</div>
+                <h3 id="pq-result-title"></h3>
+                <p id="pq-result-text"></p>
+                <a href="book-appointment.html" class="button dark">COME DISCOVER YOUR LOOK</a>
+            </div>
+
+        </div>
 
     </div>
 
 
     <div class="personality-image"></div>
+
+</section>
+
+
+<!-- REAL STORIES -->
+
+<section class="section-block" id="stories">
+
+    <div class="section-heading">
+
+        <div>
+            <div class="eyebrow">
+                Stories we hear often
+            </div>
+
+            <h2>
+                It's rarely just about glasses.
+            </h2>
+        </div>
+
+        <p>
+            A few familiar situations that bring people through our
+            door — see if any of them sound like you or someone in
+            your family.
+        </p>
+
+    </div>
+
+    <div class="stories-grid">
+
+        <div class="story-card">
+            <div class="story-icon">📚</div>
+            <h3>"It wasn't a homework problem"</h3>
+            <p>
+                A child falling behind at school is often assumed to
+                be a focus or motivation issue. Sometimes it's simply
+                that the blackboard is a blur — and nobody thought to
+                check.
+            </p>
+            <div class="story-tag">A common one with kids</div>
+        </div>
+
+        <div class="story-card">
+            <div class="story-icon">💊</div>
+            <h3>"I thought it was just stress"</h3>
+            <p>
+                Frequent headaches by evening get blamed on work,
+                sleep, or stress for months — when the actual cause is
+                an eye prescription that quietly changed.
+            </p>
+            <div class="story-tag">A common one for adults</div>
+        </div>
+
+        <div class="story-card">
+            <div class="story-icon">🕶️</div>
+            <h3>"I'd given up on progressives"</h3>
+            <p>
+                A pair of progressive lenses tried once, disliked, and
+                never tried again. Usually the lenses weren't the
+                problem — the fit was.
+            </p>
+            <div class="story-tag">A common one over 40</div>
+        </div>
+
+    </div>
+
+    <!-- MK Optics: replace the three cards above with real, verified
+         quotes from your own customers as soon as you have a small
+         collection of them — these are illustrative, not attributed
+         to any real person. -->
 
 </section>
 
@@ -781,12 +1575,12 @@
         <div class="service-number">02</div>
 
         <h3>
-            CURATED COLLECTIONS
+            HONEST, NO-PRESSURE ADVICE
         </h3>
 
         <p>
-            Carefully selected frames
-            from leading brands.
+            We'll tell you what actually
+            suits you — not just what's in stock.
         </p>
 
     </div>
@@ -810,6 +1604,89 @@
 </section>
 
 
+<!-- ASK MK OPTICS -->
+
+<section class="ask" id="ask">
+
+    <div class="eyebrow">
+        Not sure? Just ask.
+    </div>
+
+    <h2>
+        Ask MK Optics.
+    </h2>
+
+    <p>
+        A few honest answers before you call — and if your question
+        isn't here, a real person is one tap away on WhatsApp.
+    </p>
+
+    <div class="faq-list">
+
+        <details class="faq-item">
+            <summary>Do I need an appointment, or can I walk in?</summary>
+            <p>Either works. An appointment just means shorter waiting time — walk-ins are always welcome.</p>
+        </details>
+
+        <details class="faq-item">
+            <summary>How long does an eye test take?</summary>
+            <p>Usually 20 to 30 minutes, start to finish, including a discussion of what the results mean for you.</p>
+        </details>
+
+        <details class="faq-item">
+            <summary>I already have a prescription from another clinic — can I just get glasses made?</summary>
+            <p>Yes. Bring your existing prescription and we'll help you choose the right frame and lenses for it.</p>
+        </details>
+
+        <details class="faq-item">
+            <summary>My eyes feel fine — do I still need a test?</summary>
+            <p>Many vision changes are gradual enough that you don't notice them day to day. An annual check catches these early, even when nothing feels wrong.</p>
+        </details>
+
+        <details class="faq-item">
+            <summary>Can children get an eye test here?</summary>
+            <p>Yes — we regularly test children, including first-time tests for kids struggling at school.</p>
+        </details>
+
+        <details class="faq-item">
+            <summary>What should I bring with me?</summary>
+            <p>Your current glasses (if you have them) and any previous prescription. Nothing else is required.</p>
+        </details>
+
+    </div>
+
+    <div class="ask-subheading">Still have a question specific to you?</div>
+    <div class="ask-sublabel">
+        Tell us what's on your mind — a real person will reply, not a bot.
+    </div>
+
+    <div class="ask-grid">
+
+        <div class="ask-card">
+            <p>Not sure what kind of test you need?</p>
+            <a href="#" class="wa-ask" data-msg="Hi MK Optics, I'm not sure what kind of eye test I need. Can you help?">ASK ON WHATSAPP →</a>
+        </div>
+
+        <div class="ask-card">
+            <p>Buying glasses for your child?</p>
+            <a href="#" class="wa-ask" data-msg="Hi MK Optics, I'm looking for glasses for my child. Can you guide me?">ASK ON WHATSAPP →</a>
+        </div>
+
+        <div class="ask-card">
+            <p>Question about your prescription?</p>
+            <a href="#" class="wa-ask" data-msg="Hi MK Optics, I have a question about my eye prescription.">ASK ON WHATSAPP →</a>
+        </div>
+
+        <div class="ask-card">
+            <p>Something else on your mind?</p>
+            <a href="#" class="wa-ask" data-msg="Hi MK Optics, I have a question.">ASK ON WHATSAPP →</a>
+        </div>
+
+    </div>
+
+</section>
+
+
 <!-- APPOINTMENT -->
 
 <section class="appointment" id="eye-test">
@@ -823,8 +1700,8 @@
     </h2>
 
     <p>
-        Professional eye testing, expert advice and
-        a carefully selected range of frames.
+        Professional eye testing and honest, one-on-one advice —
+        no pressure, no jargon.
     </p>
 
     <a href="book-appointment.html" class="button dark">
@@ -854,12 +1731,13 @@
         </p>
 
         <p>
-            <strong>M&K Optics</strong><br>
-            Address coming soon<br>
-            Phone: +91 XXXXX XXXXX
+            <strong>M&K Optics & Eye Clinic</strong><br>
+            Opp. Iyengar Bakery, Near Vegetable Yard,<br>
+            Sikh Village Road, Secunderabad 500 009<br>
+            Phone: +91 89778 61457
         </p>
 
-        <a href="#" class="button light">
+        <a href="#" class="button light wa-ask" data-msg="Hi MK Optics, I'd like to know more before I visit.">
             WHATSAPP US
         </a>
 
@@ -883,7 +1761,234 @@
         See yourself differently.
     </div>
 
+    <div>
+        <a href="counter-intake.html" style="color: inherit; opacity: 0.7;">Staff Login</a>
+    </div>
+
 </footer>
+
+
+<!-- FLOATING WHATSAPP BUTTON -->
+
+<a href="#" class="wa-float wa-ask" data-msg="Hi MK Optics, I have a question about your services." aria-label="Chat with MK Optics on WhatsApp">💬</a>
+
+
+<script>
+(function () {
+    var btn = document.getElementById('site-menu-btn');
+    var nav = document.getElementById('site-nav');
+    btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        nav.classList.toggle('menu-open');
+    });
+    document.addEventListener('click', function (e) {
+        if (nav.classList.contains('menu-open') && !nav.contains(e.target)) {
+            nav.classList.remove('menu-open');
+        }
+    });
+})();
+</script>
+
+
+<script>
+var WA_NUMBER = "918977861457";
+
+document.querySelectorAll('.wa-ask').forEach(function (el) {
+    var message = el.getAttribute('data-msg') || 'Hi MK Optics, I have a question.';
+    el.href = 'https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(message);
+    el.target = '_blank';
+    el.rel = 'noopener';
+});
+</script>
+
+
+<script>
+// SCREEN-EYE HABITS CHECK
+(function () {
+    var questions = ['sq1', 'sq2', 'sq3', 'sq4', 'sq5'];
+
+    document.getElementById('sq-submit').addEventListener('click', function () {
+        var score = 0;
+        for (var i = 0; i < questions.length; i++) {
+            var checked = document.querySelector('input[name="' + questions[i] + '"]:checked');
+            if (!checked) {
+                document.getElementById('sq-error').style.display = 'block';
+                return;
+            }
+            score += parseInt(checked.value, 10);
+        }
+        document.getElementById('sq-error').style.display = 'none';
+
+        var label, title, text;
+        if (score <= 3) {
+            label = 'Score: ' + score + ' out of 10';
+            title = 'Your habits sound fine.';
+            text = "Nothing here points to strain — but an eye test once a year is still a good habit, even when everything feels normal.";
+        } else if (score <= 6) {
+            label = 'Score: ' + score + ' out of 10';
+            title = 'Worth keeping an eye on.';
+            text = "A few of your answers suggest some extra strain on your eyes. It's a good time to get them checked, just to be sure.";
+        } else {
+            label = 'Score: ' + score + ' out of 10';
+            title = "This is a good time for a proper test.";
+            text = "Your answers suggest your eyes are working harder than they should. Better to catch it early than let it become a habit.";
+        }
+
+        document.getElementById('sq-result-label').textContent = label;
+        document.getElementById('sq-result-title').textContent = title;
+        document.getElementById('sq-result-text').textContent = text;
+        var result = document.getElementById('sq-result');
+        result.hidden = false;
+        result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+})();
+</script>
+
+
+<script>
+// STYLE BRIEF (a one-question-at-a-time consultation — no products, no stock photos)
+(function () {
+    var faceShapeAdvice = {
+        round: "Look for an angular, rectangular frame — it adds definition to softer, rounder features.",
+        oval: "You're lucky — almost any shape suits an oval face, so this comes down to personal taste more than anything else.",
+        square: "Look for a rounder or oval frame — it softens a strong jawline and forehead.",
+        heart: "Look for a frame that's a little heavier or more detailed towards the bottom — it balances a narrower chin."
+    };
+
+    var useAdvice = {
+        everyday: "Since it's for everyday wear, prioritise something light enough to forget you're wearing it.",
+        reading: "For reading and close-up work, a frame that sits slightly forward on the nose is usually more comfortable.",
+        screen: "For screens, ask us about a computer-friendly lens option to pair with the frame.",
+        sun: "For the outdoors, ask about a light-reacting lens, so one pair works both indoors and out."
+    };
+
+    var styleAdvice = {
+        minimal: "Given your minimal taste, a thin metal or rimless frame in a quiet colour will suit you best.",
+        classic: "Given your classic taste, a timeless acetate frame — black, tortoiseshell or navy — is a safe, good choice.",
+        bold: "Given your bolder taste, don't be afraid of a thicker frame with real colour or pattern."
+    };
+
+    var stepEls = document.querySelectorAll('#style-brief .wizard-step');
+    var progress = document.getElementById('sb-progress');
+    var stepNum = document.getElementById('sb-step-num');
+
+    function showStep(n) {
+        stepEls.forEach(function (el) {
+            el.hidden = (parseInt(el.dataset.step, 10) !== n);
+        });
+        stepNum.textContent = n;
+    }
+
+    function goNext(groupName, errorId, nextStep) {
+        var checked = document.querySelector('input[name="' + groupName + '"]:checked');
+        if (!checked) {
+            document.getElementById(errorId).style.display = 'block';
+            return;
+        }
+        document.getElementById(errorId).style.display = 'none';
+        showStep(nextStep);
+    }
+
+    document.getElementById('sb-next-1').addEventListener('click', function () {
+        goNext('ff1', 'sb-error-1', 2);
+    });
+    document.getElementById('sb-next-2').addEventListener('click', function () {
+        goNext('ff2', 'sb-error-2', 3);
+    });
+    document.getElementById('sb-back-2').addEventListener('click', function () { showStep(1); });
+    document.getElementById('sb-back-3').addEventListener('click', function () { showStep(2); });
+
+    document.getElementById('sb-finish').addEventListener('click', function () {
+        var style = document.querySelector('input[name="ff3"]:checked');
+        if (!style) {
+            document.getElementById('sb-error-3').style.display = 'block';
+            return;
+        }
+        document.getElementById('sb-error-3').style.display = 'none';
+
+        var face = document.querySelector('input[name="ff1"]:checked');
+        var use = document.querySelector('input[name="ff2"]:checked');
+
+        var text = faceShapeAdvice[face.value] + ' ' + useAdvice[use.value] + ' ' + styleAdvice[style.value] +
+            ' This is a starting point, not a final answer — the only real way to know is to try a few on when you visit.';
+
+        document.getElementById('ff-result-text').textContent = text;
+
+        stepEls.forEach(function (el) { el.hidden = true; });
+        progress.hidden = true;
+        var result = document.getElementById('ff-result');
+        result.hidden = false;
+        result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+
+    document.getElementById('sb-restart').addEventListener('click', function () {
+        document.querySelectorAll('#style-brief input[type="radio"]').forEach(function (i) {
+            i.checked = false;
+        });
+        document.getElementById('ff-result').hidden = true;
+        progress.hidden = false;
+        showStep(1);
+    });
+})();
+</script>
+
+
+<script>
+// EYEWEAR PERSONALITY QUIZ
+(function () {
+    var personalities = {
+        A: {
+            title: 'The Modern Classic',
+            text: "Polished and understated. You don't need a loud frame to be noticed — clean lines and quiet confidence do the work."
+        },
+        B: {
+            title: 'The Creative Original',
+            text: "You notice detail others miss. A frame with a little personality — an unusual colour, a distinct shape — suits you far more than something plain."
+        },
+        C: {
+            title: 'The Bold Statement',
+            text: "You don't blend into a room, and your eyewear shouldn't either. Look for something with real presence."
+        },
+        D: {
+            title: 'The Easy Everyday',
+            text: "Comfortable, reliable, low-maintenance — you want a frame that simply works, every day, without a second thought."
+        }
+    };
+
+    document.getElementById('pq-submit').addEventListener('click', function () {
+        var q1 = document.querySelector('input[name="pq1"]:checked');
+        var q2 = document.querySelector('input[name="pq2"]:checked');
+        var q3 = document.querySelector('input[name="pq3"]:checked');
+
+        if (!q1 || !q2 || !q3) {
+            document.getElementById('pq-error').style.display = 'block';
+            return;
+        }
+        document.getElementById('pq-error').style.display = 'none';
+
+        var tally = {};
+        [q1.value, q2.value, q3.value].forEach(function (letter) {
+            tally[letter] = (tally[letter] || 0) + 1;
+        });
+
+        var winner = q1.value;
+        var best = 0;
+        Object.keys(tally).forEach(function (letter) {
+            if (tally[letter] > best) {
+                best = tally[letter];
+                winner = letter;
+            }
+        });
+
+        var result = personalities[winner];
+        document.getElementById('pq-result-title').textContent = result.title;
+        document.getElementById('pq-result-text').textContent = result.text;
+        var resultBox = document.getElementById('pq-result');
+        resultBox.hidden = false;
+        resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+})();
+</script>
 
 
 </body>
