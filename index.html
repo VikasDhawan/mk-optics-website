@@ -486,6 +486,122 @@
         margin-bottom: 24px;
     }
 
+    /* MAKEOVERS */
+
+    .section-block.dark {
+        background: linear-gradient(160deg, var(--navy) 0%, var(--navy-dark) 100%);
+        color: var(--white);
+    }
+
+    .section-block.dark .section-heading p {
+        color: #cdd9f5;
+    }
+
+    .section-block.dark h2 {
+        color: var(--white);
+    }
+
+    .makeover-photo {
+        display: flex;
+        min-height: 480px;
+        border-radius: 14px;
+        overflow: hidden;
+        margin-bottom: 44px;
+    }
+
+    .makeover-half {
+        flex: 1;
+        position: relative;
+        background-image: url("https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=1200&q=85");
+        background-repeat: no-repeat;
+        background-size: 200% 100%;
+        display: flex;
+        align-items: flex-end;
+    }
+
+    .makeover-before {
+        background-position: left center;
+        filter: grayscale(1) brightness(0.6) contrast(0.95);
+    }
+
+    .makeover-after {
+        background-position: right center;
+    }
+
+    .makeover-tag {
+        position: absolute;
+        top: 18px;
+        left: 18px;
+        background: var(--white);
+        color: var(--navy-dark);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+        padding: 6px 14px;
+        border-radius: 999px;
+    }
+
+    .makeover-tag.tag-after {
+        left: auto;
+        right: 18px;
+        background: var(--green);
+    }
+
+    .makeover-notes {
+        width: 100%;
+        padding: 24px 20px;
+        background: linear-gradient(to top, rgba(8,27,69,0.9), transparent);
+    }
+
+    .makeover-notes div {
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    .makeover-notes.bad div {
+        color: #ff9d94;
+    }
+
+    .makeover-notes.good div {
+        color: #9df5a8;
+    }
+
+    .makeover-callout {
+        text-align: center;
+        max-width: 560px;
+        margin: 0 auto;
+    }
+
+    .makeover-callout h3 {
+        font-family: Georgia, serif;
+        font-size: 34px;
+        margin-bottom: 12px;
+        color: var(--white);
+    }
+
+    .makeover-callout p {
+        color: #cdd9f5;
+        margin-bottom: 28px;
+    }
+
+    .makeover-features {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 28px;
+        margin-top: 44px;
+        font-size: 12px;
+        letter-spacing: 0.4px;
+        color: #cdd9f5;
+    }
+
+    .makeover-features span {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
     /* PERSONALITY */
 
     .personality {
@@ -891,6 +1007,17 @@
             min-height: 260px;
         }
 
+        .makeover-photo {
+            flex-direction: column;
+            min-height: auto;
+        }
+
+        .makeover-half {
+            min-height: 260px;
+            background-size: cover;
+            background-position: center;
+        }
+
         .stories-grid,
         .services {
             grid-template-columns: 1fr;
@@ -1214,6 +1341,73 @@
             <div class="brief-sign">— MK Optics</div>
         </div>
 
+    </div>
+
+</section>
+
+
+<!-- MAKEOVERS -->
+
+<section class="section-block dark" id="makeovers">
+
+    <div class="section-heading">
+
+        <div>
+            <div class="eyebrow">
+                It's not just glasses
+            </div>
+
+            <h2>
+                The right frame is a makeover.
+            </h2>
+        </div>
+
+        <p>
+            Same face. Same features. A completely different energy —
+            just from choosing a shape that actually fits you.
+        </p>
+
+    </div>
+
+    <div class="makeover-photo">
+
+        <div class="makeover-half makeover-before">
+            <span class="makeover-tag">BEFORE</span>
+            <div class="makeover-notes bad">
+                <div>✗ Ill-fitting shape</div>
+                <div>✗ Doesn't suit the face</div>
+                <div>✗ Fades into the background</div>
+            </div>
+        </div>
+
+        <div class="makeover-half makeover-after">
+            <span class="makeover-tag tag-after">AFTER</span>
+            <div class="makeover-notes good">
+                <div>✓ Right shape for the face</div>
+                <div>✓ Sharper, more confident look</div>
+                <div>✓ Changes the whole impression</div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="makeover-callout">
+
+        <h3>New frames. New energy.</h3>
+
+        <p>
+            Same you — just a fresher way for people to see you.
+        </p>
+
+        <a href="book-appointment.html" class="button dark">SEE YOUR OWN MAKEOVER</a>
+
+    </div>
+
+    <div class="makeover-features">
+        <span>👓 The right shape for your face</span>
+        <span>😊 Comfortable, all-day fit</span>
+        <span>🧑‍⚕️ Honest, expert advice</span>
+        <span>☀️ UV-ready options</span>
     </div>
 
 </section>
