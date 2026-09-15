@@ -394,11 +394,16 @@
             <a href="enquiries.html">Enquiries</a>
             <a href="referrals.html">Referrals</a>
             <a href="calendar.html">Calendar</a>
-            <a href="ai-settings.html">AI Setup</a>
+            <span id="nav-ai-settings" hidden><a href="ai-settings.html">AI Setup</a></span>
+            <a href="my-profile.html">My Profile</a>
+            <span id="nav-admin-settings" hidden><a href="admin-settings.html">Admin Settings</a></span>
         </nav>
         <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">☰</button>
         <div class="sidebar-footer" id="sidebar-footer">
-            <div class="staff-email" id="staff-email"></div>
+            <div class="staff-avatar-row">
+                <img class="staff-avatar" id="staff-avatar" alt="" hidden>
+                <div class="staff-email" id="staff-email"></div>
+            </div>
             <a class="sign-out-link" href="https://vikasdhawan.github.io/mk-optics-website/" target="_blank" rel="noopener">View Website ↗</a>
             <div class="sign-out-link" id="sign-out-btn">Sign out</div>
         </div>
@@ -661,8 +666,10 @@
                     <div class="detail-section" id="insights-section" hidden>
                         <h3>💡 Quick Insight <span style="text-transform:none;font-weight:400;color:var(--grey);letter-spacing:normal">— free, built-in, always on</span></h3>
                         <div id="detail-insights"></div>
-                        <button class="btn btn-dark" id="ask-ai-btn" style="margin-top:12px">✨ Ask AI for a deeper read</button>
-                        <div id="ai-insight-box" hidden></div>
+                        <div id="ask-ai-wrap">
+                            <button class="btn btn-dark" id="ask-ai-btn" style="margin-top:12px">✨ Ask AI for a deeper read</button>
+                            <div id="ai-insight-box" hidden></div>
+                        </div>
                     </div>
 
                     <div class="detail-section">
@@ -1330,6 +1337,21 @@
         // immediately in the history tabs and the Quick Insight updates
         // to reflect it, instead of staff having to search again.
         openCustomer(currentCustomer);
+    });
+
+    // Edit pencils (name/mobile) are an Admin/Super Admin capability —
+    // hidden entirely for regular employees rather than shown-then-blocked.
+    window.MKAuth.roleReady.then((role) => {
+        const canEdit = role === 'admin' || role === 'super_admin';
+        el('edit-name-btn').hidden = !canEdit;
+        el('edit-phone-btn').hidden = !canEdit;
+    });
+
+    // "Ask AI" can be switched off store-wide from Admin Settings — the
+    // free rule-based Quick Insight above it always stays on regardless.
+    window.MKAuth.ready.then(async () => {
+        const { data } = await supabase.from('app_settings').select('ai_enabled').eq('id', true).maybeSingle();
+        if (data && data.ai_enabled === false) el('ask-ai-wrap').hidden = true;
     });
 
     window.MKAuth.ready.then(() => searchCustomers(''));

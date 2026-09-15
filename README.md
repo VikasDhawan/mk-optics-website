@@ -73,6 +73,18 @@ Website prototype for M&K Optics
   option (not something the app can call automatically, since it's a
   subscription for a person, not a programmable key). Leave both empty
   and the app works exactly as before, using only the free Quick Insight.
+  Visible only to **Super Admin** — the Admin (store owner) can still
+  turn the whole feature on/off from Admin Settings, but never sees or
+  edits the actual keys.
+- `admin-settings.html` — visible to **Admin and Super Admin** only.
+  Create new staff logins (name, email, temporary password, role —
+  only Super Admin can create another Admin), reset an existing staff
+  member's password, and turn the AI Insights feature on/off store-wide.
+  Admin can create/reset employees; only Super Admin can create or
+  demote an Admin account, matching the role rules below.
+- `my-profile.html` — every logged-in staff member's own page: upload a
+  photo (shown in the sidebar everywhere, and in the Admin Settings
+  staff list), and see their own name/email/role read-only.
 - `enquiries.html` — log walk-ins/enquiries who didn't buy, follow up via
   WhatsApp, and convert an enquiry into a real customer record (creating
   one if it doesn't already exist) or mark it lost.
@@ -86,13 +98,36 @@ Website prototype for M&K Optics
   Click a day to see who's booked.
 
 Every staff page's sidebar shows a red count badge next to "Follow-Ups"
-when there are new, unreviewed appointment requests waiting.
+when there are new, unreviewed appointment requests waiting. It also
+shows the logged-in person's photo (if they've uploaded one on My
+Profile) next to their email.
 
 **Shared**
 - `app-shared.css` / `auth-gate.js` — layout, login screen, and the
-  staff-login gate used by every staff page above. A fix or design
-  change here applies everywhere at once. Any new staff page should
-  reuse both rather than copying its own version.
+  staff-login gate used by every staff page above. `auth-gate.js` also
+  looks up (or, on first login, creates) the signed-in person's role
+  from `staff_profiles` and exposes it as `window.MKAuth.role` /
+  `window.MKAuth.roleReady` for pages to hide or show things by role.
+  A fix or design change here applies everywhere at once. Any new
+  staff page should reuse both rather than copying its own version.
+
+### Staff roles
+
+Three roles, each strictly a superset of the one below it:
+
+| Role | Who | Can do |
+|---|---|---|
+| **Employee** | Normal staff | Everything except the two rows below — Counter Intake, Customers, Follow-Ups, Enquiries, Referrals, Calendar, and uploading their own photo on My Profile. |
+| **Admin** | The store owner | Everything Employee can, **plus**: the "✏️ Edit" pencils next to a customer's Name/Mobile Number, Admin Settings (add employee logins, reset an employee's password, turn AI Insights on/off store-wide). |
+| **Super Admin** | The developer (you) | Everything Admin can, **plus**: AI Setup (the actual Gemini/Groq keys — Admin only sees an on/off switch, never the keys), creating or demoting Admin accounts, resetting anyone's password including another Admin's. |
+
+New logins created directly in the Supabase dashboard (rather than
+through Admin Settings) default to Employee the first time they sign
+in — see the one-time "make yourself Super Admin" step in migration 010
+below. This role model is enforced two ways: the UI hides what a role
+shouldn't see, and the database (Row Level Security) independently
+refuses role changes and AI-key access outside these rules — so it
+isn't just a matter of which buttons are visible.
 
 ## Setting up (Supabase)
 
@@ -149,7 +184,31 @@ is enough).
 13. SQL Editor → run `supabase-migration-009-customer-edit-log.sql`. Adds
     the table that records every name/mobile-number change made on the
     Customers page, so accidental edits can be traced.
-14. Open `counter-intake.html` (or any staff page) in a browser, or serve
+14. SQL Editor → run `supabase-migration-010-roles.sql`. Adds the
+    `staff_profiles` table (role/name/photo — this is what Admin
+    Settings, the Edit pencils, and AI Setup all check), and the
+    `avatars` storage bucket for My Profile photo uploads. **Then**,
+    the one manual step this whole role system needs: log into the app
+    once with your own account (so your row gets created), then in the
+    SQL Editor run —
+    ```sql
+    update staff_profiles set role = 'super_admin'
+    where id = (select id from auth.users where email = 'you@example.com');
+    ```
+    (replace with your real staff login email). Every other account
+    stays Employee until you or an Admin change it — new Admin accounts
+    are created from Admin Settings itself once you've done this once.
+15. SQL Editor → run `supabase-migration-011-app-settings.sql`. Adds the
+    store-wide switches table (currently just "is AI Insights on") and
+    locks the `ai_settings` (Gemini/Groq keys) table down to Super Admin
+    only — Admin can flip the on/off switch but never sees the keys.
+16. Deploy the new `staff-admin` Edge Function — same one-time CLI setup
+    as step 11 if you haven't already (`supabase login`, `supabase link
+    --project-ref <your-project-ref>`), then:
+    `supabase functions deploy staff-admin`. This is what lets Admin
+    Settings actually create staff logins and reset passwords — without
+    it, Admin Settings will load but those two actions will fail.
+17. Open `counter-intake.html` (or any staff page) in a browser, or serve
     the folder with any static file server. Sign in with the account from
     step 4.
 
@@ -177,16 +236,30 @@ same Users screen.
   it can see into `reminders`/`appointment_requests` to check, but never
   returns any row data, so a customer can check availability without
   ever seeing the store's calendar or other people's bookings.
-- Per-staff permissions (e.g. restricting who sees sale amounts) aren't
-  built — any logged-in staff account can do anything in the app.
+- Staff roles (Employee / Admin / Super Admin — see the table above)
+  gate the sensitive actions: editing a customer's name/mobile,
+  creating staff logins, resetting passwords, and the AI keys
+  themselves. Everything else (sale amounts, prescriptions, customer
+  notes) is still visible to every logged-in staff account — the app
+  doesn't restrict *viewing* data by role, only the handful of actions
+  listed above.
 - The AI keys (`ai_settings.gemini_api_key` / `groq_api_key`) are
-  readable/writable only by logged-in staff, same as every other
-  table — but more importantly, neither is ever sent to or read from
-  any browser during normal use. The `ai-insight` Edge Function reads
-  them server-side (using the service-role connection, which bypasses
-  RLS the same way any trusted backend process would) and makes the
-  Gemini/Groq API call itself; the browser only ever receives the
-  finished text answer.
+  readable/writable only by **Super Admin** (enforced by RLS, not just
+  hidden in the UI) — Admin can turn the AI Insights feature on/off from
+  Admin Settings (a separate `app_settings.ai_enabled` switch) without
+  ever seeing the keys. Regardless of who can read them, neither key is
+  ever sent to or read from any browser during normal "Ask AI" use: the
+  `ai-insight` Edge Function reads them server-side (using the
+  service-role connection, which bypasses RLS the same way any trusted
+  backend process would) and makes the Gemini/Groq API call itself; the
+  browser only ever receives the finished text answer.
+- Creating a staff login or resetting a password happens through the
+  `staff-admin` Edge Function, never directly from the browser —
+  Supabase's regular client library has no "create another user" or
+  "set someone else's password" call using the public anon key, by
+  design. The function itself re-checks the caller's role server-side
+  before doing anything (an Admin calling it can't create another Admin
+  or reset another Admin's password just by editing the request).
 
 ### WhatsApp messages
 
@@ -207,7 +280,10 @@ needed, but a staff member must tap send in the window that opens.
   `ai-settings.html`) — genuinely generated insight, not a template,
   but still reading one customer's history at a time rather than
   learning patterns across the whole customer base.
-- **Per-staff permissions / roles.**
+- **Fine-grained per-staff permissions beyond the three roles** (e.g.
+  restricting a specific employee from seeing sale amounts, or
+  per-branch access) — Employee/Admin/Super Admin is deliberately the
+  whole model for now.
 
 ## Testing
 

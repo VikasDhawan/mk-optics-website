@@ -310,12 +310,29 @@ textarea { resize: vertical; min-height: 70px; }
     padding: 10px 14px;
 }
 
+.staff-avatar-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 14px;
+}
+
+.staff-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1px solid rgba(255,255,255,0.25);
+}
+
 .staff-email {
     font-size: 11px;
     color: #9fb0d8;
-    padding: 0 14px;
     word-break: break-all;
 }
+
+.staff-avatar-row .staff-email { padding: 0; }
 
 .mobile-menu-btn {
     display: none;

@@ -22,7 +22,17 @@
         supabase = window.supabase.createClient(cfg.url, cfg.anonKey);
     }
 
-    window.MKAuth = { supabase: supabase };
+    let resolveRoleReady;
+    window.MKAuth = {
+        supabase: supabase,
+        role: null,
+        profile: null,
+        // Resolves with the current user's role ('employee' by default)
+        // once their staff_profiles row has been fetched (or created).
+        // Pages that need to hide/show something by role should wait on
+        // this rather than reading window.MKAuth.role immediately.
+        roleReady: new Promise((resolve) => { resolveRoleReady = resolve; }),
+    };
 
     const loginScreen = document.getElementById('login-screen');
     const appRoot = document.getElementById('app-root');
@@ -35,6 +45,46 @@
         if (staffEmailEl) {
             staffEmailEl.textContent = session && session.user ? (session.user.email || '') : '';
         }
+        if (session && session.user) loadProfile(session.user.id);
+    }
+
+    // Every staff login has exactly one staff_profiles row (role, name,
+    // photo). New logins (e.g. an account created straight from the
+    // Supabase dashboard before this ever existed) don't have one yet —
+    // self-create as the lowest-privilege role ('employee'); promotions
+    // only ever happen via the staff-admin Edge Function, never here.
+    async function loadProfile(userId) {
+        let { data: profile } = await supabase.from('staff_profiles').select('*').eq('id', userId).maybeSingle();
+        if (!profile) {
+            const { data: created } = await supabase
+                .from('staff_profiles')
+                .insert({ id: userId, role: 'employee' })
+                .select()
+                .maybeSingle();
+            profile = created || { id: userId, role: 'employee', name: null, photo_url: null };
+        }
+
+        window.MKAuth.role = profile.role;
+        window.MKAuth.profile = profile;
+
+        const avatarImg = document.getElementById('staff-avatar');
+        if (avatarImg) {
+            if (profile.photo_url) {
+                avatarImg.src = profile.photo_url;
+                avatarImg.hidden = false;
+            } else {
+                avatarImg.hidden = true;
+            }
+        }
+
+        const isAdminOrAbove = profile.role === 'admin' || profile.role === 'super_admin';
+        const isSuperAdmin = profile.role === 'super_admin';
+        const adminNav = document.getElementById('nav-admin-settings');
+        if (adminNav) adminNav.hidden = !isAdminOrAbove;
+        const aiNav = document.getElementById('nav-ai-settings');
+        if (aiNav) aiNav.hidden = !isSuperAdmin;
+
+        resolveRoleReady(profile.role);
     }
 
     function showLogin() {
@@ -64,6 +114,7 @@
 
     if (!supabase) {
         window.MKAuth.ready = Promise.resolve();
+        resolveRoleReady('employee');
         showApp(null);
         return;
     }
