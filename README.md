@@ -308,3 +308,12 @@ before being handed off — not just checked for syntax. Live end-to-end
 testing against a real Supabase project still needs to happen in an
 ordinary browser, since this development environment's network cannot
 reach Supabase's servers.
+
+## Project documentation
+
+The product requirements, technical architecture, data model, API spec,
+non-functional requirements, roadmap, and statement of work behind this
+build live in [`docs/`](docs/README.md). Standalone review pages (a
+client-facing growth-plan proposal, and a clickable pre-Supabase UI
+prototype) are in [`prototype/`](prototype/index.html) — kept for
+reference; the pages above are the real, working implementation.
