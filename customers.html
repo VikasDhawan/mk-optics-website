@@ -66,38 +66,44 @@
     .kv-row { display: flex; gap: 8px; font-size: 14px; margin-bottom: 6px; }
     .kv-row .k { color: var(--grey); min-width: 130px; }
 
-    table.history-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 13px;
-    }
-    table.history-table th {
-        text-align: left;
-        font-size: 10px;
-        text-transform: uppercase;
-        color: var(--grey);
-        padding: 6px 8px;
-        border-bottom: 1.5px solid var(--line);
-    }
-    table.history-table td {
-        padding: 8px;
-        border-bottom: 1px solid var(--line);
-        vertical-align: top;
-    }
-
-    .rx-detail-block {
-        margin-top: 16px;
+    .visit-card {
         padding: 14px;
         border-radius: 8px;
         border: 1.5px solid var(--line);
         background: var(--cream);
+        margin-bottom: 12px;
     }
-    .rx-detail-date {
+    .visit-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 10px;
+    }
+    .visit-card-date {
         font-family: Georgia, serif;
         font-size: 14px;
         color: var(--navy);
         font-weight: 700;
-        margin-bottom: 10px;
+    }
+    .visit-card-amount {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--ink);
+    }
+    .visit-card-meta {
+        font-size: 13px;
+        color: var(--grey);
+        margin-top: 4px;
+    }
+    .visit-card-notes {
+        font-size: 13px;
+        color: var(--ink);
+        margin-top: 6px;
+    }
+    .rx-detail-inline {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid var(--line);
     }
     table.rx-detail-table {
         width: 100%;
@@ -251,7 +257,6 @@
     }
 
     @media (max-width: 900px) {
-        table.history-table { display: block; overflow-x: auto; white-space: nowrap; }
         table.rx-detail-table { display: block; overflow-x: auto; white-space: nowrap; }
     }
 </style>
@@ -460,12 +465,6 @@
         searchTimer = setTimeout(() => searchCustomers(term), 250);
     });
 
-    function rxSummary(v, side) {
-        const sph = v[side + '_sphere'], cyl = v[side + '_cylinder'], axis = v[side + '_axis'];
-        if (!sph && !cyl && !axis) return '—';
-        return [sph, cyl, cyl ? `x${axis || '—'}` : null].filter(Boolean).join(' ');
-    }
-
     function hasAnyRx(v) {
         return ['od_sphere', 'od_cylinder', 'od_axis', 'od_prism', 'od_base',
                 'os_sphere', 'os_cylinder', 'os_axis', 'os_prism', 'os_base'].some(f => v[f]);
@@ -494,35 +493,27 @@
         `;
     }
 
+    // One card per visit: the plain-text summary (date, frame, lens,
+    // amount, notes) immediately followed by that same visit's full
+    // prescription grid — kept together so staff read them as one
+    // record, not two separate lists to cross-reference by date.
     function renderHistory(visits) {
         const container = el('detail-history');
         if (!visits.length) {
             container.innerHTML = '<p class="empty-hint">No visits recorded yet.</p>';
             return;
         }
-        const rows = visits.map((v) => `
-            <tr>
-                <td>${(v.created_at || '').slice(0, 10)}</td>
-                <td>Rt Eye ${rxSummary(v, 'od')}<br>Lt Eye ${rxSummary(v, 'os')}</td>
-                <td>${v.frame || '—'}</td>
-                <td>${v.lens || '—'}</td>
-                <td>${v.amount != null ? '₹' + v.amount : '—'}</td>
-                <td>${v.preferences_budget || v.pitch_next_time || '—'}</td>
-            </tr>
-        `).join('');
-        const rxDetails = visits.filter(hasAnyRx).map((v) => `
-            <div class="rx-detail-block">
-                <div class="rx-detail-date">Prescription — ${(v.created_at || '').slice(0, 10)}</div>
-                ${rxDetailTable(v)}
+        container.innerHTML = visits.map((v) => `
+            <div class="visit-card">
+                <div class="visit-card-header">
+                    <div class="visit-card-date">${(v.created_at || '').slice(0, 10)}</div>
+                    <div class="visit-card-amount">${v.amount != null ? '₹' + v.amount : '—'}</div>
+                </div>
+                <div class="visit-card-meta">${v.frame || '—'} · ${v.lens || '—'}</div>
+                ${(v.preferences_budget || v.pitch_next_time) ? `<div class="visit-card-notes">${escapeHtml(v.preferences_budget || v.pitch_next_time)}</div>` : ''}
+                ${hasAnyRx(v) ? `<div class="rx-detail-inline">${rxDetailTable(v)}</div>` : ''}
             </div>
         `).join('');
-        container.innerHTML = `
-            <table class="history-table">
-                <tr><th>Date</th><th>Prescription</th><th>Frame</th><th>Lens</th><th>Amount</th><th>Notes</th></tr>
-                ${rows}
-            </table>
-            ${rxDetails}
-        `;
     }
 
     // --- AI Insight: one story, not a checklist -----------------------
