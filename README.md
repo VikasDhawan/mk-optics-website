@@ -52,6 +52,16 @@ Website prototype for M&K Optics
   **Eyewear** and **Contact Lens** — a fundamentally different kind of
   purchase (brand/color instead of frame/lens, a different
   prescription shape), so they're never mixed into one list.
+  Name and Mobile Number are editable via a small "✏️ Edit" button next
+  to each — deliberately not a plain text field you can click into, so
+  a stray click can't silently change a customer's identity. Editing
+  the name asks for a type-and-confirm popup; editing the mobile number
+  additionally requires typing the new number twice (like a password
+  change) so a typo can't slip through unnoticed. Every change is
+  logged (old value, new value, who, when) and the last 10 changes to
+  that customer's name/mobile show in a "Recent Name/Mobile Changes"
+  section, so an accidental edit can always be traced and manually
+  corrected.
 - `ai-settings.html` — add your own free-tier Google Gemini API key (and
   optionally a Groq key as an automatic backup) to turn on the "Ask AI"
   feature above. Bring-your-own-key: both keys live only in this shop's
@@ -136,7 +146,10 @@ is enough).
     contact-lens-specific columns (brand, color, base curve, diameter)
     to `visits`, needed for the Contact Lens purchase type on Counter
     Intake and its tab on the Customers page.
-13. Open `counter-intake.html` (or any staff page) in a browser, or serve
+13. SQL Editor → run `supabase-migration-009-customer-edit-log.sql`. Adds
+    the table that records every name/mobile-number change made on the
+    Customers page, so accidental edits can be traced.
+14. Open `counter-intake.html` (or any staff page) in a browser, or serve
     the folder with any static file server. Sign in with the account from
     step 4.
 

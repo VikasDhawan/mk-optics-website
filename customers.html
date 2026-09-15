@@ -432,7 +432,15 @@
                 </div>
 
                 <div class="card" id="detail-card" hidden>
-                    <h2 id="detail-name">—</h2>
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+                        <h2 id="detail-name" style="margin:0">—</h2>
+                        <button class="btn" id="edit-name-btn" style="padding:2px 10px;font-size:12px">✏️ Edit</button>
+                    </div>
+                    <div id="edit-name-panel" hidden style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                        <input type="text" id="edit-name-input" placeholder="Full name" style="flex:1;min-width:160px">
+                        <button class="btn btn-dark" id="save-name-btn">Save Change</button>
+                        <button class="btn" id="cancel-name-btn">Cancel</button>
+                    </div>
 
                     <button class="btn btn-dark" id="add-visit-btn" style="margin-bottom:18px">➕ Add Visit Details</button>
 
@@ -609,7 +617,19 @@
 
                     <div class="detail-section">
                         <h3>Contact Details</h3>
-                        <div class="kv-row"><div class="k">Mobile</div><div id="detail-phone"></div></div>
+                        <div class="kv-row">
+                            <div class="k">Mobile</div>
+                            <div style="display:flex;align-items:center;gap:8px">
+                                <div id="detail-phone"></div>
+                                <button class="btn" id="edit-phone-btn" style="padding:1px 8px;font-size:11px">✏️ Edit</button>
+                            </div>
+                        </div>
+                        <div id="edit-phone-panel" hidden style="margin:8px 0 14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                            <input type="tel" id="edit-phone-input" placeholder="New mobile number" style="flex:1;min-width:150px">
+                            <input type="tel" id="edit-phone-confirm" placeholder="Re-type new mobile number" style="flex:1;min-width:150px">
+                            <button class="btn btn-dark" id="save-phone-btn">Save Change</button>
+                            <button class="btn" id="cancel-phone-btn">Cancel</button>
+                        </div>
                         <div class="kv-row"><div class="k">Customer since</div><div id="detail-since"></div></div>
                         <div class="kv-row"><div class="k">Referred by</div><div id="detail-referred-by"></div></div>
                         <div class="toggle-row">
@@ -620,6 +640,11 @@
                             <input type="checkbox" id="detail-rewards">
                             <label for="detail-rewards" style="font-size:13px">Opted into rewards program</label>
                         </div>
+                    </div>
+
+                    <div class="detail-section" id="edit-history-section" hidden>
+                        <h3>Recent Name/Mobile Changes</h3>
+                        <div id="edit-history-list"></div>
                     </div>
 
                     <div class="detail-section">
@@ -988,6 +1013,8 @@
         currentCustomer = c;
         detailCard.hidden = false;
         el('add-visit-panel').hidden = true;
+        el('edit-name-panel').hidden = true;
+        el('edit-phone-panel').hidden = true;
         el('detail-name').textContent = c.name;
         el('detail-phone').textContent = c.phone;
         el('detail-since').textContent = (c.created_at || '').slice(0, 10);
@@ -1028,7 +1055,108 @@
         }
 
         if (!remindersError) renderReminders(reminders || []);
+
+        loadEditHistory(c.id);
     }
+
+    function renderEditHistory(rows) {
+        const section = el('edit-history-section');
+        const list = el('edit-history-list');
+        if (!rows.length) { section.hidden = true; return; }
+        section.hidden = false;
+        list.innerHTML = rows.map(r => `
+            <div class="kv-row">
+                <div class="k">${(r.created_at || '').slice(0, 16).replace('T', ' ')}</div>
+                <div>${r.field} changed from "${escapeHtml(r.old_value || '—')}" to "${escapeHtml(r.new_value || '—')}"${r.changed_by ? ' by ' + escapeHtml(r.changed_by) : ''}</div>
+            </div>
+        `).join('');
+    }
+
+    async function loadEditHistory(customerId) {
+        const { data, error } = await supabase
+            .from('customer_edit_log')
+            .select('*')
+            .eq('customer_id', customerId)
+            .order('created_at', { ascending: false })
+            .limit(10);
+        if (error) { el('edit-history-section').hidden = true; return; }
+        renderEditHistory(data || []);
+    }
+
+    function currentStaffEmail() {
+        const el2 = document.getElementById('staff-email');
+        return el2 ? el2.textContent.trim() : '';
+    }
+
+    async function logCustomerEdit(customerId, field, oldValue, newValue) {
+        await supabase.from('customer_edit_log').insert({
+            customer_id: customerId, field, old_value: oldValue, new_value: newValue, changed_by: currentStaffEmail()
+        });
+    }
+
+    el('edit-name-btn').addEventListener('click', () => {
+        if (!currentCustomer) return;
+        el('edit-name-input').value = currentCustomer.name || '';
+        el('edit-name-panel').hidden = false;
+    });
+
+    el('cancel-name-btn').addEventListener('click', () => {
+        el('edit-name-panel').hidden = true;
+    });
+
+    el('save-name-btn').addEventListener('click', async () => {
+        if (!currentCustomer) return;
+        const newName = el('edit-name-input').value.trim();
+        const oldName = currentCustomer.name || '';
+        if (!newName) { setStatus('Name cannot be blank.', true); return; }
+        if (newName === oldName) { el('edit-name-panel').hidden = true; return; }
+        if (!confirm(`Change name from "${oldName}" to "${newName}"?`)) return;
+
+        const { error } = await supabase.from('customers').update({ name: newName }).eq('id', currentCustomer.id);
+        if (error) { setStatus('Could not update name: ' + error.message, true); return; }
+
+        await logCustomerEdit(currentCustomer.id, 'name', oldName, newName);
+        currentCustomer.name = newName;
+        el('detail-name').textContent = newName;
+        el('edit-name-panel').hidden = true;
+        setStatus('Name updated.', false);
+        loadEditHistory(currentCustomer.id);
+        searchCustomers(el('customer-search').value);
+    });
+
+    el('edit-phone-btn').addEventListener('click', () => {
+        if (!currentCustomer) return;
+        el('edit-phone-input').value = '';
+        el('edit-phone-confirm').value = '';
+        el('edit-phone-panel').hidden = false;
+    });
+
+    el('cancel-phone-btn').addEventListener('click', () => {
+        el('edit-phone-panel').hidden = true;
+    });
+
+    el('save-phone-btn').addEventListener('click', async () => {
+        if (!currentCustomer) return;
+        const newPhone = el('edit-phone-input').value.trim();
+        const confirmPhone = el('edit-phone-confirm').value.trim();
+        const oldPhone = currentCustomer.phone || '';
+
+        if (!newPhone) { setStatus('Mobile number cannot be blank.', true); return; }
+        if (newPhone !== confirmPhone) { setStatus('The two mobile numbers you typed do not match — please re-enter.', true); return; }
+        if (newPhone === oldPhone) { el('edit-phone-panel').hidden = true; return; }
+        if (!confirm(`Change mobile number from "${oldPhone}" to "${newPhone}"?`)) return;
+
+        const { error } = await supabase.from('customers').update({ phone: newPhone }).eq('id', currentCustomer.id);
+        if (error) { setStatus('Could not update mobile number: ' + error.message, true); return; }
+
+        await logCustomerEdit(currentCustomer.id, 'phone', oldPhone, newPhone);
+        currentCustomer.phone = newPhone;
+        el('detail-phone').textContent = newPhone;
+        el('edit-phone-panel').hidden = true;
+        setStatus('Mobile number updated.', false);
+        loadEditHistory(currentCustomer.id);
+        searchCustomers(el('customer-search').value);
+    });
 
     function escapeHtml(s) {
         const div = document.createElement('div');
