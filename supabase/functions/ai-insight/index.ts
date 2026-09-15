@@ -133,7 +133,7 @@ Deno.serve(async (req) => {
       geminiKey,
       groqKey,
       `Here is the visit history JSON:\n\n${JSON.stringify(payload, null, 2)}`,
-      300,
+      500, // headroom above the ~100-word target so formatting never truncates the answer
       SYSTEM_PROMPT
     );
 
@@ -203,7 +203,13 @@ async function callGemini(apiKey: string, userMessage: string, maxTokens: number
         body: JSON.stringify({
           ...(systemPrompt ? { systemInstruction: { parts: [{ text: systemPrompt }] } } : {}),
           contents: [{ parts: [{ text: userMessage }] }],
-          generationConfig: { maxOutputTokens: maxTokens },
+          // gemini-2.5-flash spends part of maxOutputTokens on internal
+          // "thinking" before writing the visible answer, which silently
+          // truncated real responses mid-sentence. Turning thinking off
+          // (thinkingBudget: 0) means the whole token budget goes to the
+          // actual answer — this is a short, direct-answer prompt with no
+          // need for extended reasoning anyway.
+          generationConfig: { maxOutputTokens: maxTokens, thinkingConfig: { thinkingBudget: 0 } },
         }),
       }
     );
