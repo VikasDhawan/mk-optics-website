@@ -34,10 +34,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const GEMINI_MODEL = 'gemini-2.5-flash';
-// Bump this string on every deploy while debugging so we can confirm
-// from the UI whether a redeploy actually picked up new code, rather
-// than assuming it did.
-const DEBUG_VERSION = 'debug-1';
 const GROQ_MODEL = 'llama-3.3-70b-versatile';
 
 // The pre-engineered prompt. Non-technical shop owners never see or
@@ -172,7 +168,7 @@ Deno.serve(async (req) => {
     );
 
     if (!result.ok) return json({ error: result.error }, cors);
-    return json({ insight: result.text, provider: result.provider, debug: result.debug, VERSION: DEBUG_VERSION }, cors);
+    return json({ insight: result.text, provider: result.provider }, cors);
   } catch (err) {
     return json({ error: String(err) }, { 'Access-Control-Allow-Origin': '*' });
   }

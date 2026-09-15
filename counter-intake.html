@@ -279,10 +279,18 @@
                 </div>
             </div>
 
+            <div class="card" style="padding-bottom:14px">
+                <label class="field-label" style="margin-bottom:8px;display:block">What are they buying today?</label>
+                <div class="chip-row" id="purchase-type-toggle">
+                    <div class="chip active" data-type="Spectacles">👓 Eyewear</div>
+                    <div class="chip" data-type="Contact Lenses">👁️ Contact Lens</div>
+                </div>
+            </div>
+
             <div class="grid-2">
 
-                <!-- PRESCRIPTION -->
-                <div class="card">
+                <!-- PRESCRIPTION: EYEWEAR -->
+                <div class="card" id="rx-eyewear">
                     <h2>Prescription</h2>
 
                     <table class="rx-table">
@@ -296,7 +304,7 @@
                         </tr>
                         <tr><td colspan="6" class="rx-section-label">Distance</td></tr>
                         <tr>
-                            <td class="rx-label">OD</td>
+                            <td class="rx-label">Rt Eye</td>
                             <td><input type="text" id="od-sphere" placeholder="—"></td>
                             <td><input type="text" id="od-cylinder" placeholder="—"></td>
                             <td><input type="text" id="od-axis" placeholder="—"></td>
@@ -304,7 +312,7 @@
                             <td><input type="text" id="od-base" placeholder="—"></td>
                         </tr>
                         <tr>
-                            <td class="rx-label">OS</td>
+                            <td class="rx-label">Lt Eye</td>
                             <td><input type="text" id="os-sphere" placeholder="—"></td>
                             <td><input type="text" id="os-cylinder" placeholder="—"></td>
                             <td><input type="text" id="os-axis" placeholder="—"></td>
@@ -313,12 +321,12 @@
                         </tr>
                         <tr><td colspan="6" class="rx-section-label">Add</td></tr>
                         <tr>
-                            <td class="rx-label">OD</td>
+                            <td class="rx-label">Rt Eye</td>
                             <td><input type="text" id="add-od-sphere" placeholder="—"></td>
                             <td colspan="4"></td>
                         </tr>
                         <tr>
-                            <td class="rx-label">OS</td>
+                            <td class="rx-label">Lt Eye</td>
                             <td><input type="text" id="add-os-sphere" placeholder="—"></td>
                             <td colspan="4"></td>
                         </tr>
@@ -336,8 +344,56 @@
                     </div>
                 </div>
 
-                <!-- PURCHASE -->
-                <div class="card">
+                <!-- PRESCRIPTION: CONTACT LENS -->
+                <div class="card" id="rx-contactlens" hidden>
+                    <h2>Prescription</h2>
+
+                    <table class="rx-table">
+                        <tr>
+                            <th></th>
+                            <th>Sphere</th>
+                            <th>Cylinder</th>
+                            <th>Axis</th>
+                        </tr>
+                        <tr>
+                            <td class="rx-label">Rt Eye</td>
+                            <td><input type="text" id="cl-od-sphere" placeholder="—"></td>
+                            <td><input type="text" id="cl-od-cylinder" placeholder="—"></td>
+                            <td><input type="text" id="cl-od-axis" placeholder="—"></td>
+                        </tr>
+                        <tr>
+                            <td class="rx-label">Lt Eye</td>
+                            <td><input type="text" id="cl-os-sphere" placeholder="—"></td>
+                            <td><input type="text" id="cl-os-cylinder" placeholder="—"></td>
+                            <td><input type="text" id="cl-os-axis" placeholder="—"></td>
+                        </tr>
+                    </table>
+
+                    <div class="grid-2" style="margin-bottom:16px">
+                        <div>
+                            <label class="field-label" for="cl-base-curve">Base Curve</label>
+                            <input type="text" id="cl-base-curve" placeholder="e.g. 8.6">
+                        </div>
+                        <div>
+                            <label class="field-label" for="cl-diameter">Diameter</label>
+                            <input type="text" id="cl-diameter" placeholder="e.g. 14.2">
+                        </div>
+                    </div>
+
+                    <div class="grid-2">
+                        <div>
+                            <label class="field-label" for="cl-additional-info">Additional Information</label>
+                            <input type="text" id="cl-additional-info" placeholder="—">
+                        </div>
+                        <div>
+                            <label class="field-label" for="cl-prescribed-by">Prescribed By</label>
+                            <input type="text" id="cl-prescribed-by" placeholder="Dr. Name">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PURCHASE: EYEWEAR -->
+                <div class="card" id="purchase-eyewear">
                     <h2>Purchase</h2>
 
                     <div style="margin-bottom:16px">
@@ -364,6 +420,38 @@
                             <option>WhatsApp</option>
                             <option>Online</option>
                         </select>
+                    </div>
+                </div>
+
+                <!-- PURCHASE: CONTACT LENS -->
+                <div class="card" id="purchase-contactlens" hidden>
+                    <h2>Purchase</h2>
+
+                    <div class="grid-2" style="margin-bottom:16px">
+                        <div>
+                            <label class="field-label" for="cl-brand">Brand</label>
+                            <input type="text" id="cl-brand" placeholder="e.g. Acuvue Oasys">
+                        </div>
+                        <div>
+                            <label class="field-label" for="cl-color">Color</label>
+                            <input type="text" id="cl-color" placeholder="e.g. Hazel, or leave blank if clear">
+                        </div>
+                    </div>
+
+                    <div class="grid-2" style="margin-bottom:16px">
+                        <div>
+                            <label class="field-label" for="cl-amount">Amount (₹)</label>
+                            <input type="number" id="cl-amount" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="field-label" for="cl-channel">Channel</label>
+                            <select id="cl-channel">
+                                <option>In-store</option>
+                                <option>Phone</option>
+                                <option>WhatsApp</option>
+                                <option>Online</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
@@ -446,24 +534,69 @@
         return phone.slice(0, phone.length - 5) + 'XXXXX';
     }
 
-    // One shared list of {input id -> visits column} pairs, so saving,
-    // clearing, and pre-filling the form all stay in sync with a single
-    // source of truth instead of three separate hand-written lists.
-    const VISIT_FIELDS = [
+    // Two separate {input id -> visits column} lists — eyewear and
+    // contact lens are different enough (different Rx shape, brand +
+    // color vs frame + lens) that sharing one field set would mean
+    // hidden inputs silently overwriting the visible ones' data. Both
+    // share the same `amount`/`channel` database columns even though
+    // each mode has its own input for them, since only one mode's
+    // inputs are ever visible/relevant when a visit is saved.
+    let purchaseType = 'Spectacles';
+
+    const EYEWEAR_FIELDS = [
         ['od-sphere', 'od_sphere'], ['od-cylinder', 'od_cylinder'], ['od-axis', 'od_axis'],
         ['od-prism', 'od_prism'], ['od-base', 'od_base'],
         ['os-sphere', 'os_sphere'], ['os-cylinder', 'os_cylinder'], ['os-axis', 'os_axis'],
         ['os-prism', 'os_prism'], ['os-base', 'os_base'],
         ['add-od-sphere', 'add_od_sphere'], ['add-os-sphere', 'add_os_sphere'],
         ['additional-info', 'additional_information'], ['prescribed-by', 'prescribed_by'],
-        ['frame', 'frame'], ['lens', 'lens'], ['amount', 'amount'], ['channel', 'channel'],
+        ['frame', 'frame'], ['lens', 'lens'], ['amount', 'amount'], ['channel', 'channel']
+    ];
+    const CONTACT_LENS_FIELDS = [
+        ['cl-od-sphere', 'od_sphere'], ['cl-od-cylinder', 'od_cylinder'], ['cl-od-axis', 'od_axis'],
+        ['cl-os-sphere', 'os_sphere'], ['cl-os-cylinder', 'os_cylinder'], ['cl-os-axis', 'os_axis'],
+        ['cl-base-curve', 'cl_base_curve'], ['cl-diameter', 'cl_diameter'],
+        ['cl-additional-info', 'additional_information'], ['cl-prescribed-by', 'prescribed_by'],
+        ['cl-brand', 'cl_brand'], ['cl-color', 'cl_color'],
+        ['cl-amount', 'amount'], ['cl-channel', 'channel']
+    ];
+    const SHARED_FIELDS = [
         ['preferences-budget', 'preferences_budget'], ['pitch-next', 'pitch_next_time'],
         ['reminder-date', 'next_reminder_date']
     ];
+    function activeVisitFields() {
+        return (purchaseType === 'Contact Lenses' ? CONTACT_LENS_FIELDS : EYEWEAR_FIELDS).concat(SHARED_FIELDS);
+    }
+
+    function setPurchaseType(type) {
+        purchaseType = type;
+        document.querySelectorAll('#purchase-type-toggle .chip').forEach((c) => {
+            c.classList.toggle('active', c.dataset.type === type);
+        });
+        el('rx-eyewear').hidden = type !== 'Spectacles';
+        el('purchase-eyewear').hidden = type !== 'Spectacles';
+        el('rx-contactlens').hidden = type !== 'Contact Lenses';
+        el('purchase-contactlens').hidden = type !== 'Contact Lenses';
+    }
+
+    document.getElementById('purchase-type-toggle').addEventListener('click', async (e) => {
+        const chip = e.target.closest('.chip');
+        if (!chip) return;
+        setPurchaseType(chip.dataset.type);
+        // Re-pull this customer's last visit OF THIS TYPE — this is the
+        // whole point: staff often remember a returning customer's
+        // contact lens brand but not the exact color, and this recalls
+        // it automatically instead of asking the customer.
+        if (selectedCustomer) {
+            const latestVisit = await loadLatestVisit(selectedCustomer.id, purchaseType);
+            populateVisitForm(latestVisit);
+        }
+    });
 
     function resetVisitForm() {
-        VISIT_FIELDS.forEach(([inputId]) => { el(inputId).value = ''; });
+        EYEWEAR_FIELDS.concat(CONTACT_LENS_FIELDS, SHARED_FIELDS).forEach(([inputId]) => { el(inputId).value = ''; });
         el('channel').value = 'In-store';
+        el('cl-channel').value = 'In-store';
         selectedReminder = 'Eye test';
         document.querySelectorAll('#reminder-chips .chip').forEach(c => c.classList.remove('active'));
         document.querySelector('#reminder-chips .chip[data-value="Eye test"]').classList.add('active');
@@ -472,7 +605,7 @@
     function populateVisitForm(visit) {
         resetVisitForm();
         if (!visit) return;
-        VISIT_FIELDS.forEach(([inputId, column]) => {
+        activeVisitFields().forEach(([inputId, column]) => {
             if (visit[column] !== null && visit[column] !== undefined) {
                 el(inputId).value = visit[column];
             }
@@ -485,11 +618,17 @@
         }
     }
 
-    async function loadLatestVisit(customerId) {
+    // Fetches this customer's most recent visit OF A SPECIFIC TYPE —
+    // not just their most recent visit overall — so switching to the
+    // Contact Lens tab recalls their last contact lens purchase (brand,
+    // color, base curve) even if their most recent visit was for
+    // eyewear, and vice versa.
+    async function loadLatestVisit(customerId, productType) {
         const { data, error } = await supabase
             .from('visits')
             .select('*')
             .eq('customer_id', customerId)
+            .eq('product_type', productType)
             .order('created_at', { ascending: false })
             .limit(1);
         if (error) {
@@ -506,7 +645,7 @@
     // creating a brand-new customer (there is no history, and doing
     // this would wipe out anything staff already typed into the form
     // before saving the new customer — that was the bug reported).
-    async function selectCustomer(c, { isNew, fetchHistory }) {
+    async function selectCustomer(c, { isNew, fetchHistory, resetType = true }) {
         selectedCustomer = c;
         el('new-customer-form').hidden = true;
         resultsEl.innerHTML = '';
@@ -525,8 +664,13 @@
         row.addEventListener('click', () => selectCustomer(c, { isNew: false, fetchHistory: true }));
         resultsEl.appendChild(row);
 
+        // Skip the reset when auto-creating a customer mid-save (see the
+        // save-visit-btn handler) — staff may have already picked Contact
+        // Lens and filled in brand/color before realizing they hadn't
+        // saved the customer yet; resetting here would silently wipe it.
+        if (resetType) setPurchaseType('Spectacles');
         if (fetchHistory) {
-            const latestVisit = await loadLatestVisit(c.id);
+            const latestVisit = await loadLatestVisit(c.id, purchaseType);
             populateVisitForm(latestVisit);
         }
     }
@@ -538,6 +682,7 @@
         el('nc-phone').value = phone;
         el('nc-name').value = '';
         el('nc-name').focus();
+        setPurchaseType('Spectacles');
         resetVisitForm();
     }
 
@@ -671,7 +816,7 @@
                 setStatus(result.error, true);
                 return;
             }
-            selectCustomer(result.customer, { isNew: true, fetchHistory: false });
+            selectCustomer(result.customer, { isNew: true, fetchHistory: false, resetType: false });
         }
 
         if (!selectedCustomer) {
@@ -679,8 +824,8 @@
             return;
         }
 
-        const visit = { customer_id: selectedCustomer.id, reminder_for: selectedReminder };
-        VISIT_FIELDS.forEach(([inputId, column]) => {
+        const visit = { customer_id: selectedCustomer.id, reminder_for: selectedReminder, product_type: purchaseType };
+        activeVisitFields().forEach(([inputId, column]) => {
             visit[column] = el(inputId).value || null;
         });
         if (visit.amount !== null) visit.amount = Number(visit.amount);
@@ -708,7 +853,8 @@
             }
         }
 
-        const message = `Hi ${selectedCustomer.name}, thanks for visiting MK Optics! We've recorded your purchase (${visit.frame || 'your order'}). We'll remind you about your ${selectedReminder.toLowerCase()} around ${visit.next_reminder_date || 'your next visit'}.`;
+        const purchaseDescription = visit.frame || (visit.cl_brand ? `${visit.cl_brand}${visit.cl_color ? ' (' + visit.cl_color + ')' : ''}` : null) || 'your order';
+        const message = `Hi ${selectedCustomer.name}, thanks for visiting MK Optics! We've recorded your purchase (${purchaseDescription}). We'll remind you about your ${selectedReminder.toLowerCase()} around ${visit.next_reminder_date || 'your next visit'}.`;
         const link = buildWhatsAppLink(selectedCustomer.phone, message);
         setStatus('Visit saved. Opening WhatsApp confirmation…', false);
         window.open(link, '_blank');
