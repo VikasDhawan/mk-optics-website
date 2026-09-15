@@ -665,13 +665,7 @@
             return;
         }
         const providerLabel = data.provider === 'groq' ? 'via Groq (Gemini limit reached today)' : 'via Gemini';
-        // TEMPORARY: show raw diagnostics beneath the answer while we
-        // track down why the response keeps coming back short — remove
-        // this block once the underlying issue is confirmed fixed.
-        const debugHtml = data.debug
-            ? `<div style="margin-top:10px;padding-top:8px;border-top:1px dashed #c9a8f0;font-size:11px;color:#6b2fb3;font-family:monospace;white-space:pre-wrap">VERSION: ${escapeHtml(data.VERSION || '?')}\nDEBUG: ${escapeHtml(JSON.stringify(data.debug))}</div>`
-            : '';
-        box.innerHTML = `<span class="ai-label">✨ AI-generated — ${providerLabel}</span>${formatAiInsight(data.insight)}${debugHtml}`;
+        box.innerHTML = `<span class="ai-label">✨ AI-generated — ${providerLabel}</span>${formatAiInsight(data.insight)}`;
     });
 
     el('detail-high-value').addEventListener('change', async (e) => {
