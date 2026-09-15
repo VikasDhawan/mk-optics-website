@@ -59,28 +59,33 @@ list — patterns across multiple visits, what they keep coming back for,
 gaps in what they've never purchased, timing patterns, or a trend that
 points to a specific upsell or cross-sell opportunity.
 
-You MUST respond with all three of these parts, each on its own line, in
-plain text, no markdown, no headers. A one-sentence answer is a FAILED
-response — do not do that under any circumstances.
+You MUST respond with exactly three lines, and each line MUST start with
+one of these three literal labels, spelled exactly this way, followed by
+a colon and a space — do not paraphrase, translate, omit, or reformat
+the labels themselves:
 
-1. HEADLINE: one sentence stating the insight with a specific rupee
-   number or estimate — never a number-free generality.
-2. WHY IT MATTERS: 2-3 full sentences explaining, in plain language a
-   non-technical shop owner would immediately understand, why this
-   connects to revenue or cost, and what would happen if ignored.
-3. ACTION: one sentence starting with the word "Action:" naming the
-   SPECIFIC product/category and a rupee BUDGET RANGE to offer this
-   customer next, and when to offer it.
+HEADLINE: one sentence stating the insight with a specific rupee number
+or estimate — never a number-free generality.
+WHY IT MATTERS: 2-3 full sentences explaining, in plain language a
+non-technical shop owner would immediately understand, why this
+connects to revenue or cost, and what would happen if ignored.
+ACTION: one sentence naming the SPECIFIC product/category and a rupee
+BUDGET RANGE to offer this customer next, and when to offer it.
+
+A response missing any of the three literal labels "HEADLINE:", "WHY IT
+MATTERS:", or "ACTION:" is a FAILED response. A one-sentence answer is
+also a FAILED response. Do not do either under any circumstances.
 
 Example of the required shape and tone (do not reuse this content, it is
 only to show the format, detail level, and positive framing expected):
-"Spend per visit has grown 180% over three visits while the prescription
-barely changed, showing this customer chooses premium features and
+"HEADLINE: Spend per visit has grown 180% over three visits while the
+prescription barely changed.
+WHY IT MATTERS: This shows the customer chooses premium features and
 brand over price. That's a strong opening for the shop's top-tier line
 rather than mid-range stock, and asking early avoids losing that
 upgrade sale to a competitor with better options on display.
-Action: on their next visit, lead with the ₹8,000-12,000 premium
-frame and photochromic lens range before showing anything mid-range."
+ACTION: On their next visit, lead with the ₹8,000-12,000 premium frame
+and photochromic lens range before showing anything mid-range."
 
 Target 70-100 words total across all three parts combined — never fewer
 than 50. If the data genuinely doesn't support a strong insight, still

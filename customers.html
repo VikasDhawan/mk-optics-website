@@ -630,6 +630,23 @@
         if (!remindersError) renderReminders(reminders || []);
     }
 
+    function escapeHtml(s) {
+        const div = document.createElement('div');
+        div.textContent = s;
+        return div.innerHTML;
+    }
+
+    // The AI's response is external content, not our own markup — always
+    // escape it before inserting, then bold the three literal section
+    // labels the prompt requires ("HEADLINE:", "WHY IT MATTERS:",
+    // "ACTION:") for readability, each on its own line.
+    function formatAiInsight(text) {
+        const escaped = escapeHtml(text);
+        return escaped
+            .replace(/^(HEADLINE:|WHY IT MATTERS:|ACTION:)/gm, '<strong>$1</strong>')
+            .replace(/\n/g, '<br>');
+    }
+
     el('ask-ai-btn').addEventListener('click', async () => {
         if (!currentCustomer) return;
         const btn = el('ask-ai-btn');
@@ -644,11 +661,11 @@
         btn.textContent = '✨ Ask AI for a deeper read';
 
         if (error || (data && data.error)) {
-            box.innerHTML = `<span class="ai-label">✨ AI-generated</span>${(data && data.error) || error.message}`;
+            box.innerHTML = `<span class="ai-label">✨ AI-generated</span>${escapeHtml((data && data.error) || error.message)}`;
             return;
         }
         const providerLabel = data.provider === 'groq' ? 'via Groq (Gemini limit reached today)' : 'via Gemini';
-        box.innerHTML = `<span class="ai-label">✨ AI-generated — ${providerLabel}</span>${data.insight}`;
+        box.innerHTML = `<span class="ai-label">✨ AI-generated — ${providerLabel}</span>${formatAiInsight(data.insight)}`;
     });
 
     el('detail-high-value').addEventListener('change', async (e) => {
