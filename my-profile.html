@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Profile | MK Optics</title>
+
+<link rel="stylesheet" href="app-shared.css">
+<style>
+    .profile-photo-row {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+    }
+    .profile-photo-preview {
+        width: 84px;
+        height: 84px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: var(--cream);
+        border: 1.5px solid var(--line);
+    }
+    .role-badge {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 3px 9px;
+        border-radius: 20px;
+        display: inline-block;
+    }
+    .role-badge.super_admin { background: #e1d3f3; color: #4a2585; }
+    .role-badge.admin { background: #ffe1a8; color: #7a5200; }
+    .role-badge.employee { background: var(--green-pale); color: var(--green-dark); }
+</style>
+</head>
+<body>
+
+<div id="login-screen" class="login-screen" hidden>
+    <div class="login-card">
+        <div class="sidebar-brand">
+            <svg viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" stroke="#1c7a3e" stroke-width="3"/>
+                <circle cx="36" cy="12" r="10" stroke="#1c7a3e" stroke-width="3"/>
+            </svg>
+            MK OPTICS
+        </div>
+        <h2>Staff Login</h2>
+        <p class="sub">Sign in with the email and password your manager set up for you.</p>
+        <div class="login-field">
+            <label class="field-label" for="login-email">Email</label>
+            <input type="email" id="login-email" placeholder="you@mkoptics.example" autocomplete="username">
+        </div>
+        <div class="login-field">
+            <label class="field-label" for="login-password">Password</label>
+            <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <button class="btn btn-dark" id="login-btn" style="width:100%">Log In</button>
+        <p id="login-error" class="status-msg error" style="margin-top:14px"></p>
+    </div>
+</div>
+
+<div class="app" id="app-root" hidden>
+
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <svg viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" stroke="#6fd66f" stroke-width="3"/>
+                <circle cx="36" cy="12" r="10" stroke="#6fd66f" stroke-width="3"/>
+            </svg>
+            MK OPTICS
+        </div>
+        <nav class="sidebar-nav">
+            <a href="dashboard.html">Dashboard</a>
+            <a href="counter-intake.html">Counter Intake</a>
+            <a href="follow-ups.html">Follow-Ups<span class="nav-badge" id="followups-badge" hidden>0</span></a>
+            <a href="customers.html">Customers</a>
+            <a href="enquiries.html">Enquiries</a>
+            <a href="referrals.html">Referrals</a>
+            <a href="calendar.html">Calendar</a>
+            <span id="nav-ai-settings" hidden><a href="ai-settings.html">AI Setup</a></span>
+            <a href="my-profile.html" class="active">My Profile</a>
+            <span id="nav-admin-settings" hidden><a href="admin-settings.html">Admin Settings</a></span>
+        </nav>
+        <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">☰</button>
+        <div class="sidebar-footer" id="sidebar-footer">
+            <div class="staff-avatar-row">
+                <img class="staff-avatar" id="staff-avatar" alt="" hidden>
+                <div class="staff-email" id="staff-email"></div>
+            </div>
+            <a class="sign-out-link" href="https://vikasdhawan.github.io/mk-optics-website/" target="_blank" rel="noopener">View Website ↗</a>
+            <div class="sign-out-link" id="sign-out-btn">Sign out</div>
+        </div>
+    </aside>
+
+    <main class="main">
+
+        <div class="topbar">
+            <h1>My Profile</h1>
+            <p>Your own login details and photo</p>
+        </div>
+
+        <div class="content">
+
+            <div id="config-banner" class="config-banner" hidden>
+                Supabase isn't configured yet. Copy
+                <code>supabase-config.example.js</code> to <code>supabase-config.js</code>,
+                fill in your project URL and key, and reload this page.
+            </div>
+
+            <div class="card">
+                <h2>Photo</h2>
+                <div class="profile-photo-row">
+                    <img class="profile-photo-preview" id="profile-photo-preview" alt="">
+                    <div>
+                        <input type="file" id="photo-file-input" accept="image/*">
+                        <p class="empty-hint" style="margin-top:8px">JPG or PNG, shown around the app next to your name.</p>
+                    </div>
+                </div>
+                <button class="btn btn-dark" id="upload-photo-btn">Upload Photo</button>
+            </div>
+
+            <div class="card">
+                <h2>Account</h2>
+                <div class="kv-row"><div class="k">Name</div><div id="profile-name">—</div></div>
+                <div class="kv-row"><div class="k">Email</div><div id="profile-email">—</div></div>
+                <div class="kv-row"><div class="k">Role</div><div><span class="role-badge" id="profile-role-badge">—</span></div></div>
+            </div>
+
+            <div id="status-msg" class="status-msg"></div>
+
+        </div>
+    </main>
+</div>
+
+<script src="supabase-config.js" onerror="window.__SUPABASE_CONFIG_MISSING__ = true"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="auth-gate.js"></script>
+<script>
+(function () {
+    const supabase = window.MKAuth.supabase;
+    const el = (id) => document.getElementById(id);
+    const statusEl = el('status-msg');
+    let userId = null;
+
+    function setStatus(message, isError) {
+        statusEl.textContent = message;
+        statusEl.className = 'status-msg ' + (isError ? 'error' : 'ok');
+    }
+
+    function roleLabel(role) {
+        if (role === 'super_admin') return 'Super Admin';
+        if (role === 'admin') return 'Admin';
+        return 'Employee';
+    }
+
+    async function loadProfile() {
+        if (!supabase) return;
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        userId = user.id;
+        el('profile-email').textContent = user.email || '—';
+
+        const { data: profile } = await supabase.from('staff_profiles').select('*').eq('id', userId).maybeSingle();
+        el('profile-name').textContent = (profile && profile.name) || '(not set — ask your admin to add your name)';
+        const role = (profile && profile.role) || 'employee';
+        const badge = el('profile-role-badge');
+        badge.textContent = roleLabel(role);
+        badge.className = 'role-badge ' + role;
+
+        if (profile && profile.photo_url) {
+            el('profile-photo-preview').src = profile.photo_url;
+        } else {
+            el('profile-photo-preview').src = '';
+        }
+    }
+
+    el('photo-file-input').addEventListener('change', () => {
+        const file = el('photo-file-input').files[0];
+        if (!file) return;
+        el('profile-photo-preview').src = URL.createObjectURL(file);
+    });
+
+    el('upload-photo-btn').addEventListener('click', async () => {
+        const file = el('photo-file-input').files[0];
+        if (!file) { setStatus('Choose a photo first.', true); return; }
+        if (!userId) { setStatus('Not signed in.', true); return; }
+
+        const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+        const path = `${userId}.${ext}`;
+
+        setStatus('Uploading…', false);
+        const { error: uploadError } = await supabase.storage.from('avatars').upload(path, file, { upsert: true, cacheControl: '3600' });
+        if (uploadError) { setStatus('Could not upload: ' + uploadError.message, true); return; }
+
+        const { data: publicUrlData } = supabase.storage.from('avatars').getPublicUrl(path);
+        // Cache-bust so the new photo shows immediately everywhere, since
+        // the filename itself doesn't change between uploads.
+        const photoUrl = publicUrlData.publicUrl + '?t=' + Date.now();
+
+        const { error: updateError } = await supabase.from('staff_profiles').update({ photo_url: photoUrl }).eq('id', userId);
+        if (updateError) { setStatus('Could not save photo: ' + updateError.message, true); return; }
+
+        setStatus('Photo updated.', false);
+        el('photo-file-input').value = '';
+        loadProfile();
+
+        const sidebarAvatar = el('staff-avatar');
+        if (sidebarAvatar) { sidebarAvatar.src = photoUrl; sidebarAvatar.hidden = false; }
+    });
+
+    window.MKAuth.ready.then(loadProfile);
+})();
+</script>
+
+</body>
+</html>

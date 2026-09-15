@@ -9,7 +9,7 @@
 <style>
     .stat-grid {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(4, 1fr);
         gap: 16px;
         margin-bottom: 24px;
     }
@@ -19,6 +19,14 @@
         border: 1px solid var(--line);
         border-radius: 10px;
         padding: 20px;
+        display: block;
+        text-decoration: none;
+        transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    a.stat-tile:hover {
+        border-color: var(--green-dark);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        cursor: pointer;
     }
 
     .stat-tile .value {
@@ -34,6 +42,64 @@
         letter-spacing: 0.5px;
         color: var(--grey);
         margin-top: 4px;
+    }
+
+    .charts-grid {
+        display: grid;
+        grid-template-columns: 1.3fr 1fr;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    /* Monthly revenue — single-series magnitude, one sequential hue. */
+    .month-chart {
+        display: flex;
+        align-items: flex-end;
+        gap: 10px;
+        height: 140px;
+        margin-top: 18px;
+    }
+    .month-bar-wrap {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        height: 100%;
+        position: relative;
+    }
+    .month-bar-value {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--navy);
+        margin-bottom: 4px;
+        white-space: nowrap;
+    }
+    .month-bar {
+        width: 100%;
+        max-width: 40px;
+        border-radius: 4px 4px 0 0;
+        background: var(--green-dark);
+    }
+    .month-bar-label {
+        font-size: 11px;
+        color: var(--grey);
+        margin-top: 6px;
+    }
+
+    /* Revenue by category — categorical composition, fixed hue order,
+       never re-cycled or re-ranked by value (bars stay sorted in this
+       same fixed order every time, only their lengths change). */
+    .category-chart { margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .category-row { display: flex; align-items: center; gap: 10px; }
+    .category-swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+    .category-name { font-size: 12px; color: var(--ink); width: 90px; flex-shrink: 0; }
+    .category-bar-track { flex: 1; background: var(--cream); border-radius: 4px; height: 14px; overflow: hidden; }
+    .category-bar-fill { height: 100%; border-radius: 4px; }
+    .category-value { font-size: 12px; font-weight: 700; color: var(--navy); width: 70px; text-align: right; flex-shrink: 0; }
+
+    @media (max-width: 900px) {
+        .charts-grid { grid-template-columns: 1fr; }
     }
 
     .signup-row {
@@ -61,6 +127,8 @@
     @media (max-width: 500px) {
         .stat-grid { grid-template-columns: 1fr; }
     }
+
+    .category-chart .empty-hint, .month-chart .empty-hint { margin: 0; }
 </style>
 </head>
 <body>
@@ -107,11 +175,16 @@
             <a href="enquiries.html">Enquiries</a>
             <a href="referrals.html">Referrals</a>
             <a href="calendar.html">Calendar</a>
-            <a href="ai-settings.html">AI Setup</a>
+            <span id="nav-ai-settings" hidden><a href="ai-settings.html">AI Setup</a></span>
+            <a href="my-profile.html">My Profile</a>
+            <span id="nav-admin-settings" hidden><a href="admin-settings.html">Admin Settings</a></span>
         </nav>
         <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">☰</button>
         <div class="sidebar-footer" id="sidebar-footer">
-            <div class="staff-email" id="staff-email"></div>
+            <div class="staff-avatar-row">
+                <img class="staff-avatar" id="staff-avatar" alt="" hidden>
+                <div class="staff-email" id="staff-email"></div>
+            </div>
             <a class="sign-out-link" href="https://vikasdhawan.github.io/mk-optics-website/" target="_blank" rel="noopener">View Website ↗</a>
             <div class="sign-out-link" id="sign-out-btn">Sign out</div>
         </div>
@@ -133,15 +206,29 @@
             </div>
 
             <div class="stat-grid" id="stat-grid">
-                <div class="stat-tile"><div class="value" id="stat-customers">—</div><div class="label">Total Customers</div></div>
+                <a class="stat-tile" href="customers.html"><div class="value" id="stat-customers">—</div><div class="label">Total Customers</div></a>
                 <div class="stat-tile"><div class="value" id="stat-visits-month">—</div><div class="label">Visits This Month</div></div>
                 <div class="stat-tile"><div class="value" id="stat-revenue-month">—</div><div class="label">Revenue This Month</div></div>
-                <div class="stat-tile"><div class="value" id="stat-followups">—</div><div class="label">Follow-Ups Due</div></div>
-                <div class="stat-tile"><div class="value" id="stat-leads">—</div><div class="label">Open Enquiries</div></div>
-                <div class="stat-tile"><div class="value" id="stat-signups">—</div><div class="label">Pending Rewards Sign-ups</div></div>
+                <div class="stat-tile"><div class="value" id="stat-aov-month">—</div><div class="label">Avg Order Value (Month)</div></div>
+                <a class="stat-tile" href="follow-ups.html"><div class="value" id="stat-followups">—</div><div class="label">Follow-Ups Due</div></a>
+                <a class="stat-tile" href="enquiries.html"><div class="value" id="stat-leads">—</div><div class="label">Open Enquiries</div></a>
+                <a class="stat-tile" href="#signups-card"><div class="value" id="stat-signups">—</div><div class="label">Pending Rewards Sign-ups</div></a>
             </div>
 
-            <div class="card">
+            <div class="charts-grid">
+                <div class="card">
+                    <h2>Monthly Revenue</h2>
+                    <p class="empty-hint" style="margin-top:-6px;margin-bottom:0">Last 6 months, across all purchase types.</p>
+                    <div class="month-chart" id="month-chart"><p class="empty-hint">Loading…</p></div>
+                </div>
+                <div class="card">
+                    <h2>Revenue by Category (Month)</h2>
+                    <p class="empty-hint" style="margin-top:-6px;margin-bottom:0">Eyewear vs. Contact Lens, this calendar month.</p>
+                    <div class="category-chart" id="category-chart"><p class="empty-hint">Loading…</p></div>
+                </div>
+            </div>
+
+            <div class="card" id="signups-card">
                 <h2>Pending Rewards Sign-ups</h2>
                 <p class="empty-hint" style="margin-top:-6px;margin-bottom:14px">
                     Customers who joined via the QR code sign-up page. Add them as a real customer, or dismiss duplicates/spam.
@@ -201,7 +288,91 @@
             el('stat-visits-month').textContent = visits.length;
             const total = visits.reduce((sum, v) => sum + (v.amount || 0), 0);
             el('stat-revenue-month').textContent = '₹' + total.toLocaleString('en-IN');
+            const aov = visits.length ? Math.round(total / visits.length) : 0;
+            el('stat-aov-month').textContent = visits.length ? '₹' + aov.toLocaleString('en-IN') : '—';
         }
+    }
+
+    const CATEGORY_COLORS = { 'Spectacles': '#2a78d6', 'Contact Lenses': '#eb6834' };
+    const CATEGORY_LABELS = { 'Spectacles': 'Eyewear', 'Contact Lenses': 'Contact Lens' };
+
+    function sixMonthStartISO() {
+        const d = new Date();
+        return new Date(d.getFullYear(), d.getMonth() - 5, 1).toISOString().slice(0, 10);
+    }
+
+    function renderMonthChart(visits) {
+        const container = el('month-chart');
+        const now = new Date();
+        const buckets = [];
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            buckets.push({ year: d.getFullYear(), month: d.getMonth(), label: d.toLocaleDateString('en-IN', { month: 'short' }), total: 0 });
+        }
+        visits.forEach((v) => {
+            const d = new Date(v.created_at);
+            const b = buckets.find((x) => x.year === d.getFullYear() && x.month === d.getMonth());
+            if (b) b.total += (v.amount || 0);
+        });
+        const maxTotal = Math.max(1, ...buckets.map((b) => b.total));
+        container.innerHTML = '';
+        buckets.forEach((b) => {
+            const wrap = document.createElement('div');
+            wrap.className = 'month-bar-wrap';
+            const heightPct = Math.max(2, Math.round((b.total / maxTotal) * 100));
+            wrap.innerHTML = `
+                <div class="month-bar-value">${b.total ? '₹' + Math.round(b.total / 1000) + 'k' : ''}</div>
+                <div class="month-bar" style="height:${heightPct}%"></div>
+                <div class="month-bar-label">${b.label}</div>
+            `;
+            container.appendChild(wrap);
+        });
+    }
+
+    function renderCategoryChart(monthVisits) {
+        const container = el('category-chart');
+        const totals = {};
+        monthVisits.forEach((v) => {
+            const type = v.product_type || 'Spectacles';
+            totals[type] = (totals[type] || 0) + (v.amount || 0);
+        });
+        const order = ['Spectacles', 'Contact Lenses'];
+        const grandTotal = order.reduce((sum, t) => sum + (totals[t] || 0), 0);
+        container.innerHTML = '';
+        if (!grandTotal) {
+            container.innerHTML = '<p class="empty-hint">No sales recorded yet this month.</p>';
+            return;
+        }
+        order.forEach((type) => {
+            const value = totals[type] || 0;
+            const pct = Math.round((value / grandTotal) * 100);
+            const row = document.createElement('div');
+            row.className = 'category-row';
+            row.innerHTML = `
+                <div class="category-swatch" style="background:${CATEGORY_COLORS[type]}"></div>
+                <div class="category-name">${CATEGORY_LABELS[type]}</div>
+                <div class="category-bar-track"><div class="category-bar-fill" style="width:${pct}%;background:${CATEGORY_COLORS[type]}"></div></div>
+                <div class="category-value">₹${value.toLocaleString('en-IN')}</div>
+            `;
+            container.appendChild(row);
+        });
+    }
+
+    async function loadCharts() {
+        if (!supabase) return;
+        const { data: visits, error } = await supabase
+            .from('visits')
+            .select('amount, created_at, product_type')
+            .gte('created_at', sixMonthStartISO());
+        if (error) {
+            el('month-chart').innerHTML = '<p class="empty-hint">Could not load chart data.</p>';
+            el('category-chart').innerHTML = '<p class="empty-hint">Could not load chart data.</p>';
+            return;
+        }
+        const all = visits || [];
+        renderMonthChart(all);
+        const monthStart = monthStartISO();
+        renderCategoryChart(all.filter((v) => v.created_at >= monthStart));
     }
 
     function renderSignups(signups) {
@@ -268,7 +439,7 @@
         renderSignups(data || []);
     }
 
-    window.MKAuth.ready.then(() => { loadStats(); loadSignups(); });
+    window.MKAuth.ready.then(() => { loadStats(); loadSignups(); loadCharts(); });
 })();
 </script>
 

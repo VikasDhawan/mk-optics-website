@@ -75,11 +75,16 @@
             <a href="enquiries.html">Enquiries</a>
             <a href="referrals.html">Referrals</a>
             <a href="calendar.html">Calendar</a>
-            <a href="ai-settings.html" class="active">AI Setup</a>
+            <span id="nav-ai-settings" hidden><a href="ai-settings.html" class="active">AI Setup</a></span>
+            <a href="my-profile.html">My Profile</a>
+            <span id="nav-admin-settings" hidden><a href="admin-settings.html">Admin Settings</a></span>
         </nav>
         <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">☰</button>
         <div class="sidebar-footer" id="sidebar-footer">
-            <div class="staff-email" id="staff-email"></div>
+            <div class="staff-avatar-row">
+                <img class="staff-avatar" id="staff-avatar" alt="" hidden>
+                <div class="staff-email" id="staff-email"></div>
+            </div>
             <a class="sign-out-link" href="https://vikasdhawan.github.io/mk-optics-website/" target="_blank" rel="noopener">View Website ↗</a>
             <div class="sign-out-link" id="sign-out-btn">Sign out</div>
         </div>
@@ -100,6 +105,12 @@
                 fill in your project URL and key, and reload this page.
             </div>
 
+            <div id="access-denied" class="card" hidden>
+                <h2>Access Restricted</h2>
+                <p class="empty-hint">AI Setup is only visible to Super Admin.</p>
+            </div>
+
+            <div id="page-content">
             <div class="card">
                 <div id="ai-status" class="ai-status not-connected">Not connected — the Customers page will keep using the free, built-in Quick Insight until you add a key.</div>
 
@@ -146,6 +157,7 @@
             </div>
 
             <div id="status-msg" class="status-msg"></div>
+            </div>
 
         </div>
     </main>
@@ -158,6 +170,13 @@
 (function () {
     const supabase = window.MKAuth.supabase;
     const el = (id) => document.getElementById(id);
+
+    window.MKAuth.roleReady.then((role) => {
+        if (role !== 'super_admin') {
+            el('page-content').hidden = true;
+            el('access-denied').hidden = false;
+        }
+    });
     const statusEl = el('status-msg');
 
     function setStatus(message, isError) {

@@ -82,11 +82,16 @@
             <a href="enquiries.html">Enquiries</a>
             <a href="referrals.html" class="active">Referrals</a>
             <a href="calendar.html">Calendar</a>
-            <a href="ai-settings.html">AI Setup</a>
+            <span id="nav-ai-settings" hidden><a href="ai-settings.html">AI Setup</a></span>
+            <a href="my-profile.html">My Profile</a>
+            <span id="nav-admin-settings" hidden><a href="admin-settings.html">Admin Settings</a></span>
         </nav>
         <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">☰</button>
         <div class="sidebar-footer" id="sidebar-footer">
-            <div class="staff-email" id="staff-email"></div>
+            <div class="staff-avatar-row">
+                <img class="staff-avatar" id="staff-avatar" alt="" hidden>
+                <div class="staff-email" id="staff-email"></div>
+            </div>
             <a class="sign-out-link" href="https://vikasdhawan.github.io/mk-optics-website/" target="_blank" rel="noopener">View Website ↗</a>
             <div class="sign-out-link" id="sign-out-btn">Sign out</div>
         </div>

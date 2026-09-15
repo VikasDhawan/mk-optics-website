@@ -108,6 +108,16 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
+    const { data: appSettings } = await supabaseAdmin
+      .from('app_settings')
+      .select('ai_enabled')
+      .eq('id', true)
+      .maybeSingle();
+
+    if (appSettings && appSettings.ai_enabled === false) {
+      return json({ error: 'The AI Insights feature has been turned off by your store admin.' }, cors);
+    }
+
     const { data: settings, error: settingsError } = await supabaseAdmin
       .from('ai_settings')
       .select('gemini_api_key, groq_api_key')
