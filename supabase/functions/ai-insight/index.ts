@@ -228,16 +228,16 @@ async function callGemini(apiKey: string, userMessage: string, maxTokens: number
         body: JSON.stringify({
           ...(systemPrompt ? { systemInstruction: { parts: [{ text: systemPrompt }] } } : {}),
           contents: [{ parts: [{ text: userMessage }] }],
-          // gemini-2.5-flash spends part of maxOutputTokens on internal
-          // "thinking" before writing the visible answer. A thinkingBudget
-          // is only a guideline, not a hard cap — tried 250 and it still
-          // used far more, crowding out (and this time cutting off mid-
-          // headline) the actual answer. Thinking off (0) is the only way
-          // to reliably guarantee the full token budget goes to visible
-          // text; structure and depth are now enforced entirely by the
-          // prompt itself (explicit 3-part requirement + worked example)
-          // rather than relying on the model "reasoning" its way there.
-          generationConfig: { maxOutputTokens: maxTokens, thinkingConfig: { thinkingBudget: 0 } },
+          // Root cause of every earlier "truncation" was actually the old
+          // response-parsing code only reading parts[0] — Gemini puts its
+          // thinking summary in an earlier part and the real answer in a
+          // later one, so enabling thinking was silently losing the real
+          // answer, not the model running out of room. Now that every
+          // non-thought part is read (see below), thinking can safely be
+          // turned back on — and it needs to be: with thinking fully off,
+          // the model paraphrases the input instead of reasoning through
+          // the required 3-part structure at all.
+          generationConfig: { maxOutputTokens: maxTokens, thinkingConfig: { thinkingBudget: 400 } },
         }),
       }
     );
