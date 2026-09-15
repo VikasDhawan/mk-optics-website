@@ -501,31 +501,35 @@
         color: var(--white);
     }
 
-    .makeover-photo {
-        display: flex;
-        min-height: 480px;
-        border-radius: 14px;
-        overflow: hidden;
+    .makeover-compare {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
         margin-bottom: 44px;
     }
 
-    .makeover-half {
-        flex: 1;
+    .makeover-card {
         position: relative;
-        background-image: url("https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=1200&q=85");
-        background-repeat: no-repeat;
-        background-size: 200% 100%;
-        display: flex;
-        align-items: flex-end;
+        border-radius: 14px;
+        padding: 60px 30px 30px;
+        text-align: center;
     }
 
-    .makeover-before {
-        background-position: left center;
-        filter: grayscale(1) brightness(0.6) contrast(0.95);
+    .makeover-card.before {
+        background: rgba(255,255,255,0.05);
+        border: 1.5px solid rgba(255,255,255,0.18);
     }
 
-    .makeover-after {
-        background-position: right center;
+    .makeover-card.after {
+        background: rgba(111,214,111,0.08);
+        border: 1.5px solid rgba(111,214,111,0.4);
+    }
+
+    .makeover-card svg {
+        width: 120px;
+        height: 60px;
+        margin: 0 auto 30px;
+        display: block;
     }
 
     .makeover-tag {
@@ -548,23 +552,22 @@
     }
 
     .makeover-notes {
-        width: 100%;
-        padding: 24px 20px;
-        background: linear-gradient(to top, rgba(8,27,69,0.9), transparent);
+        text-align: left;
+        display: inline-block;
     }
 
     .makeover-notes div {
-        font-size: 13px;
+        font-size: 14px;
         font-weight: 700;
-        margin-bottom: 6px;
+        margin-bottom: 10px;
     }
 
     .makeover-notes.bad div {
-        color: #ff9d94;
+        color: #b6c3e6;
     }
 
     .makeover-notes.good div {
-        color: #9df5a8;
+        color: var(--white);
     }
 
     .makeover-callout {
@@ -1007,15 +1010,8 @@
             min-height: 260px;
         }
 
-        .makeover-photo {
-            flex-direction: column;
-            min-height: auto;
-        }
-
-        .makeover-half {
-            min-height: 260px;
-            background-size: cover;
-            background-position: center;
+        .makeover-compare {
+            grid-template-columns: 1fr;
         }
 
         .stories-grid,
@@ -1369,10 +1365,17 @@
 
     </div>
 
-    <div class="makeover-photo">
+    <div class="makeover-compare">
 
-        <div class="makeover-half makeover-before">
+        <div class="makeover-card before">
             <span class="makeover-tag">BEFORE</span>
+            <svg viewBox="0 0 96 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="24" cy="26" r="16" stroke="#5a6478" stroke-width="3"/>
+                <circle cx="72" cy="26" r="16" stroke="#5a6478" stroke-width="3"/>
+                <path d="M40 24h16" stroke="#5a6478" stroke-width="3"/>
+                <path d="M8 24c0-5 3-8 6-8" stroke="#5a6478" stroke-width="3"/>
+                <path d="M88 24c0-5-3-8-6-8" stroke="#5a6478" stroke-width="3"/>
+            </svg>
             <div class="makeover-notes bad">
                 <div>✗ Ill-fitting shape</div>
                 <div>✗ Doesn't suit the face</div>
@@ -1380,8 +1383,15 @@
             </div>
         </div>
 
-        <div class="makeover-half makeover-after">
+        <div class="makeover-card after">
             <span class="makeover-tag tag-after">AFTER</span>
+            <svg viewBox="0 0 96 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <rect x="6" y="12" width="36" height="26" rx="7" stroke="#6fd66f" stroke-width="3.5"/>
+                <rect x="54" y="12" width="36" height="26" rx="7" stroke="#6fd66f" stroke-width="3.5"/>
+                <path d="M42 22h12" stroke="#6fd66f" stroke-width="3.5"/>
+                <path d="M6 20c0-6 4-10 8-10" stroke="#6fd66f" stroke-width="3.5"/>
+                <path d="M90 20c0-6-4-10-8-10" stroke="#6fd66f" stroke-width="3.5"/>
+            </svg>
             <div class="makeover-notes good">
                 <div>✓ Right shape for the face</div>
                 <div>✓ Sharper, more confident look</div>
