@@ -81,15 +81,26 @@
     nav {
         display: flex;
         align-items: center;
-        gap: 24px;
+        gap: 26px;
         font-size: 12px;
-        font-weight: 600;
-        letter-spacing: 0.5px;
+        font-weight: 500;
+        letter-spacing: 0.6px;
         flex-wrap: wrap;
     }
 
-    nav a:not(.nav-button) {
+    nav a:not(.nav-button):not(.nav-button-ghost) {
         color: #cdd9f5;
+        transition: color 0.15s ease;
+    }
+
+    nav a:not(.nav-button):not(.nav-button-ghost):hover {
+        color: var(--green);
+    }
+
+    .nav-ctas {
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
     .nav-button {
@@ -98,6 +109,19 @@
         padding: 12px 20px;
         border-radius: 6px;
         font-weight: 700;
+    }
+
+    .nav-button-ghost {
+        border: 1.5px solid rgba(255,255,255,0.4);
+        color: var(--white);
+        padding: 10.5px 18px;
+        border-radius: 6px;
+        font-weight: 700;
+    }
+
+    .nav-button-ghost:hover {
+        border-color: var(--green);
+        color: var(--green);
     }
 
     .site-menu-btn {
@@ -815,6 +839,13 @@
             display: block;
         }
 
+        nav.menu-open .nav-ctas {
+            flex-direction: column;
+            width: 100%;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
         nav {
             gap: 0;
             width: auto;
@@ -839,7 +870,7 @@
             order: 1;
         }
 
-        .nav-button { order: 0; }
+        .nav-ctas { order: 0; }
 
         .hero,
         .personality,
@@ -934,12 +965,16 @@
         <a href="#stories">STORIES</a>
         <a href="#ask">ASK US</a>
         <a href="#visit">VISIT US</a>
-        <a href="rewards-signup.html">JOIN REWARDS</a>
-        <a href="counter-intake.html">STAFF LOGIN</a>
 
-        <a href="book-appointment.html" class="nav-button">
-            BOOK AN EYE TEST
-        </a>
+        <div class="nav-ctas">
+            <a href="rewards-signup.html" class="nav-button-ghost">
+                REWARDS
+            </a>
+
+            <a href="book-appointment.html" class="nav-button">
+                BOOK AN EYE TEST
+            </a>
+        </div>
 
         <button class="site-menu-btn" id="site-menu-btn" aria-label="Menu">☰</button>
     </nav>
@@ -1535,6 +1570,10 @@
 
     <div>
         See yourself differently.
+    </div>
+
+    <div>
+        <a href="counter-intake.html" style="color: inherit; opacity: 0.7;">Staff Login</a>
     </div>
 
 </footer>
