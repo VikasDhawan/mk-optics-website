@@ -21,6 +21,14 @@ Website prototype for M&K Optics
   sign-ups — add each as a real customer, or dismiss duplicates/spam.
 - `counter-intake.html` — look up or add a customer by mobile number,
   capture prescription + purchase, save, and send a WhatsApp confirmation.
+  A toggle at the top switches between **Eyewear** and **Contact Lens**
+  purchases — each has its own prescription shape (contact lenses drop
+  Prism/Base and add Base Curve/Diameter) and purchase fields (Frame +
+  Lens vs Brand + Color). Re-opening a customer, or just switching the
+  toggle, pre-fills their *last purchase of that specific type* — the
+  point being a returning contact lens customer's brand and exact color
+  are recalled automatically, since staff often remember the brand but
+  not the exact shade.
 - `follow-ups.html` — every reminder due today or overdue, with a
   one-tap WhatsApp message and "Mark Done." Also has a "New Appointment
   Requests" queue (online bookings) — "Add to Follow-Ups" finds/creates
@@ -35,11 +43,15 @@ Website prototype for M&K Optics
   next action — all free, computed instantly in the browser from that
   customer's own numbers, no external service involved. Below it, an
   **"Ask AI for a deeper read"** button (only does anything once a key
-  is added on the AI Setup page) sends that same history to Claude via
-  the `ai-insight` Edge Function with a pre-written, sales-focused
-  prompt, and returns a genuinely generated (not templated) insight —
-  useful for reading the free-text staff notes across visits, which
-  the free Quick Insight can't do.
+  is added on the AI Setup page) sends that same history to Gemini (or
+  Groq as an automatic fallback) via the `ai-insight` Edge Function
+  with a pre-written, sales-focused prompt, and returns a genuinely
+  generated (not templated) insight — useful for reading the free-text
+  staff notes across visits, which the free Quick Insight can't do.
+  Purchase & Prescription History below that is split into two tabs,
+  **Eyewear** and **Contact Lens** — a fundamentally different kind of
+  purchase (brand/color instead of frame/lens, a different
+  prescription shape), so they're never mixed into one list.
 - `ai-settings.html` — add your own free-tier Google Gemini API key (and
   optionally a Groq key as an automatic backup) to turn on the "Ask AI"
   feature above. Bring-your-own-key: both keys live only in this shop's
@@ -120,7 +132,11 @@ is enough).
     Connection." Optionally also add a free Groq key from
     console.groq.com/keys as an automatic backup. Skip this step
     entirely and the app works exactly as before.
-12. Open `counter-intake.html` (or any staff page) in a browser, or serve
+12. SQL Editor → run `supabase-migration-008-contact-lens.sql`. Adds
+    contact-lens-specific columns (brand, color, base curve, diameter)
+    to `visits`, needed for the Contact Lens purchase type on Counter
+    Intake and its tab on the Customers page.
+13. Open `counter-intake.html` (or any staff page) in a browser, or serve
     the folder with any static file server. Sign in with the account from
     step 4.
 

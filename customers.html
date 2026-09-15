@@ -139,6 +139,27 @@
         color: var(--grey);
     }
 
+    .history-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 14px;
+    }
+    .history-tab {
+        padding: 8px 16px;
+        border-radius: 20px;
+        border: 1.5px solid var(--line);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        background: var(--white);
+        color: var(--ink);
+    }
+    .history-tab.active {
+        background: var(--navy);
+        color: var(--white);
+        border-color: var(--navy);
+    }
+
     .toggle-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 
     .story-card {
@@ -380,7 +401,12 @@
 
                     <div class="detail-section">
                         <h3>Purchase &amp; Prescription History</h3>
-                        <div id="detail-history" style="overflow-x:auto"><p class="empty-hint">Loading…</p></div>
+                        <div class="history-tabs" id="history-tabs">
+                            <button class="history-tab active" data-tab="eyewear">👓 Eyewear</button>
+                            <button class="history-tab" data-tab="contactlens">👁️ Contact Lens</button>
+                        </div>
+                        <div id="detail-history-eyewear" style="overflow-x:auto"><p class="empty-hint">Loading…</p></div>
+                        <div id="detail-history-contactlens" style="overflow-x:auto" hidden><p class="empty-hint">Loading…</p></div>
                     </div>
                 </div>
 
@@ -471,9 +497,9 @@
     }
 
     // Full Sphere/Cylinder/Axis/Prism/Base x Rt Eye/Lt Eye grid for one
-    // visit — same layout as Counter Intake's prescription table, just
-    // read-only, so staff see the exact prescription that was recorded,
-    // not just a compact summary line.
+    // eyewear visit — same layout as Counter Intake's prescription
+    // table, just read-only, so staff see the exact prescription that
+    // was recorded, not just a compact summary line.
     function rxDetailTable(v) {
         if (!hasAnyRx(v)) return '';
         const cell = (val) => val || '—';
@@ -493,28 +519,74 @@
         `;
     }
 
-    // One card per visit: the plain-text summary (date, frame, lens,
-    // amount, notes) immediately followed by that same visit's full
-    // prescription grid — kept together so staff read them as one
-    // record, not two separate lists to cross-reference by date.
-    function renderHistory(visits) {
-        const container = el('detail-history');
+    // Sphere/Cylinder/Axis x Rt Eye/Lt Eye for a contact lens visit —
+    // same power fields, but no Prism/Base (not applicable to contact
+    // lenses) and Base Curve/Diameter shown separately since those are
+    // usually the same for both eyes.
+    function clRxDetailTable(v) {
+        if (!hasAnyRx(v) && !v.cl_base_curve && !v.cl_diameter) return '';
+        const cell = (val) => val || '—';
+        return `
+            <table class="rx-detail-table">
+                <tr><th></th><th>Sphere</th><th>Cylinder</th><th>Axis</th></tr>
+                <tr>
+                    <td class="rx-label">Rt Eye</td>
+                    <td>${cell(v.od_sphere)}</td><td>${cell(v.od_cylinder)}</td><td>${cell(v.od_axis)}</td>
+                </tr>
+                <tr>
+                    <td class="rx-label">Lt Eye</td>
+                    <td>${cell(v.os_sphere)}</td><td>${cell(v.os_cylinder)}</td><td>${cell(v.os_axis)}</td>
+                </tr>
+            </table>
+            ${(v.cl_base_curve || v.cl_diameter) ? `<div class="rx-detail-meta">${v.cl_base_curve ? 'Base Curve ' + escapeHtml(v.cl_base_curve) : ''}${v.cl_base_curve && v.cl_diameter ? ' · ' : ''}${v.cl_diameter ? 'Diameter ' + escapeHtml(v.cl_diameter) : ''}</div>` : ''}
+            ${(v.additional_information || v.prescribed_by) ? `<div class="rx-detail-meta">${v.additional_information ? escapeHtml(v.additional_information) : ''}${v.additional_information && v.prescribed_by ? ' · ' : ''}${v.prescribed_by ? 'Prescribed by ' + escapeHtml(v.prescribed_by) : ''}</div>` : ''}
+        `;
+    }
+
+    // One card per visit: the plain-text summary immediately followed
+    // by that same visit's prescription grid — kept together so staff
+    // read them as one record, not two separate lists to
+    // cross-reference by date. Eyewear and contact lens visits render
+    // slightly differently (frame/lens vs brand/color, and a different
+    // Rx shape) but share this same card structure.
+    function renderVisitCards(visits, isContactLens) {
         if (!visits.length) {
-            container.innerHTML = '<p class="empty-hint">No visits recorded yet.</p>';
-            return;
+            return `<p class="empty-hint">No ${isContactLens ? 'contact lens' : 'eyewear'} purchases recorded yet.</p>`;
         }
-        container.innerHTML = visits.map((v) => `
+        return visits.map((v) => `
             <div class="visit-card">
                 <div class="visit-card-header">
                     <div class="visit-card-date">${(v.created_at || '').slice(0, 10)}</div>
                     <div class="visit-card-amount">${v.amount != null ? '₹' + v.amount : '—'}</div>
                 </div>
-                <div class="visit-card-meta">${v.frame || '—'} · ${v.lens || '—'}</div>
+                <div class="visit-card-meta">${isContactLens
+                    ? `${v.cl_brand || '—'}${v.cl_color ? ' · ' + escapeHtml(v.cl_color) : ''}`
+                    : `${v.frame || '—'} · ${v.lens || '—'}`}</div>
                 ${(v.preferences_budget || v.pitch_next_time) ? `<div class="visit-card-notes">${escapeHtml(v.preferences_budget || v.pitch_next_time)}</div>` : ''}
-                ${hasAnyRx(v) ? `<div class="rx-detail-inline">${rxDetailTable(v)}</div>` : ''}
+                <div class="rx-detail-inline">${isContactLens ? clRxDetailTable(v) : rxDetailTable(v)}</div>
             </div>
         `).join('');
     }
+
+    // Contact lens is its own tab because it's a fundamentally different
+    // purchase — different brand/color, different prescription shape —
+    // from eyewear. Everything that isn't explicitly a contact lens
+    // purchase (spectacles, sunglasses, consumables, or older visits
+    // saved before product_type existed) is treated as Eyewear.
+    function renderHistory(visits) {
+        const eyewearVisits = visits.filter(v => v.product_type !== 'Contact Lenses');
+        const contactLensVisits = visits.filter(v => v.product_type === 'Contact Lenses');
+        el('detail-history-eyewear').innerHTML = renderVisitCards(eyewearVisits, false);
+        el('detail-history-contactlens').innerHTML = renderVisitCards(contactLensVisits, true);
+    }
+
+    document.getElementById('history-tabs').addEventListener('click', (e) => {
+        const btn = e.target.closest('.history-tab');
+        if (!btn) return;
+        document.querySelectorAll('.history-tab').forEach(b => b.classList.toggle('active', b === btn));
+        el('detail-history-eyewear').hidden = btn.dataset.tab !== 'eyewear';
+        el('detail-history-contactlens').hidden = btn.dataset.tab !== 'contactlens';
+    });
 
     // --- AI Insight: one story, not a checklist -----------------------
     // Deliberately simple, rule-based arithmetic on one customer's own
@@ -675,7 +747,11 @@
         el('detail-rewards').checked = !!c.rewards_opted_in;
         el('detail-notes').value = c.general_notes || '';
         el('detail-referred-by').textContent = 'Loading…';
-        el('detail-history').innerHTML = '<p class="empty-hint">Loading…</p>';
+        document.querySelectorAll('.history-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === 'eyewear'));
+        el('detail-history-eyewear').hidden = false;
+        el('detail-history-contactlens').hidden = true;
+        el('detail-history-eyewear').innerHTML = '<p class="empty-hint">Loading…</p>';
+        el('detail-history-contactlens').innerHTML = '<p class="empty-hint">Loading…</p>';
         el('detail-reminders').innerHTML = '<p class="empty-hint">Loading…</p>';
         el('ai-insight-box').hidden = true;
         el('ai-insight-box').innerHTML = '';
@@ -695,7 +771,8 @@
         ]);
 
         if (visitsError) {
-            el('detail-history').innerHTML = '<p class="empty-hint">Could not load history: ' + visitsError.message + '</p>';
+            el('detail-history-eyewear').innerHTML = '<p class="empty-hint">Could not load history: ' + visitsError.message + '</p>';
+            el('detail-history-contactlens').innerHTML = '';
             el('insights-section').hidden = true;
         } else {
             renderHistory(visits || []);
