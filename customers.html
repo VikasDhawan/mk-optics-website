@@ -189,6 +189,8 @@
         line-height: 1.55;
         color: var(--ink);
         white-space: pre-line;
+        max-height: 220px;
+        overflow-y: auto;
     }
     #ai-insight-box .ai-label {
         display: block;
@@ -628,6 +630,23 @@
         if (!remindersError) renderReminders(reminders || []);
     }
 
+    function escapeHtml(s) {
+        const div = document.createElement('div');
+        div.textContent = s;
+        return div.innerHTML;
+    }
+
+    // The AI's response is external content, not our own markup — always
+    // escape it before inserting, then bold the three literal section
+    // labels the prompt requires ("HEADLINE:", "WHY IT MATTERS:",
+    // "ACTION:") for readability, each on its own line.
+    function formatAiInsight(text) {
+        const escaped = escapeHtml(text);
+        return escaped
+            .replace(/^(HEADLINE:|WHY IT MATTERS:|ACTION:)/gm, '<strong>$1</strong>')
+            .replace(/\n/g, '<br>');
+    }
+
     el('ask-ai-btn').addEventListener('click', async () => {
         if (!currentCustomer) return;
         const btn = el('ask-ai-btn');
@@ -642,11 +661,17 @@
         btn.textContent = '✨ Ask AI for a deeper read';
 
         if (error || (data && data.error)) {
-            box.innerHTML = `<span class="ai-label">✨ AI-generated</span>${(data && data.error) || error.message}`;
+            box.innerHTML = `<span class="ai-label">✨ AI-generated</span>${escapeHtml((data && data.error) || error.message)}`;
             return;
         }
         const providerLabel = data.provider === 'groq' ? 'via Groq (Gemini limit reached today)' : 'via Gemini';
-        box.innerHTML = `<span class="ai-label">✨ AI-generated — ${providerLabel}</span>${data.insight}`;
+        // TEMPORARY: show raw diagnostics beneath the answer while we
+        // track down why the response keeps coming back short — remove
+        // this block once the underlying issue is confirmed fixed.
+        const debugHtml = data.debug
+            ? `<div style="margin-top:10px;padding-top:8px;border-top:1px dashed #c9a8f0;font-size:11px;color:#6b2fb3;font-family:monospace;white-space:pre-wrap">VERSION: ${escapeHtml(data.VERSION || '?')}\nDEBUG: ${escapeHtml(JSON.stringify(data.debug))}</div>`
+            : '';
+        box.innerHTML = `<span class="ai-label">✨ AI-generated — ${providerLabel}</span>${formatAiInsight(data.insight)}${debugHtml}`;
     });
 
     el('detail-high-value').addEventListener('change', async (e) => {
