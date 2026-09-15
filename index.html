@@ -504,70 +504,30 @@
     .makeover-compare {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 24px;
-        margin-bottom: 44px;
+        gap: 30px;
+        margin-bottom: 40px;
+        max-width: 900px;
+        margin-left: auto;
+        margin-right: auto;
     }
 
     .makeover-card {
-        position: relative;
-        border-radius: 14px;
-        padding: 60px 30px 30px;
         text-align: center;
     }
 
-    .makeover-card.before {
-        background: rgba(255,255,255,0.05);
-        border: 1.5px solid rgba(255,255,255,0.18);
-    }
-
-    .makeover-card.after {
-        background: rgba(111,214,111,0.08);
-        border: 1.5px solid rgba(111,214,111,0.4);
-    }
-
-    .makeover-card svg {
-        width: 120px;
-        height: 60px;
-        margin: 0 auto 30px;
+    .makeover-card img {
+        width: 100%;
         display: block;
+        border-radius: 14px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+        margin-bottom: 16px;
     }
 
-    .makeover-tag {
-        position: absolute;
-        top: 18px;
-        left: 18px;
-        background: var(--white);
-        color: var(--navy-dark);
-        font-size: 11px;
-        font-weight: 800;
-        letter-spacing: 1.5px;
-        padding: 6px 14px;
-        border-radius: 999px;
-    }
-
-    .makeover-tag.tag-after {
-        left: auto;
-        right: 18px;
-        background: var(--green);
-    }
-
-    .makeover-notes {
-        text-align: left;
-        display: inline-block;
-    }
-
-    .makeover-notes div {
-        font-size: 14px;
-        font-weight: 700;
-        margin-bottom: 10px;
-    }
-
-    .makeover-notes.bad div {
-        color: #b6c3e6;
-    }
-
-    .makeover-notes.good div {
-        color: var(--white);
+    .makeover-caption {
+        font-family: Georgia, serif;
+        font-style: italic;
+        font-size: 16px;
+        color: #cdd9f5;
     }
 
     .makeover-callout {
@@ -586,23 +546,6 @@
     .makeover-callout p {
         color: #cdd9f5;
         margin-bottom: 28px;
-    }
-
-    .makeover-features {
-        display: flex;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 28px;
-        margin-top: 44px;
-        font-size: 12px;
-        letter-spacing: 0.4px;
-        color: #cdd9f5;
-    }
-
-    .makeover-features span {
-        display: flex;
-        align-items: center;
-        gap: 8px;
     }
 
     /* PERSONALITY */
@@ -1350,11 +1293,11 @@
 
         <div>
             <div class="eyebrow">
-                It's not just glasses
+                Two stories, one idea
             </div>
 
             <h2>
-                The right frame is a makeover.
+                The frame you wear becomes the person people see.
             </h2>
         </div>
 
@@ -1367,36 +1310,14 @@
 
     <div class="makeover-compare">
 
-        <div class="makeover-card before">
-            <span class="makeover-tag">BEFORE</span>
-            <svg viewBox="0 0 96 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <circle cx="24" cy="26" r="16" stroke="#5a6478" stroke-width="3"/>
-                <circle cx="72" cy="26" r="16" stroke="#5a6478" stroke-width="3"/>
-                <path d="M40 24h16" stroke="#5a6478" stroke-width="3"/>
-                <path d="M8 24c0-5 3-8 6-8" stroke="#5a6478" stroke-width="3"/>
-                <path d="M88 24c0-5-3-8-6-8" stroke="#5a6478" stroke-width="3"/>
-            </svg>
-            <div class="makeover-notes bad">
-                <div>✗ Ill-fitting shape</div>
-                <div>✗ Doesn't suit the face</div>
-                <div>✗ Fades into the background</div>
-            </div>
+        <div class="makeover-card">
+            <img src="images/makeover-woman.jpg" alt="Before and after: a young woman's look transformed by choosing the right frame shape">
+            <div class="makeover-caption">"I finally look like the confident version of myself."</div>
         </div>
 
-        <div class="makeover-card after">
-            <span class="makeover-tag tag-after">AFTER</span>
-            <svg viewBox="0 0 96 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <rect x="6" y="12" width="36" height="26" rx="7" stroke="#6fd66f" stroke-width="3.5"/>
-                <rect x="54" y="12" width="36" height="26" rx="7" stroke="#6fd66f" stroke-width="3.5"/>
-                <path d="M42 22h12" stroke="#6fd66f" stroke-width="3.5"/>
-                <path d="M6 20c0-6 4-10 8-10" stroke="#6fd66f" stroke-width="3.5"/>
-                <path d="M90 20c0-6-4-10-8-10" stroke="#6fd66f" stroke-width="3.5"/>
-            </svg>
-            <div class="makeover-notes good">
-                <div>✓ Right shape for the face</div>
-                <div>✓ Sharper, more confident look</div>
-                <div>✓ Changes the whole impression</div>
-            </div>
+        <div class="makeover-card">
+            <img src="images/makeover-man.jpg" alt="Before and after: a professional man's look transformed by choosing the right frame shape">
+            <div class="makeover-caption">"I finally look as sharp as I actually am at work."</div>
         </div>
 
     </div>
@@ -1406,18 +1327,13 @@
         <h3>New frames. New energy.</h3>
 
         <p>
-            Same you — just a fresher way for people to see you.
+            Different lives, same shift: the right frame doesn't just
+            correct your vision — it changes how people read you before
+            you've said a word.
         </p>
 
-        <a href="book-appointment.html" class="button dark">SEE YOUR OWN MAKEOVER</a>
+        <a href="book-appointment.html" class="button dark">COME FIND YOUR OWN MAKEOVER</a>
 
-    </div>
-
-    <div class="makeover-features">
-        <span>👓 The right shape for your face</span>
-        <span>😊 Comfortable, all-day fit</span>
-        <span>🧑‍⚕️ Honest, expert advice</span>
-        <span>☀️ UV-ready options</span>
     </div>
 
 </section>
