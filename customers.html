@@ -426,7 +426,7 @@
         const rows = visits.map((v) => `
             <tr>
                 <td>${(v.created_at || '').slice(0, 10)}</td>
-                <td>OD ${rxSummary(v, 'od')}<br>OS ${rxSummary(v, 'os')}</td>
+                <td>Rt Eye ${rxSummary(v, 'od')}<br>Lt Eye ${rxSummary(v, 'os')}</td>
                 <td>${v.frame || '—'}</td>
                 <td>${v.lens || '—'}</td>
                 <td>${v.amount != null ? '₹' + v.amount : '—'}</td>
