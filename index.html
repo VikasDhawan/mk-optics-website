@@ -488,90 +488,16 @@
 
     /* MAKEOVERS */
 
-    .section-block.dark {
-        background: linear-gradient(160deg, var(--navy) 0%, var(--navy-dark) 100%);
-        color: var(--white);
+    .makeover-banner {
+        line-height: 0;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
-    .section-block.dark .section-heading p {
-        color: #cdd9f5;
-    }
-
-    .section-block.dark h2 {
-        color: var(--white);
-    }
-
-    .makeover-hero {
-        display: grid;
-        grid-template-columns: 42% 58%;
-        gap: 50px;
-        align-items: center;
-        margin-bottom: 50px;
-    }
-
-    .makeover-hero-copy h3 {
-        font-family: Georgia, serif;
-        font-size: 36px;
-        line-height: 1.2;
-        margin-bottom: 20px;
-        color: var(--white);
-    }
-
-    .makeover-hero-copy h3 em {
-        font-style: normal;
-        color: var(--green);
-    }
-
-    .makeover-hero-copy p {
-        color: #cdd9f5;
-        font-size: 15px;
-        margin-bottom: 26px;
-        max-width: 420px;
-    }
-
-    .makeover-hero-photo img {
+    .makeover-banner img {
         width: 100%;
+        min-width: 720px;
         display: block;
-        border-radius: 14px;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.35);
-    }
-
-    .makeover-feature-bar {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        border-top: 1px solid rgba(255,255,255,0.15);
-        padding-top: 36px;
-    }
-
-    .makeover-feature {
-        display: flex;
-        align-items: flex-start;
-        gap: 14px;
-        padding: 0 20px;
-        border-left: 1px solid rgba(255,255,255,0.15);
-    }
-
-    .makeover-feature:first-child {
-        border-left: none;
-        padding-left: 0;
-    }
-
-    .makeover-feature .icon {
-        font-size: 22px;
-        flex-shrink: 0;
-    }
-
-    .makeover-feature h4 {
-        font-size: 12px;
-        letter-spacing: 0.6px;
-        color: var(--white);
-        margin-bottom: 4px;
-    }
-
-    .makeover-feature p {
-        font-size: 12px;
-        color: #b6c3e6;
-        margin: 0;
     }
 
     /* PERSONALITY */
@@ -979,27 +905,6 @@
             min-height: 260px;
         }
 
-        .makeover-hero {
-            grid-template-columns: 1fr;
-            gap: 24px;
-            margin-bottom: 44px;
-        }
-
-        .makeover-feature-bar {
-            grid-template-columns: 1fr 1fr;
-            row-gap: 24px;
-        }
-
-        .makeover-feature {
-            border-left: none;
-            padding-left: 0;
-        }
-
-        .makeover-feature:nth-child(even) {
-            border-left: 1px solid rgba(255,255,255,0.15);
-            padding-left: 20px;
-        }
-
         .stories-grid,
         .services {
             grid-template-columns: 1fr;
@@ -1330,80 +1235,11 @@
 
 <!-- MAKEOVERS -->
 
-<section class="section-block dark" id="makeovers">
+<section class="makeover-banner" id="makeovers">
 
-    <div class="section-heading">
-
-        <div>
-            <div class="eyebrow">
-                It's not just glasses
-            </div>
-
-            <h2>
-                The frame you wear becomes the person people see.
-            </h2>
-        </div>
-
-        <p>
-            Same face. Same features. A completely different energy —
-            just from choosing a shape that actually fits you.
-        </p>
-
-    </div>
-
-    <div class="makeover-hero">
-
-        <div class="makeover-hero-copy">
-            <h3>The right frame changes <em>more than your look.</em></h3>
-            <p>
-                Same you. A fresher perspective. The right frame can
-                change how you feel, how you show up, and how the
-                world sees you.
-            </p>
-            <a href="#style-brief" class="button dark">FIND YOUR FRAME →</a>
-        </div>
-
-        <div class="makeover-hero-photo">
-            <img src="images/makeover-woman.jpg" alt="Before and after: a young woman's look transformed by choosing the right frame shape">
-        </div>
-
-    </div>
-
-    <div class="makeover-feature-bar">
-
-        <div class="makeover-feature">
-            <div class="icon">👓</div>
-            <div>
-                <h4>PREMIUM BRANDS</h4>
-                <p>A look for every you</p>
-            </div>
-        </div>
-
-        <div class="makeover-feature">
-            <div class="icon">❤️</div>
-            <div>
-                <h4>EXPERT GUIDANCE</h4>
-                <p>Personalised recommendations</p>
-            </div>
-        </div>
-
-        <div class="makeover-feature">
-            <div class="icon">👁️</div>
-            <div>
-                <h4>COMPREHENSIVE EYE TEST</h4>
-                <p>See the world, more clearly</p>
-            </div>
-        </div>
-
-        <div class="makeover-feature">
-            <div class="icon">🧑‍🤝‍🧑</div>
-            <div>
-                <h4>A BETTER YOU</h4>
-                <p>Because you deserve it</p>
-            </div>
-        </div>
-
-    </div>
+    <a href="book-appointment.html">
+        <img src="images/makeover-hero.jpg" alt="The right frame changes more than your look. Before and after: a young woman's transformation with MK Optics, plus premium brands, expert guidance, comprehensive eye tests, and personal styling.">
+    </a>
 
 </section>
 
