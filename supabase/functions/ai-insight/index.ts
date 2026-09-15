@@ -44,23 +44,40 @@ You will be given one customer's full visit history as JSON — dates,
 prescriptions, frames, lenses, amounts spent, and free-text staff notes.
 
 Your job: find the ONE most useful, non-obvious insight in this data that
-connects directly to increasing revenue or reducing cost for the shop.
+connects directly to increasing revenue or reducing cost for the shop —
+never a purely clinical or descriptive observation with no rupee angle.
 Prioritize things a busy shop owner would NOT notice just by skimming the
 list — patterns across multiple visits, contradictions between what a
 customer says and what they buy, trends in spend or prescription, gaps in
 what they've never purchased, timing patterns, or signals of a customer
 about to leave.
 
-Respond in this exact structure, plain text, no markdown, no headers:
-1. One short headline sentence with a rupee estimate if at all possible.
-2. One paragraph (2-3 sentences max) explaining the insight in plain
-   language a non-technical shop owner would immediately understand.
-3. One concrete, specific action starting with "Action:" that staff could
-   take on this customer's very next visit or contact.
+You MUST respond with all three of these parts, each on its own line, in
+plain text, no markdown, no headers. A one-sentence answer is a FAILED
+response — do not do that under any circumstances.
 
-Keep the whole response under 100 words. Be direct and confident, not
-hedgy. If the data genuinely doesn't support a strong insight, say so
-plainly rather than inventing one.`;
+1. HEADLINE: one sentence stating the insight with a specific rupee
+   number or estimate — never a number-free generality.
+2. WHY IT MATTERS: 2-3 full sentences explaining, in plain language a
+   non-technical shop owner would immediately understand, why this
+   connects to revenue or cost, and what would happen if ignored.
+3. ACTION: one sentence starting with the word "Action:" giving one
+   concrete, specific thing staff should do on this customer's very next
+   visit or contact.
+
+Example of the required shape (do not reuse this content, it is only to
+show the format and level of detail expected):
+"Spend per visit has grown 180% over three visits while the prescription
+barely changed. This customer is paying for premium features and brand,
+not a stronger correction — treating them like a price-sensitive walk-in
+risks losing that upgrade revenue to a competitor who pitches better.
+Action: show the top-tier frame and lens options first on their next
+visit, before anything mid-range."
+
+Target 70-100 words total across all three parts combined — never fewer
+than 50. If the data genuinely doesn't support a strong insight, still
+follow the exact three-part structure and say so plainly within it,
+rather than collapsing into a single sentence.`;
 
 Deno.serve(async (req) => {
   const cors = {
@@ -133,7 +150,7 @@ Deno.serve(async (req) => {
       geminiKey,
       groqKey,
       `Here is the visit history JSON:\n\n${JSON.stringify(payload, null, 2)}`,
-      500, // headroom above the ~100-word target so formatting never truncates the answer
+      900, // covers the 250-token thinking budget plus a full ~100-word, 3-part answer
       SYSTEM_PROMPT
     );
 
@@ -204,12 +221,13 @@ async function callGemini(apiKey: string, userMessage: string, maxTokens: number
           ...(systemPrompt ? { systemInstruction: { parts: [{ text: systemPrompt }] } } : {}),
           contents: [{ parts: [{ text: userMessage }] }],
           // gemini-2.5-flash spends part of maxOutputTokens on internal
-          // "thinking" before writing the visible answer, which silently
-          // truncated real responses mid-sentence. Turning thinking off
-          // (thinkingBudget: 0) means the whole token budget goes to the
-          // actual answer — this is a short, direct-answer prompt with no
-          // need for extended reasoning anyway.
-          generationConfig: { maxOutputTokens: maxTokens, thinkingConfig: { thinkingBudget: 0 } },
+          // "thinking" before writing the visible answer. Fully disabling
+          // it (thinkingBudget: 0) fixed truncation but made the model
+          // ignore the multi-part format and answer in one flat sentence
+          // instead — turns out a little thinking room is what makes it
+          // actually follow structured instructions. A small non-zero
+          // budget plus a bigger overall ceiling gives it room for both.
+          generationConfig: { maxOutputTokens: maxTokens, thinkingConfig: { thinkingBudget: 250 } },
         }),
       }
     );
