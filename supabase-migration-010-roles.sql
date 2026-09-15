@@ -19,12 +19,14 @@ alter table staff_profiles enable row level security;
 -- Every logged-in staff member can read everyone's profile (name/photo/role
 -- are shown around the app — e.g. the "changed by" log, the Admin Settings
 -- staff list — none of it is sensitive).
+drop policy if exists "Staff can read all profiles" on staff_profiles;
 create policy "Staff can read all profiles"
     on staff_profiles for select
     using (auth.role() = 'authenticated');
 
 -- A user may only ever update their own row directly (e.g. uploading their
 -- own photo) — never someone else's.
+drop policy if exists "Staff can update own profile" on staff_profiles;
 create policy "Staff can update own profile"
     on staff_profiles for update
     using (id = auth.uid());
@@ -32,6 +34,7 @@ create policy "Staff can update own profile"
 -- A user may set up their own row on first login, but only as 'employee' —
 -- promotions to admin/super_admin only ever happen via the staff-admin
 -- Edge Function (service-role, bypasses RLS), never from the browser.
+drop policy if exists "Staff can insert own profile as employee" on staff_profiles;
 create policy "Staff can insert own profile as employee"
     on staff_profiles for insert
     with check (id = auth.uid() and role = 'employee');
@@ -66,10 +69,12 @@ insert into storage.buckets (id, name, public)
 values ('avatars', 'avatars', true)
 on conflict (id) do nothing;
 
+drop policy if exists "Anyone can view avatars" on storage.objects;
 create policy "Anyone can view avatars"
     on storage.objects for select
     using (bucket_id = 'avatars');
 
+drop policy if exists "Staff can upload their own avatar" on storage.objects;
 create policy "Staff can upload their own avatar"
     on storage.objects for insert
     with check (
@@ -78,6 +83,7 @@ create policy "Staff can upload their own avatar"
         and (storage.filename(name)) like (auth.uid()::text || '.%')
     );
 
+drop policy if exists "Staff can replace their own avatar" on storage.objects;
 create policy "Staff can replace their own avatar"
     on storage.objects for update
     using (
@@ -86,6 +92,7 @@ create policy "Staff can replace their own avatar"
         and (storage.filename(name)) like (auth.uid()::text || '.%')
     );
 
+drop policy if exists "Staff can delete their own avatar" on storage.objects;
 create policy "Staff can delete their own avatar"
     on storage.objects for delete
     using (

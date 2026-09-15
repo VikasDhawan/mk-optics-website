@@ -16,11 +16,13 @@ insert into app_settings (id) values (true) on conflict (id) do nothing;
 
 alter table app_settings enable row level security;
 
+drop policy if exists "Staff can read app settings" on app_settings;
 create policy "Staff can read app settings"
     on app_settings for select
     using (auth.role() = 'authenticated');
 
 -- Only Admin/Super Admin may flip these switches.
+drop policy if exists "Admins can update app settings" on app_settings;
 create policy "Admins can update app settings"
     on app_settings for update
     using (
@@ -35,6 +37,7 @@ create policy "Admins can update app settings"
 -- sees or edits the actual Gemini/Groq keys.
 drop policy if exists "Logged-in staff can manage AI settings" on ai_settings;
 
+drop policy if exists "Super Admin can read AI settings" on ai_settings;
 create policy "Super Admin can read AI settings"
     on ai_settings for select
     using (
@@ -44,6 +47,7 @@ create policy "Super Admin can read AI settings"
         )
     );
 
+drop policy if exists "Super Admin can write AI settings" on ai_settings;
 create policy "Super Admin can write AI settings"
     on ai_settings for insert
     with check (
@@ -53,6 +57,7 @@ create policy "Super Admin can write AI settings"
         )
     );
 
+drop policy if exists "Super Admin can update AI settings" on ai_settings;
 create policy "Super Admin can update AI settings"
     on ai_settings for update
     using (
