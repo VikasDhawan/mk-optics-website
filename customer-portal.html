@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>My Account | MK Optics</title>
+
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    [hidden] { display: none !important; }
+
+    :root {
+        --navy: #0d2a66;
+        --navy-dark: #081b45;
+        --green: #6fd66f;
+        --green-dark: #1c7a3e;
+        --green-pale: #d9f5da;
+        --cream: #f4f6fb;
+        --white: #ffffff;
+        --ink: #101a33;
+        --grey: #5a6478;
+        --line: #dde3ef;
+    }
+
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        background: var(--cream);
+        min-height: 100vh;
+        color: var(--ink);
+    }
+
+    .config-banner {
+        background: #fff4d6;
+        border-bottom: 1px solid #e8c766;
+        color: #6a4e00;
+        padding: 10px 16px;
+        font-size: 13px;
+        text-align: center;
+    }
+
+    /* ---- Login screen ---- */
+    .login-wrap {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: linear-gradient(160deg, var(--navy) 0%, var(--navy-dark) 100%);
+    }
+    .card {
+        background: #fff;
+        border-radius: 14px;
+        max-width: 420px;
+        width: 100%;
+        padding: 32px 26px;
+    }
+    .brand {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-family: Georgia, serif;
+        font-weight: 700;
+        font-size: 20px;
+        color: var(--navy);
+        margin-bottom: 22px;
+    }
+    h1 { font-family: Georgia, serif; font-size: 22px; color: var(--navy); margin-bottom: 6px; text-align: center; }
+    p.sub { color: var(--grey); font-size: 14px; margin-bottom: 22px; text-align: center; }
+
+    .field { margin-bottom: 14px; text-align: left; }
+    label {
+        display: block;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: var(--grey);
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+    input[type="text"], input[type="tel"], input[type="date"], select, textarea {
+        width: 100%;
+        padding: 13px 14px;
+        border: 1.5px solid var(--line);
+        border-radius: 8px;
+        font-size: 15px;
+        font-family: inherit;
+        background: #fff;
+    }
+    textarea { resize: vertical; min-height: 80px; }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: var(--green-dark); }
+
+    .phone-row { display: flex; gap: 8px; }
+    .phone-row select { flex: 0 0 100px; width: auto; }
+    .phone-row input { flex: 1; min-width: 0; }
+
+    .btn {
+        width: 100%;
+        padding: 14px;
+        border: none;
+        border-radius: 8px;
+        background: var(--green);
+        color: var(--navy-dark);
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+    .btn:hover { background: #5cc95c; }
+    .btn.secondary { background: var(--cream); color: var(--navy); border: 1.5px solid var(--line); }
+    .btn.small { width: auto; padding: 9px 16px; font-size: 13px; }
+    .link-btn {
+        background: none; border: none; color: var(--navy); text-decoration: underline;
+        font-size: 13px; cursor: pointer; margin-top: 12px; display: block; text-align: center; width: 100%;
+    }
+
+    .error-msg { color: #b02a2a; font-size: 13px; margin-top: 10px; text-align: center; }
+    .ok-msg { color: var(--green-dark); font-size: 13px; margin-top: 10px; text-align: center; }
+
+    /* ---- App shell ---- */
+    .app { max-width: 680px; margin: 0 auto; padding-bottom: 60px; }
+    .topbar {
+        background: var(--navy);
+        color: #fff;
+        padding: 18px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .topbar .brand { color: #fff; margin-bottom: 0; justify-content: flex-start; }
+    .topbar .who { font-size: 12px; color: #cdd9f5; }
+    .sign-out { background: none; border: none; color: #cdd9f5; font-size: 12px; text-decoration: underline; cursor: pointer; }
+
+    .tabs {
+        display: flex;
+        overflow-x: auto;
+        background: #fff;
+        border-bottom: 1.5px solid var(--line);
+        position: sticky;
+        top: 0;
+        z-index: 5;
+    }
+    .tab-btn {
+        flex: 0 0 auto;
+        padding: 14px 16px;
+        background: none;
+        border: none;
+        border-bottom: 3px solid transparent;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--grey);
+        cursor: pointer;
+        white-space: nowrap;
+    }
+    .tab-btn.active { color: var(--navy); border-bottom-color: var(--green-dark); }
+
+    .panel { padding: 18px; }
+    .panel h2 { font-family: Georgia, serif; font-size: 19px; color: var(--navy); margin-bottom: 4px; }
+    .panel .hint { color: var(--grey); font-size: 13px; margin-bottom: 16px; }
+
+    .item-card {
+        background: #fff;
+        border: 1.5px solid var(--line);
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin-bottom: 12px;
+    }
+    .item-card .row1 { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+    .item-card .date { font-weight: 700; color: var(--navy); font-size: 14px; }
+    .item-card .amount { font-weight: 700; color: var(--green-dark); font-size: 14px; }
+    .item-card .meta { color: var(--grey); font-size: 13px; margin-top: 4px; }
+    .item-card .rx { font-size: 12px; color: var(--ink); margin-top: 8px; background: var(--cream); border-radius: 6px; padding: 8px 10px; }
+    .status-chip {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 2px 8px;
+        border-radius: 20px;
+        background: var(--green-pale);
+        color: var(--green-dark);
+    }
+    .status-chip.pending, .status-chip.requested, .status-chip.open, .status-chip.new { background: #fff4d6; color: #6a4e00; }
+
+    .empty-hint { color: var(--grey); font-size: 13px; text-align: center; padding: 20px 0; }
+
+    .offer-card { border-left: 4px solid var(--green-dark); }
+    .offer-card h3 { font-size: 15px; color: var(--navy); margin-bottom: 4px; }
+    .offer-card p { font-size: 13px; color: var(--grey); }
+    .offer-card .valid { font-size: 11px; color: var(--green-dark); font-weight: 700; margin-top: 6px; }
+</style>
+</head>
+<body>
+
+<div id="config-banner" class="config-banner" hidden>
+    Supabase isn't configured yet. Copy <code>supabase-config.example.js</code> to
+    <code>supabase-config.js</code>, fill in your project URL and key, and reload this page.
+</div>
+
+<!-- ============== LOGIN ============== -->
+<div id="login-wrap" class="login-wrap">
+  <div class="card">
+    <div class="brand">
+        <svg width="26" height="13" viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="12" cy="12" r="10" stroke="#1c7a3e" stroke-width="3"/>
+            <circle cx="36" cy="12" r="10" stroke="#1c7a3e" stroke-width="3"/>
+        </svg>
+        MK OPTICS
+    </div>
+
+    <!-- Login: mobile number + PIN. No self-registration — ask in store
+         and staff will set up your PIN from the Customers page. -->
+    <div id="step-phone">
+        <h1>My Account</h1>
+        <p class="sub">See your prescriptions, book a visit, order supplies, or send us a message.</p>
+        <div class="field">
+            <label for="phone">Mobile Number</label>
+            <div class="phone-row">
+                <select id="phone-code" aria-label="Country code">
+                    <option value="91" selected>🇮🇳 +91</option>
+                    <option value="971">🇦🇪 +971</option>
+                    <option value="1">🇺🇸 +1</option>
+                    <option value="44">🇬🇧 +44</option>
+                </select>
+                <input type="tel" id="phone" placeholder="98450 12345" autocomplete="username">
+            </div>
+        </div>
+        <div class="field">
+            <label for="pin">PIN</label>
+            <input type="password" id="pin" placeholder="4-6 digit PIN" inputmode="numeric" autocomplete="current-password">
+        </div>
+        <button class="btn" id="login-btn">Sign In</button>
+        <p id="phone-error" class="error-msg"></p>
+        <p class="sub" style="margin-top:16px;margin-bottom:0">First time here? Ask our staff in-store to set up your PIN.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============== APP ============== -->
+<div id="app-root" class="app" hidden>
+
+    <div class="topbar">
+        <div class="brand">
+            <svg width="22" height="11" viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" stroke="#6fd66f" stroke-width="3"/>
+                <circle cx="36" cy="12" r="10" stroke="#6fd66f" stroke-width="3"/>
+            </svg>
+            MK OPTICS
+        </div>
+        <div>
+            <div class="who" id="who-label">—</div>
+            <button class="sign-out" id="sign-out-btn">Sign out</button>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="prescriptions">Prescriptions</button>
+        <button class="tab-btn" data-tab="appointment">Book Appointment</button>
+        <button class="tab-btn" data-tab="orders">Order Supplies</button>
+        <button class="tab-btn" data-tab="complaint">Message Us</button>
+        <button class="tab-btn" data-tab="offers">Offers</button>
+    </div>
+
+    <!-- Prescriptions -->
+    <div class="panel" id="panel-prescriptions">
+        <h2>Your Prescriptions & Visits</h2>
+        <p class="hint">Every visit we've recorded for you, most recent first.</p>
+        <div id="visits-list"><p class="empty-hint">Loading…</p></div>
+    </div>
+
+    <!-- Book appointment -->
+    <div class="panel" id="panel-appointment" hidden>
+        <h2>Book an Eye Test</h2>
+        <p class="hint">We'll confirm by WhatsApp or phone.</p>
+        <div class="field">
+            <label for="appt-date">Preferred Date</label>
+            <input type="date" id="appt-date">
+        </div>
+        <div class="field">
+            <label for="appt-notes">Anything else? (optional)</label>
+            <textarea id="appt-notes" placeholder="e.g. preferred time, specific concern"></textarea>
+        </div>
+        <button class="btn" id="book-appt-btn">Request Appointment</button>
+        <p id="appt-status" class="ok-msg"></p>
+        <h2 style="margin-top:28px">Your Requests</h2>
+        <div id="appt-list"><p class="empty-hint">Loading…</p></div>
+    </div>
+
+    <!-- Order consumables -->
+    <div class="panel" id="panel-orders" hidden>
+        <h2>Order Supplies</h2>
+        <p class="hint">Contact lenses, solution, or anything else you need reordered.</p>
+        <div class="field">
+            <label for="order-item">What do you need?</label>
+            <select id="order-item">
+                <option value="Contact lens solution (usual brand)">Contact lens solution (usual brand)</option>
+                <option value="Contact lenses (same as last order)">Contact lenses (same as last order)</option>
+                <option value="Spectacle case / cleaning kit">Spectacle case / cleaning kit</option>
+                <option value="Other">Other (describe below)</option>
+            </select>
+        </div>
+        <div class="field">
+            <label for="order-notes">Notes (optional)</label>
+            <textarea id="order-notes" placeholder="Quantity, power, or anything else we should know"></textarea>
+        </div>
+        <button class="btn" id="submit-order-btn">Send Request</button>
+        <p id="order-status" class="ok-msg"></p>
+        <h2 style="margin-top:28px">Your Orders</h2>
+        <div id="orders-list"><p class="empty-hint">Loading…</p></div>
+    </div>
+
+    <!-- Complaint -->
+    <div class="panel" id="panel-complaint" hidden>
+        <h2>Message Us</h2>
+        <p class="hint">Write in whatever language is easiest for you — we'll read it and get back to you.</p>
+        <div class="field">
+            <label for="complaint-message">Your message</label>
+            <textarea id="complaint-message" placeholder="e.g. मेरे चश्मे से सिर दर्द हो रहा है"></textarea>
+        </div>
+        <button class="btn" id="submit-complaint-btn">Send</button>
+        <p id="complaint-status" class="ok-msg"></p>
+        <h2 style="margin-top:28px">Your Messages</h2>
+        <div id="complaints-list"><p class="empty-hint">Loading…</p></div>
+    </div>
+
+    <!-- Offers -->
+    <div class="panel" id="panel-offers" hidden>
+        <h2>Current Offers</h2>
+        <p class="hint">Seasonal discounts and offers from MK Optics.</p>
+        <div id="offers-list"><p class="empty-hint">Loading…</p></div>
+    </div>
+
+</div>
+
+<script src="supabase-config.js" onerror="window.__SUPABASE_CONFIG_MISSING__ = true"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+(function () {
+    const cfg = window.SUPABASE_CONFIG;
+    const el = (id) => document.getElementById(id);
+    let supabase = null;
+
+    if (!cfg || !cfg.url || cfg.url.indexOf('YOUR-PROJECT-REF') !== -1) {
+        el('config-banner').hidden = false;
+    } else {
+        // A distinct storageKey keeps a customer's session in its own
+        // browser-storage slot, separate from the staff app's session
+        // (auth-gate.js, default key) — so signing in here never makes
+        // dashboard.html/etc. in the same browser think a staff member
+        // is logged in, and vice versa. The RLS policies in migration
+        // 012 are the actual security boundary either way; this just
+        // keeps the two apps from confusing each other's sessions.
+        supabase = window.supabase.createClient(cfg.url, cfg.anonKey, {
+            auth: { storageKey: 'mk-customer-portal-auth' }
+        });
+    }
+
+    let customer = null;       // the logged-in customer's row
+
+    function escapeHtml(s) {
+        const div = document.createElement('div');
+        div.textContent = s == null ? '' : s;
+        return div.innerHTML;
+    }
+
+    function fmtDate(d) {
+        if (!d) return '';
+        return new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    // A customer's login is their phone digits mapped to an internal
+    // fake address, never a real email — set up in-store by staff via
+    // the Customers page (see customer-portal-admin Edge Function).
+    // Different suffix than staff logins so the two can never collide.
+    function loginEmailFromPhone(digits) {
+        return digits + '@customer.mkoptics.local';
+    }
+
+    // ---------------- Login flow ----------------
+
+    el('login-btn').addEventListener('click', async () => {
+        const errorEl = el('phone-error');
+        errorEl.textContent = '';
+        const digits = el('phone').value.replace(/\D/g, '');
+        const pin = el('pin').value.trim();
+        if (digits.length < 8) { errorEl.textContent = 'Enter a valid mobile number.'; return; }
+        if (!pin) { errorEl.textContent = 'Enter your PIN.'; return; }
+        if (!supabase) { errorEl.textContent = 'Sign-in is temporarily unavailable — please call or WhatsApp us instead.'; return; }
+
+        el('login-btn').textContent = 'Signing In…';
+        const { error } = await supabase.auth.signInWithPassword({ email: loginEmailFromPhone(digits), password: pin });
+        el('login-btn').textContent = 'Sign In';
+        if (error) { errorEl.textContent = 'Mobile number or PIN not recognized — ask our staff to set up your PIN.'; return; }
+
+        await afterLogin();
+    });
+
+    el('pin').addEventListener('keydown', (e) => { if (e.key === 'Enter') el('login-btn').click(); });
+
+    async function afterLogin() {
+        const { data: row, error } = await supabase.from('customers').select('*').eq('auth_user_id', (await supabase.auth.getUser()).data.user.id).maybeSingle();
+        if (error || !row) {
+            el('phone-error').textContent = 'Could not load your account — please try again or contact the store.';
+            await supabase.auth.signOut();
+            return;
+        }
+        customer = row;
+        showApp();
+    }
+
+    el('sign-out-btn').addEventListener('click', async () => {
+        await supabase.auth.signOut();
+        customer = null;
+        el('app-root').hidden = true;
+        el('login-wrap').hidden = false;
+        el('phone').value = '';
+        el('pin').value = '';
+    });
+
+    // ---------------- App shell ----------------
+
+    function showApp() {
+        el('login-wrap').hidden = true;
+        el('app-root').hidden = false;
+        el('who-label').textContent = customer.name + ' · ' + customer.phone;
+        loadVisits();
+        loadAppointments();
+        loadOrders();
+        loadComplaints();
+        loadOffers();
+    }
+
+    document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach((p) => p.hidden = true);
+            btn.classList.add('active');
+            el('panel-' + btn.dataset.tab).hidden = false;
+        });
+    });
+
+    // ---------------- Prescriptions ----------------
+
+    async function loadVisits() {
+        const { data: visits, error } = await supabase
+            .from('visits')
+            .select('*')
+            .eq('customer_id', customer.id)
+            .order('visit_date', { ascending: false });
+
+        const container = el('visits-list');
+        if (error) { container.innerHTML = '<p class="empty-hint">Could not load your visit history.</p>'; return; }
+        if (!visits || !visits.length) { container.innerHTML = '<p class="empty-hint">No visits recorded yet.</p>'; return; }
+
+        container.innerHTML = visits.map((v) => {
+            const od = [v.od_sphere, v.od_cylinder, v.od_axis].filter(Boolean).join(' / ');
+            const os = [v.os_sphere, v.os_cylinder, v.os_axis].filter(Boolean).join(' / ');
+            const rx = (od || os) ? `<div class="rx">${od ? 'Right (OD): ' + escapeHtml(od) : ''}${od && os ? '<br>' : ''}${os ? 'Left (OS): ' + escapeHtml(os) : ''}</div>` : '';
+            return `
+                <div class="item-card">
+                    <div class="row1">
+                        <div class="date">${fmtDate(v.visit_date)}</div>
+                        ${v.amount != null ? `<div class="amount">₹${escapeHtml(String(v.amount))}</div>` : ''}
+                    </div>
+                    <div class="meta">${[v.product_type, v.frame, v.lens].filter(Boolean).map(escapeHtml).join(' · ') || 'Visit recorded'}</div>
+                    ${rx}
+                </div>`;
+        }).join('');
+    }
+
+    // ---------------- Book appointment ----------------
+
+    el('book-appt-btn').addEventListener('click', async () => {
+        const statusEl = el('appt-status');
+        statusEl.className = 'error-msg';
+        const date = el('appt-date').value;
+        const notes = el('appt-notes').value.trim();
+
+        const { error } = await supabase.from('appointment_requests').insert({
+            customer_id: customer.id,
+            name: customer.name,
+            phone: customer.phone,
+            preferred_date: date || null,
+            notes: notes || null,
+        });
+        if (error) { statusEl.textContent = 'Something went wrong — please call or WhatsApp us instead.'; return; }
+
+        statusEl.className = 'ok-msg';
+        statusEl.textContent = 'Request sent — we’ll confirm shortly.';
+        el('appt-date').value = '';
+        el('appt-notes').value = '';
+        loadAppointments();
+    });
+
+    async function loadAppointments() {
+        const { data: reqs, error } = await supabase
+            .from('appointment_requests')
+            .select('*')
+            .eq('customer_id', customer.id)
+            .order('created_at', { ascending: false });
+
+        const container = el('appt-list');
+        if (error) { container.innerHTML = '<p class="empty-hint">Could not load your requests.</p>'; return; }
+        if (!reqs || !reqs.length) { container.innerHTML = '<p class="empty-hint">No requests yet.</p>'; return; }
+
+        container.innerHTML = reqs.map((r) => `
+            <div class="item-card">
+                <div class="row1">
+                    <div class="date">${r.preferred_date ? fmtDate(r.preferred_date) : 'No date given'}</div>
+                    <span class="status-chip ${escapeHtml(r.status)}">${escapeHtml(r.status)}</span>
+                </div>
+                ${r.notes ? `<div class="meta">${escapeHtml(r.notes)}</div>` : ''}
+            </div>`).join('');
+    }
+
+    // ---------------- Order supplies ----------------
+
+    el('submit-order-btn').addEventListener('click', async () => {
+        const statusEl = el('order-status');
+        statusEl.className = 'error-msg';
+        const item = el('order-item').value;
+        const notes = el('order-notes').value.trim();
+
+        const { error } = await supabase.from('consumable_orders').insert({
+            customer_id: customer.id,
+            item,
+            notes: notes || null,
+        });
+        if (error) { statusEl.textContent = 'Something went wrong — please try again or WhatsApp us.'; return; }
+
+        statusEl.className = 'ok-msg';
+        statusEl.textContent = 'Request sent — we’ll be in touch.';
+        el('order-notes').value = '';
+        loadOrders();
+    });
+
+    async function loadOrders() {
+        const { data: orders, error } = await supabase
+            .from('consumable_orders')
+            .select('*')
+            .eq('customer_id', customer.id)
+            .order('created_at', { ascending: false });
+
+        const container = el('orders-list');
+        if (error) { container.innerHTML = '<p class="empty-hint">Could not load your orders.</p>'; return; }
+        if (!orders || !orders.length) { container.innerHTML = '<p class="empty-hint">No orders yet.</p>'; return; }
+
+        container.innerHTML = orders.map((o) => `
+            <div class="item-card">
+                <div class="row1">
+                    <div class="date">${escapeHtml(o.item)}</div>
+                    <span class="status-chip ${escapeHtml(o.status)}">${escapeHtml(o.status)}</span>
+                </div>
+                ${o.notes ? `<div class="meta">${escapeHtml(o.notes)}</div>` : ''}
+            </div>`).join('');
+    }
+
+    // ---------------- Complaint / message ----------------
+
+    el('submit-complaint-btn').addEventListener('click', async () => {
+        const statusEl = el('complaint-status');
+        statusEl.className = 'error-msg';
+        const message = el('complaint-message').value.trim();
+        if (!message) { statusEl.textContent = 'Please write a message first.'; return; }
+
+        const { error } = await supabase.from('complaints').insert({
+            customer_id: customer.id,
+            message,
+        });
+        if (error) { statusEl.textContent = 'Something went wrong — please try again or WhatsApp us.'; return; }
+
+        statusEl.className = 'ok-msg';
+        statusEl.textContent = 'Message sent — we’ll get back to you.';
+        el('complaint-message').value = '';
+        loadComplaints();
+    });
+
+    async function loadComplaints() {
+        const { data: msgs, error } = await supabase
+            .from('complaints')
+            .select('*')
+            .eq('customer_id', customer.id)
+            .order('created_at', { ascending: false });
+
+        const container = el('complaints-list');
+        if (error) { container.innerHTML = '<p class="empty-hint">Could not load your messages.</p>'; return; }
+        if (!msgs || !msgs.length) { container.innerHTML = '<p class="empty-hint">No messages yet.</p>'; return; }
+
+        container.innerHTML = msgs.map((m) => `
+            <div class="item-card">
+                <div class="row1">
+                    <div class="meta">${fmtDate(m.created_at.slice(0, 10))}</div>
+                    <span class="status-chip ${escapeHtml(m.status)}">${escapeHtml(m.status)}</span>
+                </div>
+                <div class="meta" style="color:var(--ink);margin-top:6px">${escapeHtml(m.message)}</div>
+            </div>`).join('');
+    }
+
+    // ---------------- Offers ----------------
+
+    async function loadOffers() {
+        const { data: offers, error } = await supabase
+            .from('offers')
+            .select('*')
+            .eq('active', true)
+            .order('created_at', { ascending: false });
+
+        const container = el('offers-list');
+        if (error) { container.innerHTML = '<p class="empty-hint">Could not load offers.</p>'; return; }
+        if (!offers || !offers.length) { container.innerHTML = '<p class="empty-hint">No current offers — check back soon.</p>'; return; }
+
+        container.innerHTML = offers.map((o) => `
+            <div class="item-card offer-card">
+                <h3>${escapeHtml(o.title)}</h3>
+                ${o.description ? `<p>${escapeHtml(o.description)}</p>` : ''}
+                ${o.valid_until ? `<div class="valid">Valid until ${fmtDate(o.valid_until)}</div>` : ''}
+            </div>`).join('');
+    }
+
+    // Resume an existing session (e.g. page refresh) without re-asking for the PIN.
+    if (supabase) {
+        supabase.auth.getSession().then(async ({ data }) => {
+            if (data.session) await afterLogin();
+        });
+    }
+})();
+</script>
+
+</body>
+</html>
