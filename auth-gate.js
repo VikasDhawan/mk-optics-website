@@ -79,6 +79,13 @@
     // Supabase dashboard before this ever existed) don't have one yet —
     // self-create as the lowest-privilege role ('employee'); promotions
     // only ever happen via the staff-admin Edge Function, never here.
+    //
+    // A customer, logged in via phone OTP from customer-portal.html,
+    // can also reach this same code path if they open a staff page in
+    // the same browser (shared Supabase session storage). Migration 012
+    // makes the self-insert below fail for any phone-OTP session (RLS),
+    // so `created` comes back empty — that must NOT be treated as "ok,
+    // employee anyway," or a customer would see the staff app shell.
     async function loadProfile(userId) {
         let { data: profile } = await supabase.from('staff_profiles').select('*').eq('id', userId).maybeSingle();
         if (!profile) {
@@ -87,7 +94,16 @@
                 .insert({ id: userId, role: 'employee' })
                 .select()
                 .maybeSingle();
-            profile = created || { id: userId, role: 'employee', name: null, photo_url: null };
+            if (!created) {
+                // Not a staff account — sign out of the staff app rather
+                // than rendering it with a fabricated role and no real
+                // data access.
+                showLogin();
+                loginError.textContent = 'This login is not a staff account.';
+                await supabase.auth.signOut();
+                return;
+            }
+            profile = created;
         }
 
         window.MKAuth.role = profile.role;

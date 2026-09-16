@@ -209,7 +209,19 @@ is enough).
     `supabase functions deploy staff-admin`. This is what lets Admin
     Settings actually create staff logins and reset passwords — without
     it, Admin Settings will load but those two actions will fail.
-17. Open `counter-intake.html` (or any staff page) in a browser, or serve
+17. SQL Editor → run `supabase-migration-012-customer-portal.sql`. Adds
+    the customer-facing self-service portal (`customer-portal.html`):
+    prescription/visit history, book an appointment, order supplies, and
+    send a message — reached by scanning the QR code on Admin Settings.
+    This migration also **tightens every "staff-only" policy** added in
+    earlier migrations — they used to just check "is someone logged in,"
+    which stops being safe once customers can log in too — so run it
+    even if you don't plan to use the customer portal yet. Before
+    customers can actually sign in, enable **Phone** auth with an SMS
+    provider (Twilio, MessageBird, etc.) under Supabase Dashboard →
+    Authentication → Providers — this is a separate account you set up
+    yourself, same "bring your own key" shape as the AI keys in step 15.
+18. Open `counter-intake.html` (or any staff page) in a browser, or serve
     the folder with any static file server. Sign in with the account from
     step 4.
 
