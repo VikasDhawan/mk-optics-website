@@ -216,11 +216,15 @@ is enough).
     This migration also **tightens every "staff-only" policy** added in
     earlier migrations — they used to just check "is someone logged in,"
     which stops being safe once customers can log in too — so run it
-    even if you don't plan to use the customer portal yet. Before
-    customers can actually sign in, enable **Phone** auth with an SMS
-    provider (Twilio, MessageBird, etc.) under Supabase Dashboard →
-    Authentication → Providers — this is a separate account you set up
-    yourself, same "bring your own key" shape as the AI keys in step 15.
+    even if you don't plan to use the customer portal yet.
+
+    Customer login is **mobile number + a PIN, no SMS/OTP cost at all**:
+    staff set a customer's PIN in person from the Customers page
+    ("Portal Access"), the same trust model already used for staff
+    logins. Deploy the Edge Function that power sets/resets:
+    `supabase functions deploy customer-portal-admin`. There's no
+    third-party SMS provider to configure — the customer portal works
+    the moment this migration and this function are both in place.
 18. Open `counter-intake.html` (or any staff page) in a browser, or serve
     the folder with any static file server. Sign in with the account from
     step 4.

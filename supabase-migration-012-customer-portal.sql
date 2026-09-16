@@ -3,47 +3,62 @@
 -- =====================================================================
 -- Run this in the SQL Editor after migration 011.
 --
--- Adds customer login (phone number + OTP) and four self-service
--- screens for customers, reached from customer-portal.html:
+-- Adds customer login and four self-service screens for customers,
+-- reached from customer-portal.html:
 --   1. Prescription & visit history — reads the existing `visits` table.
 --   2. Book an appointment — reuses `appointment_requests`, now
 --      linkable to a logged-in customer instead of always anonymous.
 --   3. Order consumables (contact lens, solution, etc.) — new table.
 --   4. Send a complaint, in any language — new table.
--- Plus a small `offers` table so the portal can show current seasonal
--- discounts without needing WhatsApp broadcast/push infrastructure.
+-- Plus a small `offers` table so the portal can show current
+-- seasonal/festive discounts without any push infrastructure.
 --
--- BEFORE THIS WORKS END TO END: enable Phone auth with an SMS provider
--- in Supabase — Dashboard > Authentication > Providers > Phone, then
--- configure a provider (Twilio, MessageBird, Vonage, etc.). Supabase
--- does not send SMS itself; that provider is a separate paid account,
--- same "bring your own key" shape as the Gemini/Groq AI keys. Until
--- it's configured, customers won't receive an OTP code and
--- customer-portal.html will show a message saying so.
+-- LOGIN MODEL — phone + PIN, no SMS cost:
+-- Customer login is phone number + a PIN, same trust model this app
+-- already uses for staff (an admin sets a staff member's password
+-- directly — no SMS, no email verification). Staff set a customer's
+-- PIN in person from the Customers page ("Portal Access"), which calls
+-- the customer-portal-admin Edge Function. There is no self-registration
+-- flow and no SMS/OTP provider needed anywhere in this migration.
+--
+-- A customer's login is stored the same way a staff mobile-number login
+-- is: mapped to an internal fake address (e.g.
+-- "9876543210@customer.mkoptics.local"), never a real email, with a
+-- different suffix than staff logins ("@staff.mkoptics.local") so the
+-- two account types can never collide. `customers.auth_user_id` links a
+-- customer row to their Supabase Auth user once that login exists.
 --
 -- CRITICAL SECURITY FIX included in this migration, not optional:
 -- Every "staff-only" policy added in migration 002 (and 004's
 -- appointment_requests policies) only checked `to authenticated` —
 -- true for ANY logged-in Supabase user. That was safe while only staff
--- could ever hold a session. Now that customers can also authenticate
--- (via phone OTP), those same policies would let a customer read every
--- OTHER customer's full record, prescriptions, and visit history. This
--- migration replaces every one of those checks with "is this user's id
--- present in staff_profiles" via a new is_staff() helper.
+-- could ever hold a session. Now that customers can also authenticate,
+-- those same policies would let a customer read every OTHER customer's
+-- full record, prescriptions, and visit history. This migration
+-- replaces every one of those checks with "is this user's id present
+-- in staff_profiles" via a new is_staff() helper.
 --
 -- SECOND FIX, also not optional: staff_profiles' own "insert own
 -- profile as employee" policy (migration 010) lets any first-time
 -- logged-in user create their own staff_profiles row as 'employee' —
 -- that's how auth-gate.js self-provisions a brand new staff login. A
--- customer authenticated via phone OTP would satisfy that same policy
--- and hand themselves staff-level access. This migration narrows it to
--- sessions with no phone claim (i.e. only ever true for staff, who log
--- in with email/password — never for a phone-OTP customer session).
--- See the matching hardening in auth-gate.js (loadProfile no longer
--- treats a rejected self-insert as "employee anyway").
+-- logged-in customer would satisfy that same policy and hand
+-- themselves staff-level access. This migration narrows it to sessions
+-- that are NOT already linked to a customers row — which every
+-- customer-portal login always is, by construction, since
+-- customer-portal-admin only ever creates a login already linked via
+-- auth_user_id. See the matching hardening in auth-gate.js (a rejected
+-- self-insert is no longer treated as "employee anyway").
 --
 -- Safe to re-run: every policy is dropped before being recreated.
 -- =====================================================================
+
+
+-- ---------------------------------------------------------------------
+-- Link a customer to their portal login, once one exists.
+-- ---------------------------------------------------------------------
+alter table customers add column if not exists auth_user_id uuid references auth.users (id) on delete set null;
+create unique index if not exists customers_auth_user_id_idx on customers (auth_user_id) where auth_user_id is not null;
 
 
 -- ---------------------------------------------------------------------
@@ -63,11 +78,8 @@ $$;
 
 -- ---------------------------------------------------------------------
 -- Helper: the customers.id row belonging to the current logged-in
--- customer, matched by phone number against the verified phone claim
--- Supabase puts on the JWT after OTP login. Digits-only comparison so
--- "+91 98765 43210" and "919876543210" are treated as the same number.
--- Returns null for staff (no phone claim on an email/password session)
--- or anyone with no matching customers row yet.
+-- customer, matched via auth_user_id. Returns null for staff (never
+-- linked from a customers row) or anyone with no portal login yet.
 -- ---------------------------------------------------------------------
 create or replace function public.current_customer_id()
 returns uuid
@@ -76,10 +88,7 @@ stable
 security definer
 set search_path = public
 as $$
-  select id from customers
-  where auth.jwt() ->> 'phone' is not null
-    and regexp_replace(phone, '\D', '', 'g') = regexp_replace(auth.jwt() ->> 'phone', '\D', '', 'g')
-  limit 1;
+  select id from customers where auth_user_id = auth.uid();
 $$;
 
 
@@ -158,47 +167,34 @@ create policy "Staff can read all profiles"
 
 
 -- =====================================================================
--- FIX 2 — a phone-OTP (customer) session may never self-provision a
--- staff_profiles row. Only a session with no phone claim (i.e. a staff
--- email/password login) may still self-create as 'employee'.
+-- FIX 2 — a customer-portal login may never self-provision a
+-- staff_profiles row. Only a session with NO matching customers row
+-- (i.e. a genuine staff email/mobile+password login) may self-create
+-- as 'employee'.
 -- =====================================================================
 
 drop policy if exists "Staff can insert own profile as employee" on staff_profiles;
 create policy "Staff can insert own profile as employee"
   on staff_profiles for insert
-  with check (id = auth.uid() and role = 'employee' and auth.jwt() ->> 'phone' is null);
+  with check (
+    id = auth.uid()
+    and role = 'employee'
+    and not exists (select 1 from customers where auth_user_id = auth.uid())
+  );
 
 
 -- =====================================================================
 -- Customer-facing access: customers may only ever see their OWN row(s),
--- matched via current_customer_id() / phone, never anyone else's.
+-- matched via current_customer_id(), never anyone else's. There is no
+-- customer self-insert policy on `customers` — a customer's row and
+-- their portal login are only ever created together by staff, via the
+-- customer-portal-admin Edge Function (service role, bypasses RLS).
 -- =====================================================================
 
 drop policy if exists "Customer can read own record" on customers;
 create policy "Customer can read own record"
   on customers for select to authenticated
   using (id = public.current_customer_id());
-
--- First login: no customers row exists yet for this phone number, so
--- the portal creates one. The check re-derives the phone from the JWT
--- itself (never trusts a client-supplied phone value) so a customer can
--- only ever create a row for their own verified number.
-drop policy if exists "Customer can create own record" on customers;
-create policy "Customer can create own record"
-  on customers for insert to authenticated
-  with check (
-    auth.jwt() ->> 'phone' is not null
-    and regexp_replace(phone, '\D', '', 'g') = regexp_replace(auth.jwt() ->> 'phone', '\D', '', 'g')
-  );
-
-drop policy if exists "Customer can update own record" on customers;
-create policy "Customer can update own record"
-  on customers for update to authenticated
-  using (id = public.current_customer_id())
-  with check (
-    auth.jwt() ->> 'phone' is not null
-    and regexp_replace(phone, '\D', '', 'g') = regexp_replace(auth.jwt() ->> 'phone', '\D', '', 'g')
-  );
 
 drop policy if exists "Customer can read own visits" on visits;
 create policy "Customer can read own visits"

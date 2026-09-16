@@ -208,10 +208,11 @@
         MK OPTICS
     </div>
 
-    <!-- Step 1: phone number -->
+    <!-- Login: mobile number + PIN. No self-registration — ask in store
+         and staff will set up your PIN from the Customers page. -->
     <div id="step-phone">
         <h1>My Account</h1>
-        <p class="sub">See your prescriptions, book a visit, order supplies, or send us a message — sign in with your mobile number.</p>
+        <p class="sub">See your prescriptions, book a visit, order supplies, or send us a message.</p>
         <div class="field">
             <label for="phone">Mobile Number</label>
             <div class="phone-row">
@@ -221,36 +222,16 @@
                     <option value="1">🇺🇸 +1</option>
                     <option value="44">🇬🇧 +44</option>
                 </select>
-                <input type="tel" id="phone" placeholder="98450 12345" autocomplete="tel">
+                <input type="tel" id="phone" placeholder="98450 12345" autocomplete="username">
             </div>
         </div>
-        <button class="btn" id="send-otp-btn">Send Code</button>
+        <div class="field">
+            <label for="pin">PIN</label>
+            <input type="password" id="pin" placeholder="4-6 digit PIN" inputmode="numeric" autocomplete="current-password">
+        </div>
+        <button class="btn" id="login-btn">Sign In</button>
         <p id="phone-error" class="error-msg"></p>
-    </div>
-
-    <!-- Step 2: OTP -->
-    <div id="step-otp" hidden>
-        <h1>Enter Code</h1>
-        <p class="sub" id="otp-sent-to">We texted a 6-digit code to your number.</p>
-        <div class="field">
-            <label for="otp-code">Code</label>
-            <input type="text" id="otp-code" placeholder="123456" inputmode="numeric" autocomplete="one-time-code">
-        </div>
-        <button class="btn" id="verify-otp-btn">Verify & Continue</button>
-        <button class="link-btn" id="change-number-btn">Use a different number</button>
-        <p id="otp-error" class="error-msg"></p>
-    </div>
-
-    <!-- Step 3: name, first-time only -->
-    <div id="step-name" hidden>
-        <h1>Almost Done</h1>
-        <p class="sub">What should we call you?</p>
-        <div class="field">
-            <label for="customer-name">Your Name</label>
-            <input type="text" id="customer-name" placeholder="Full name">
-        </div>
-        <button class="btn" id="save-name-btn">Continue</button>
-        <p id="name-error" class="error-msg"></p>
+        <p class="sub" style="margin-top:16px;margin-bottom:0">First time here? Ask our staff in-store to set up your PIN.</p>
     </div>
   </div>
 </div>
@@ -374,7 +355,6 @@
         });
     }
 
-    let pendingPhone = null;   // full E.164-ish phone mid-login, e.g. "+919876543210"
     let customer = null;       // the logged-in customer's row
 
     function escapeHtml(s) {
@@ -388,80 +368,53 @@
         return new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
     }
 
+    // A customer's login is their phone digits mapped to an internal
+    // fake address, never a real email — set up in-store by staff via
+    // the Customers page (see customer-portal-admin Edge Function).
+    // Different suffix than staff logins so the two can never collide.
+    function loginEmailFromPhone(digits) {
+        return digits + '@customer.mkoptics.local';
+    }
+
     // ---------------- Login flow ----------------
 
-    el('send-otp-btn').addEventListener('click', async () => {
+    el('login-btn').addEventListener('click', async () => {
         const errorEl = el('phone-error');
         errorEl.textContent = '';
         const digits = el('phone').value.replace(/\D/g, '');
+        const pin = el('pin').value.trim();
         if (digits.length < 8) { errorEl.textContent = 'Enter a valid mobile number.'; return; }
+        if (!pin) { errorEl.textContent = 'Enter your PIN.'; return; }
         if (!supabase) { errorEl.textContent = 'Sign-in is temporarily unavailable — please call or WhatsApp us instead.'; return; }
 
-        pendingPhone = '+' + el('phone-code').value + digits;
-        el('send-otp-btn').textContent = 'Sending…';
-        const { error } = await supabase.auth.signInWithOtp({ phone: pendingPhone });
-        el('send-otp-btn').textContent = 'Send Code';
-        if (error) { errorEl.textContent = error.message; return; }
+        el('login-btn').textContent = 'Signing In…';
+        const { error } = await supabase.auth.signInWithPassword({ email: loginEmailFromPhone(digits), password: pin });
+        el('login-btn').textContent = 'Sign In';
+        if (error) { errorEl.textContent = 'Mobile number or PIN not recognized — ask our staff to set up your PIN.'; return; }
 
-        el('otp-sent-to').textContent = 'We texted a 6-digit code to ' + pendingPhone + '.';
-        el('step-phone').hidden = true;
-        el('step-otp').hidden = false;
-    });
-
-    el('change-number-btn').addEventListener('click', () => {
-        el('step-otp').hidden = true;
-        el('step-phone').hidden = false;
-        el('otp-code').value = '';
-    });
-
-    el('verify-otp-btn').addEventListener('click', async () => {
-        const errorEl = el('otp-error');
-        errorEl.textContent = '';
-        const token = el('otp-code').value.trim();
-        if (!token) { errorEl.textContent = 'Enter the code we sent you.'; return; }
-
-        const { data, error } = await supabase.auth.verifyOtp({ phone: pendingPhone, token, type: 'sms' });
-        if (error) { errorEl.textContent = error.message; return; }
         await afterLogin();
     });
 
-    async function afterLogin() {
-        // Look up (or, first time, create) this customer's own row —
-        // RLS only ever allows a match against their own verified phone.
-        let { data: row } = await supabase.from('customers').select('*').eq('phone', pendingPhone).maybeSingle();
+    el('pin').addEventListener('keydown', (e) => { if (e.key === 'Enter') el('login-btn').click(); });
 
-        if (!row) {
-            el('step-otp').hidden = true;
-            el('step-name').hidden = false;
+    async function afterLogin() {
+        const { data: row, error } = await supabase.from('customers').select('*').eq('auth_user_id', (await supabase.auth.getUser()).data.user.id).maybeSingle();
+        if (error || !row) {
+            el('phone-error').textContent = 'Could not load your account — please try again or contact the store.';
+            await supabase.auth.signOut();
             return;
         }
         customer = row;
         showApp();
     }
 
-    el('save-name-btn').addEventListener('click', async () => {
-        const errorEl = el('name-error');
-        errorEl.textContent = '';
-        const name = el('customer-name').value.trim();
-        if (!name) { errorEl.textContent = 'Please enter your name.'; return; }
-
-        const { data, error } = await supabase.from('customers').insert({ phone: pendingPhone, name }).select().maybeSingle();
-        if (error) { errorEl.textContent = error.message; return; }
-        customer = data;
-        showApp();
-    });
-
     el('sign-out-btn').addEventListener('click', async () => {
         await supabase.auth.signOut();
         customer = null;
-        pendingPhone = null;
         el('app-root').hidden = true;
         el('login-wrap').hidden = false;
-        el('step-phone').hidden = false;
-        el('step-otp').hidden = true;
-        el('step-name').hidden = true;
         el('phone').value = '';
-        el('otp-code').value = '';
+        el('pin').value = '';
     });
 
     // ---------------- App shell ----------------
@@ -664,13 +617,10 @@
             </div>`).join('');
     }
 
-    // Resume an existing session (e.g. page refresh) without re-asking for OTP.
+    // Resume an existing session (e.g. page refresh) without re-asking for the PIN.
     if (supabase) {
         supabase.auth.getSession().then(async ({ data }) => {
-            if (data.session && data.session.user && data.session.user.phone) {
-                pendingPhone = '+' + data.session.user.phone;
-                await afterLogin();
-            }
+            if (data.session) await afterLogin();
         });
     }
 })();
