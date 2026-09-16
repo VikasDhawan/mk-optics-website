@@ -381,9 +381,13 @@
     el('login-btn').addEventListener('click', async () => {
         const errorEl = el('phone-error');
         errorEl.textContent = '';
-        const digits = el('phone').value.replace(/\D/g, '');
+        // The customer's login is keyed on their FULL number including
+        // country code (that's how it's stored everywhere else in this
+        // app — see book-appointment.html), so the dropdown's value must
+        // be included here too, not just the digits typed in the box.
+        const digits = el('phone-code').value + el('phone').value.replace(/\D/g, '');
         const pin = el('pin').value.trim();
-        if (digits.length < 8) { errorEl.textContent = 'Enter a valid mobile number.'; return; }
+        if (digits.length < 10) { errorEl.textContent = 'Enter a valid mobile number.'; return; }
         if (!pin) { errorEl.textContent = 'Enter your PIN.'; return; }
         if (!supabase) { errorEl.textContent = 'Sign-in is temporarily unavailable — please call or WhatsApp us instead.'; return; }
 
