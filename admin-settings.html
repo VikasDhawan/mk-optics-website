@@ -138,6 +138,22 @@
             </div>
 
             <div class="card">
+                <h2>Customer Portal</h2>
+                <p class="empty-hint" style="margin-top:-4px;margin-bottom:12px">
+                    Customers scan this to sign in with their mobile number and see their prescriptions,
+                    book an appointment, order supplies, or message us — print it at the counter or on receipts.
+                </p>
+                <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
+                    <img id="portal-qr" alt="Customer portal QR code" width="160" height="160" style="border:1.5px solid var(--line);border-radius:8px">
+                    <div style="flex:1;min-width:200px">
+                        <label class="field-label">Link</label>
+                        <input type="text" id="portal-link" readonly style="width:100%;padding:9px 10px;border:1.5px solid var(--line);border-radius:6px;font-size:13px">
+                        <button class="btn btn-dark" id="copy-link-btn" style="margin-top:8px">Copy Link</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
                 <h2>Add New Staff</h2>
                 <div class="field-row">
                     <div>
@@ -299,6 +315,22 @@
         if (!error && data) el('ai-enabled-toggle').checked = data.ai_enabled !== false;
     }
 
+    function loadPortalQr() {
+        const portalUrl = window.location.origin + window.location.pathname.replace(/admin-settings\.html$/, 'customer-portal.html');
+        el('portal-link').value = portalUrl;
+        el('portal-qr').src = 'https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=' + encodeURIComponent(portalUrl);
+    }
+
+    el('copy-link-btn').addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(el('portal-link').value);
+            setStatus('Link copied.', false);
+        } catch (e) {
+            el('portal-link').select();
+            setStatus('Select and copy the link above.', false);
+        }
+    });
+
     window.MKAuth.roleReady.then((role) => {
         myRole = role;
         if (role !== 'admin' && role !== 'super_admin') {
@@ -310,6 +342,7 @@
         el('new-staff-role-row').hidden = (role !== 'super_admin');
         loadAppSettings();
         loadStaff();
+        loadPortalQr();
     });
 })();
 </script>

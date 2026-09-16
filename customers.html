@@ -647,6 +647,17 @@
                         </div>
                     </div>
 
+                    <div class="detail-section">
+                        <h3>Portal Access</h3>
+                        <p class="empty-hint" style="margin-top:-4px">
+                            Lets this customer sign in on <code>customer-portal.html</code> with their mobile
+                            number and a PIN you set here — to see their prescriptions, book a visit, order
+                            supplies, or message the store. No SMS involved; set the PIN in person.
+                        </p>
+                        <div id="portal-access-status" style="font-size:13px;color:var(--grey);margin-bottom:10px">—</div>
+                        <button class="btn btn-dark" id="set-portal-pin-btn">Set / Reset Portal PIN</button>
+                    </div>
+
                     <div class="detail-section" id="edit-history-section" hidden>
                         <h3>Recent Name/Mobile Changes</h3>
                         <div id="edit-history-list"></div>
@@ -1039,6 +1050,8 @@
         el('ai-insight-box').innerHTML = '';
         el('ask-ai-btn').disabled = false;
         el('ask-ai-btn').textContent = '✨ Ask AI for a deeper read';
+        el('portal-access-status').textContent = c.auth_user_id ? '✅ Portal access is set up for this customer.' : 'Not set up yet.';
+        el('set-portal-pin-btn').textContent = c.auth_user_id ? 'Reset Portal PIN' : 'Set Portal PIN';
 
         if (c.referred_by) {
             const { data } = await supabase.from('customers').select('name').eq('id', c.referred_by).single();
@@ -1201,6 +1214,24 @@
         }
         const providerLabel = data.provider === 'groq' ? 'via Groq (Gemini limit reached today)' : 'via Gemini';
         box.innerHTML = `<span class="ai-label">✨ AI-generated — ${providerLabel}</span>${formatAiInsight(data.insight)}`;
+    });
+
+    el('set-portal-pin-btn').addEventListener('click', async () => {
+        if (!currentCustomer) return;
+        const pin = prompt(`Set a 4-6 digit PIN for ${currentCustomer.name} to sign in on the customer portal (they'll use their mobile number + this PIN):`);
+        if (!pin) return;
+        if (!/^\d{4,6}$/.test(pin)) { setStatus('PIN must be 4-6 digits.', true); return; }
+
+        const { data, error } = await supabase.functions.invoke('customer-portal-admin', {
+            body: { action: 'setPin', customerId: currentCustomer.id, pin }
+        });
+        if (error || (data && data.error)) {
+            setStatus('Could not set PIN: ' + ((data && data.error) || error.message), true);
+            return;
+        }
+        setStatus(`Portal PIN ${data.created ? 'set' : 'reset'} for ${currentCustomer.name}. Share the mobile number + PIN with them directly.`, false);
+        const { data: refreshed } = await supabase.from('customers').select('*').eq('id', currentCustomer.id).maybeSingle();
+        if (refreshed) { currentCustomer = refreshed; openCustomer(refreshed); }
     });
 
     el('detail-high-value').addEventListener('change', async (e) => {
