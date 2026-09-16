@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Messages | MK Optics</title>
+<title>Orders | MK Optics</title>
 
 <link rel="stylesheet" href="app-shared.css">
 <style>
-    .msg-list { display: flex; flex-direction: column; gap: 10px; }
-    .msg-row {
+    .order-list { display: flex; flex-direction: column; gap: 10px; }
+    .order-row {
         display: flex;
         align-items: flex-start;
         gap: 16px;
@@ -18,31 +18,23 @@
         background: var(--cream);
         flex-wrap: wrap;
     }
-    .msg-info { flex: 1; min-width: 220px; }
-    .msg-name { font-weight: 700; color: var(--ink); }
-    .msg-meta { font-size: 12px; color: var(--grey); margin-top: 2px; }
-    .msg-text { font-size: 14px; color: var(--ink); margin-top: 8px; white-space: pre-wrap; }
-    .msg-translation {
-        font-size: 13px;
-        color: var(--navy);
-        margin-top: 8px;
-        padding: 8px 10px;
-        background: var(--white);
-        border-radius: 6px;
-        border: 1px solid var(--line);
-    }
-    .msg-translation .label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--grey); display: block; margin-bottom: 4px; }
-    .msg-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .order-info { flex: 1; min-width: 220px; }
+    .order-name { font-weight: 700; color: var(--ink); }
+    .order-meta { font-size: 12px; color: var(--grey); margin-top: 2px; }
+    .order-item { font-size: 14px; color: var(--ink); margin-top: 8px; font-weight: 700; }
+    .order-notes { font-size: 13px; color: var(--grey); margin-top: 4px; }
+    .order-actions { display: flex; gap: 8px; flex-wrap: wrap; }
     .status-pill {
         font-size: 11px; font-weight: 700; text-transform: uppercase;
         padding: 4px 10px; border-radius: 20px; white-space: nowrap;
     }
-    .status-pill.open { background: #ffe1a8; color: #7a5200; }
-    .status-pill.resolved { background: var(--green-pale); color: var(--green-dark); }
+    .status-pill.requested { background: #ffe1a8; color: #7a5200; }
+    .status-pill.fulfilled { background: var(--green-pale); color: var(--green-dark); }
+    .status-pill.cancelled { background: #f3d3d3; color: #8a2626; }
 
     @media (max-width: 900px) {
-        .msg-row { flex-direction: column; align-items: stretch; }
-        .msg-actions .btn { flex: 1; }
+        .order-row { flex-direction: column; align-items: stretch; }
+        .order-actions .btn { flex: 1; }
     }
 </style>
 </head>
@@ -89,8 +81,8 @@
             <a href="customers.html">Customers</a>
             <a href="enquiries.html">Enquiries</a>
             <a href="referrals.html">Referrals</a>
-            <a href="customer-messages.html" class="active">Messages</a>
-            <a href="consumable-orders.html">Orders</a>
+            <a href="customer-messages.html">Messages</a>
+            <a href="consumable-orders.html" class="active">Orders</a>
             <a href="calendar.html">Calendar</a>
             <span id="nav-ai-settings" hidden><a href="ai-settings.html">AI Setup</a></span>
             <a href="my-profile.html">My Profile</a>
@@ -110,8 +102,8 @@
     <main class="main">
 
         <div class="topbar">
-            <h1>Messages</h1>
-            <p>Messages customers sent from their account portal, in any language</p>
+            <h1>Orders</h1>
+            <p>Consumable/supply requests customers sent from their account portal</p>
         </div>
 
         <div class="content">
@@ -123,15 +115,15 @@
             </div>
 
             <div class="card">
-                <h2>Open messages</h2>
-                <div id="msg-list" class="msg-list">
+                <h2>Requested</h2>
+                <div id="order-list" class="order-list">
                     <p class="empty-hint">Loading…</p>
                 </div>
             </div>
 
             <div class="card">
-                <h2>Resolved</h2>
-                <div id="resolved-list" class="msg-list">
+                <h2>Fulfilled / Cancelled</h2>
+                <div id="closed-list" class="order-list">
                     <p class="empty-hint">Loading…</p>
                 </div>
             </div>
@@ -149,8 +141,8 @@
 (function () {
     const supabase = window.MKAuth.supabase;
     const el = (id) => document.getElementById(id);
-    const openListEl = el('msg-list');
-    const resolvedListEl = el('resolved-list');
+    const openListEl = el('order-list');
+    const closedListEl = el('closed-list');
     const statusEl = el('status-msg');
 
     function setStatus(message, isError) {
@@ -169,98 +161,83 @@
         return new Date(iso).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
     }
 
-    function renderRow(msg, customerName) {
+    function renderRow(order, customerName, customerPhone) {
         const row = document.createElement('div');
-        row.className = 'msg-row';
+        row.className = 'order-row';
         row.innerHTML = `
-            <div class="msg-info">
-                <div class="msg-name">${escapeHtml(customerName || 'Unknown customer')}</div>
-                <div class="msg-meta">${fmtDate(msg.created_at)}</div>
-                <div class="msg-text">${escapeHtml(msg.message)}</div>
-                <div class="msg-translation" id="translation-${msg.id}" hidden></div>
+            <div class="order-info">
+                <div class="order-name">${escapeHtml(customerName || 'Unknown customer')}</div>
+                <div class="order-meta">${escapeHtml(customerPhone || '')} · ${fmtDate(order.created_at)}</div>
+                <div class="order-item">${escapeHtml(order.item)}</div>
+                ${order.notes ? `<div class="order-notes">${escapeHtml(order.notes)}</div>` : ''}
             </div>
-            <span class="status-pill ${msg.status}">${msg.status}</span>
-            <div class="msg-actions">
-                <button class="btn" data-action="translate">🌐 Translate to English</button>
-                ${msg.status === 'open' ? '<button class="btn btn-dark" data-action="resolve">Mark Resolved</button>' : ''}
+            <span class="status-pill ${order.status}">${order.status}</span>
+            <div class="order-actions">
+                ${order.status === 'requested' ? `
+                    <button class="btn btn-dark" data-action="fulfilled">Mark Fulfilled</button>
+                    <button class="btn" style="background:#f3d3d3;color:#8a2626" data-action="cancelled">Cancel</button>
+                ` : ''}
             </div>
         `;
 
-        row.querySelector('[data-action="translate"]').addEventListener('click', async (e) => {
-            const btn = e.target;
-            const box = el('translation-' + msg.id);
-            btn.disabled = true;
-            btn.textContent = 'Translating…';
-            box.hidden = false;
-            box.innerHTML = '<span class="label">English</span>Translating…';
-
-            const { data, error } = await supabase.functions.invoke('ai-insight', { body: { translate: msg.message } });
-            btn.disabled = false;
-            btn.textContent = '🌐 Translate to English';
-
-            if (error || (data && data.error)) {
-                box.innerHTML = '<span class="label">English</span>' + escapeHtml((data && data.error) || error.message);
-                return;
+        ['fulfilled', 'cancelled'].forEach((status) => {
+            const btn = row.querySelector(`[data-action="${status}"]`);
+            if (btn) {
+                btn.addEventListener('click', async () => {
+                    const { error } = await supabase.from('consumable_orders').update({ status }).eq('id', order.id);
+                    if (error) { setStatus('Could not update: ' + error.message, true); return; }
+                    loadOrders();
+                });
             }
-            box.innerHTML = '<span class="label">English</span>' + escapeHtml(data.translation);
         });
-
-        const resolveBtn = row.querySelector('[data-action="resolve"]');
-        if (resolveBtn) {
-            resolveBtn.addEventListener('click', async () => {
-                const { error } = await supabase.from('complaints').update({ status: 'resolved' }).eq('id', msg.id);
-                if (error) { setStatus('Could not update: ' + error.message, true); return; }
-                loadMessages();
-            });
-        }
 
         return row;
     }
 
-    async function loadMessages() {
+    async function loadOrders() {
         if (!supabase) {
-            openListEl.innerHTML = '<p class="empty-hint">Connect Supabase to see messages.</p>';
-            resolvedListEl.innerHTML = '';
+            openListEl.innerHTML = '<p class="empty-hint">Connect Supabase to see orders.</p>';
+            closedListEl.innerHTML = '';
             return;
         }
 
-        const { data: messages, error } = await supabase
-            .from('complaints')
+        const { data: orders, error } = await supabase
+            .from('consumable_orders')
             .select('*')
             .order('created_at', { ascending: false });
 
         if (error) {
-            openListEl.innerHTML = '<p class="empty-hint">Could not load messages: ' + escapeHtml(error.message) + '</p>';
-            resolvedListEl.innerHTML = '';
+            openListEl.innerHTML = '<p class="empty-hint">Could not load orders: ' + escapeHtml(error.message) + '</p>';
+            closedListEl.innerHTML = '';
             return;
         }
 
-        const open = (messages || []).filter(m => m.status === 'open');
-        const resolved = (messages || []).filter(m => m.status === 'resolved');
+        const open = (orders || []).filter(o => o.status === 'requested');
+        const closed = (orders || []).filter(o => o.status !== 'requested');
 
-        const customerIds = [...new Set((messages || []).map(m => m.customer_id))];
-        const namesById = {};
+        const customerIds = [...new Set((orders || []).map(o => o.customer_id))];
+        const infoById = {};
         if (customerIds.length) {
-            const { data: customers } = await supabase.from('customers').select('id, name').in('id', customerIds);
-            (customers || []).forEach(c => { namesById[c.id] = c.name; });
+            const { data: customers } = await supabase.from('customers').select('id, name, phone').in('id', customerIds);
+            (customers || []).forEach(c => { infoById[c.id] = c; });
         }
 
         openListEl.innerHTML = '';
         if (!open.length) {
-            openListEl.innerHTML = '<p class="empty-hint">No open messages — nice work staying on top of things.</p>';
+            openListEl.innerHTML = '<p class="empty-hint">No open requests — nice work staying on top of things.</p>';
         } else {
-            open.forEach(m => openListEl.appendChild(renderRow(m, namesById[m.customer_id])));
+            open.forEach(o => openListEl.appendChild(renderRow(o, infoById[o.customer_id]?.name, infoById[o.customer_id]?.phone)));
         }
 
-        resolvedListEl.innerHTML = '';
-        if (!resolved.length) {
-            resolvedListEl.innerHTML = '<p class="empty-hint">Nothing resolved yet.</p>';
+        closedListEl.innerHTML = '';
+        if (!closed.length) {
+            closedListEl.innerHTML = '<p class="empty-hint">Nothing here yet.</p>';
         } else {
-            resolved.slice(0, 20).forEach(m => resolvedListEl.appendChild(renderRow(m, namesById[m.customer_id])));
+            closed.slice(0, 20).forEach(o => closedListEl.appendChild(renderRow(o, infoById[o.customer_id]?.name, infoById[o.customer_id]?.phone)));
         }
     }
 
-    window.MKAuth.ready.then(loadMessages);
+    window.MKAuth.ready.then(loadOrders);
 })();
 </script>
 
