@@ -101,12 +101,34 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
 
   try {
-    const { customerId, test, translate } = await req.json();
-
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
+
+    // This function reads full prescription/visit history and returns
+    // it to whoever calls it — it MUST verify the caller is staff
+    // before doing anything else. Originally it never checked the
+    // caller at all (safe only because, at the time, only staff could
+    // ever hold a session); now that customers also authenticate via
+    // customer-portal.html, skipping this check would let anyone with
+    // the public API key pull any customer's full record by guessing a
+    // customerId. Same staff_profiles check used everywhere else.
+    const authHeader = req.headers.get('Authorization') || '';
+    const jwt = authHeader.replace(/^Bearer\s+/i, '');
+    if (!jwt) return json({ error: 'Not signed in.' }, cors);
+
+    const { data: callerUser, error: callerError } = await supabaseAdmin.auth.getUser(jwt);
+    if (callerError || !callerUser?.user) return json({ error: 'Not signed in.' }, cors);
+
+    const { data: callerProfile } = await supabaseAdmin
+      .from('staff_profiles')
+      .select('id')
+      .eq('id', callerUser.user.id)
+      .maybeSingle();
+    if (!callerProfile) return json({ error: 'Only staff can use this feature.' }, cors);
+
+    const { customerId, test, translate } = await req.json();
 
     const { data: settings, error: settingsError } = await supabaseAdmin
       .from('ai_settings')
