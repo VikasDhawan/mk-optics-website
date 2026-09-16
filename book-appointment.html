@@ -138,8 +138,8 @@
             </svg>
             MK OPTICS
         </div>
-        <h1>Book an Eye Test</h1>
-        <p class="sub">Tell us a bit about you and your preferred date — we'll confirm by WhatsApp or phone.</p>
+        <h1 id="form-title">Book an Eye Test</h1>
+        <p class="sub" id="form-subtitle">Tell us a bit about you and your preferred date — we'll confirm by WhatsApp or phone.</p>
 
         <div class="field">
             <label for="name">Name</label>
@@ -204,7 +204,7 @@
             <textarea id="notes" placeholder="e.g. Preferred time of day, specific concern"></textarea>
         </div>
 
-        <button class="btn" id="book-btn">Request Appointment</button>
+        <button class="btn" id="book-btn"><span id="book-btn-label">Request Appointment</span></button>
         <p id="error-msg" class="error-msg"></p>
     </div>
 
@@ -228,6 +228,19 @@
 
     const el = (id) => document.getElementById(id);
     const errorEl = el('error-msg');
+
+    // "Visit the shop" / "Explore a style" / "Book a visit" links on the
+    // homepage point here too — same form, different framing, so it
+    // doesn't read as an eye-test form to someone who just wants to
+    // browse frames.
+    const reason = new URLSearchParams(window.location.search).get('reason');
+    if (reason === 'visit') {
+        document.title = 'Visit M&K Optics';
+        el('form-title').textContent = 'Plan Your Visit';
+        el('form-subtitle').textContent = "Tell us a bit about you and when you'd like to drop by — we'll confirm by WhatsApp or phone.";
+        el('notes').placeholder = 'e.g. a collection or brand you want to see';
+        el('book-btn-label').textContent = 'Request Visit';
+    }
 
     // Tap-only AM/PM toggle — no ambiguity about whether "4" means 4am or
     // 4pm, and nothing to scroll through like a native 24-hour time input.
