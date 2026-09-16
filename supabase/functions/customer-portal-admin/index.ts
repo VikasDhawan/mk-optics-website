@@ -61,7 +61,12 @@ Deno.serve(async (req) => {
     if (action === 'setPin') {
       const { customerId, pin } = body;
       if (!customerId || !pin) return json({ error: 'Missing customerId or pin.' }, cors);
-      if (!/^\d{4,6}$/.test(pin)) return json({ error: 'PIN must be 4-6 digits.' }, cors);
+      // 6 digits minimum, not 4 — a 4-digit PIN is only 10,000
+      // combinations, which is a real brute-force target for logging
+      // into someone else's account (their prescription history) if
+      // their phone number is known or guessable. 6 digits raises that
+      // to 1,000,000, a meaningfully higher bar at negligible UX cost.
+      if (!/^\d{6}$/.test(pin)) return json({ error: 'PIN must be exactly 6 digits.' }, cors);
 
       const { data: customer, error: customerError } = await supabaseAdmin
         .from('customers')

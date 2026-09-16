@@ -181,6 +181,12 @@
     const listEl = el('lead-list');
     const statusEl = el('status-msg');
 
+    function escapeHtml(s) {
+        const div = document.createElement('div');
+        div.textContent = s == null ? '' : s;
+        return div.innerHTML;
+    }
+
     function setStatus(message, isError) {
         statusEl.textContent = message;
         statusEl.className = 'status-msg ' + (isError ? 'error' : 'ok');
@@ -211,10 +217,10 @@
             row.className = 'lead-row';
             row.innerHTML = `
                 <div class="lead-info">
-                    <div class="lead-name">${lead.name}</div>
-                    <div class="lead-meta">${lead.phone || 'No phone on file'} · enquired ${lead.enquiry_date}</div>
-                    <div class="lead-meta">${lead.interest || ''}${lead.reason_not_bought ? ' — ' + lead.reason_not_bought : ''}</div>
-                    ${lead.notes ? `<div class="lead-notes">${lead.notes}</div>` : ''}
+                    <div class="lead-name">${escapeHtml(lead.name)}</div>
+                    <div class="lead-meta">${escapeHtml(lead.phone) || 'No phone on file'} · enquired ${lead.enquiry_date}</div>
+                    <div class="lead-meta">${escapeHtml(lead.interest)}${lead.reason_not_bought ? ' — ' + escapeHtml(lead.reason_not_bought) : ''}</div>
+                    ${lead.notes ? `<div class="lead-notes">${escapeHtml(lead.notes)}</div>` : ''}
                 </div>
                 <span class="status-pill ${lead.status}">${lead.status}</span>
                 <div class="lead-actions">

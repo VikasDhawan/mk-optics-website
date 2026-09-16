@@ -167,7 +167,7 @@
         </div>
         <div class="field">
             <label for="date">Preferred Date</label>
-            <input type="date" id="date">
+            <input type="date" id="date" required>
         </div>
         <div class="field">
             <label>Preferred Time (optional)</label>
@@ -229,6 +229,12 @@
     const el = (id) => document.getElementById(id);
     const errorEl = el('error-msg');
 
+    // Stops the date picker itself from offering past dates — the JS
+    // check on submit is the real guard (this can't be relied on alone,
+    // a user can still type an arbitrary value), but this keeps the
+    // common case from ever showing an invalid option.
+    el('date').min = new Date().toISOString().slice(0, 10);
+
     // "Visit the shop" / "Explore a style" / "Book a visit" links on the
     // homepage point here too — same form, different framing, so it
     // doesn't read as an eye-test form to someone who just wants to
@@ -277,6 +283,14 @@
 
         if (!name || !phone) {
             errorEl.textContent = 'Please enter your name and mobile number.';
+            return;
+        }
+        if (!date) {
+            errorEl.textContent = 'Please choose a preferred date.';
+            return;
+        }
+        if (date < new Date().toISOString().slice(0, 10)) {
+            errorEl.textContent = 'Please choose today or a future date.';
             return;
         }
         if (preferredTime === null) {
