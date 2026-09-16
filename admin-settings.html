@@ -88,6 +88,8 @@
             <a href="customers.html">Customers</a>
             <a href="enquiries.html">Enquiries</a>
             <a href="referrals.html">Referrals</a>
+            <a href="customer-messages.html">Messages</a>
+            <a href="consumable-orders.html">Orders</a>
             <a href="calendar.html">Calendar</a>
             <span id="nav-ai-settings" hidden><a href="ai-settings.html">AI Setup</a></span>
             <a href="my-profile.html">My Profile</a>
@@ -151,6 +153,29 @@
                         <button class="btn btn-dark" id="copy-link-btn" style="margin-top:8px">Copy Link</button>
                     </div>
                 </div>
+            </div>
+
+            <div class="card">
+                <h2>Customer Portal Offers</h2>
+                <p class="empty-hint" style="margin-top:-4px;margin-bottom:12px">
+                    Shown on the "Offers" tab of the customer portal. Turn one off instead of deleting it if it might come back.
+                </p>
+                <div class="field-row">
+                    <div>
+                        <label class="field-label" for="new-offer-title">Title</label>
+                        <input type="text" id="new-offer-title" placeholder="e.g. Diwali Sale — 20% off frames">
+                    </div>
+                    <div>
+                        <label class="field-label" for="new-offer-valid-until">Valid Until (optional)</label>
+                        <input type="date" id="new-offer-valid-until">
+                    </div>
+                </div>
+                <div style="margin-bottom:12px">
+                    <label class="field-label" for="new-offer-description">Description (optional)</label>
+                    <textarea id="new-offer-description" placeholder="Any details worth showing customers"></textarea>
+                </div>
+                <button class="btn btn-dark" id="add-offer-btn">Add Offer</button>
+                <div id="offer-list" style="margin-top:16px"></div>
             </div>
 
             <div class="card">
@@ -331,6 +356,60 @@
         }
     });
 
+    function renderOffers(offers) {
+        const container = el('offer-list');
+        if (!offers.length) { container.innerHTML = '<p class="empty-hint">No offers yet.</p>'; return; }
+        container.innerHTML = '';
+        offers.forEach((o) => {
+            const row = document.createElement('div');
+            row.className = 'staff-row';
+            row.innerHTML = `
+                <div class="staff-row-info">
+                    <div class="staff-row-name">${escapeHtml(o.title)}${o.active ? '' : ' <span class="role-badge employee">off</span>'}</div>
+                    <div class="staff-row-meta">${o.description ? escapeHtml(o.description) + ' — ' : ''}${o.valid_until ? 'until ' + o.valid_until : 'no end date'}</div>
+                </div>
+                <div class="staff-row-actions">
+                    <button class="btn" data-action="toggle">${o.active ? 'Turn Off' : 'Turn On'}</button>
+                    <button class="btn" style="background:#f3d3d3;color:#8a2626" data-action="delete">Delete</button>
+                </div>
+            `;
+            row.querySelector('[data-action="toggle"]').addEventListener('click', async () => {
+                const { error } = await supabase.from('offers').update({ active: !o.active }).eq('id', o.id);
+                if (error) { setStatus('Could not update: ' + error.message, true); return; }
+                loadOffers();
+            });
+            row.querySelector('[data-action="delete"]').addEventListener('click', async () => {
+                if (!confirm(`Delete "${o.title}"? This can't be undone.`)) return;
+                const { error } = await supabase.from('offers').delete().eq('id', o.id);
+                if (error) { setStatus('Could not delete: ' + error.message, true); return; }
+                loadOffers();
+            });
+            container.appendChild(row);
+        });
+    }
+
+    async function loadOffers() {
+        const { data, error } = await supabase.from('offers').select('*').order('created_at', { ascending: false });
+        if (error) { el('offer-list').innerHTML = '<p class="empty-hint">Could not load offers: ' + escapeHtml(error.message) + '</p>'; return; }
+        renderOffers(data || []);
+    }
+
+    el('add-offer-btn').addEventListener('click', async () => {
+        const title = el('new-offer-title').value.trim();
+        if (!title) { setStatus('Enter a title for the offer.', true); return; }
+        const { error } = await supabase.from('offers').insert({
+            title,
+            description: el('new-offer-description').value.trim() || null,
+            valid_until: el('new-offer-valid-until').value || null,
+        });
+        if (error) { setStatus('Could not add offer: ' + error.message, true); return; }
+        el('new-offer-title').value = '';
+        el('new-offer-description').value = '';
+        el('new-offer-valid-until').value = '';
+        setStatus('Offer added.', false);
+        loadOffers();
+    });
+
     window.MKAuth.roleReady.then((role) => {
         myRole = role;
         if (role !== 'admin' && role !== 'super_admin') {
@@ -343,6 +422,7 @@
         loadAppSettings();
         loadStaff();
         loadPortalQr();
+        loadOffers();
     });
 })();
 </script>

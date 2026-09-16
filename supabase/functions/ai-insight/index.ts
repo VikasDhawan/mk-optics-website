@@ -101,22 +101,34 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
 
   try {
-    const { customerId, test } = await req.json();
-
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { data: appSettings } = await supabaseAdmin
-      .from('app_settings')
-      .select('ai_enabled')
-      .eq('id', true)
-      .maybeSingle();
+    // This function reads full prescription/visit history and returns
+    // it to whoever calls it — it MUST verify the caller is staff
+    // before doing anything else. Originally it never checked the
+    // caller at all (safe only because, at the time, only staff could
+    // ever hold a session); now that customers also authenticate via
+    // customer-portal.html, skipping this check would let anyone with
+    // the public API key pull any customer's full record by guessing a
+    // customerId. Same staff_profiles check used everywhere else.
+    const authHeader = req.headers.get('Authorization') || '';
+    const jwt = authHeader.replace(/^Bearer\s+/i, '');
+    if (!jwt) return json({ error: 'Not signed in.' }, cors);
 
-    if (appSettings && appSettings.ai_enabled === false) {
-      return json({ error: 'The AI Insights feature has been turned off by your store admin.' }, cors);
-    }
+    const { data: callerUser, error: callerError } = await supabaseAdmin.auth.getUser(jwt);
+    if (callerError || !callerUser?.user) return json({ error: 'Not signed in.' }, cors);
+
+    const { data: callerProfile } = await supabaseAdmin
+      .from('staff_profiles')
+      .select('id')
+      .eq('id', callerUser.user.id)
+      .maybeSingle();
+    if (!callerProfile) return json({ error: 'Only staff can use this feature.' }, cors);
+
+    const { customerId, test, translate } = await req.json();
 
     const { data: settings, error: settingsError } = await supabaseAdmin
       .from('ai_settings')
@@ -136,6 +148,31 @@ Deno.serve(async (req) => {
       const result = await callWithFallback(geminiKey, groqKey, 'Reply with the single word: OK', 10);
       if (!result.ok) return json({ error: result.error }, cors);
       return json({ ok: true, provider: result.provider }, cors);
+    }
+
+    // Translation (used by customer-messages.html) is a separate,
+    // unrelated feature from the sales-focused "AI Insights" below — it
+    // isn't gated by app_settings.ai_enabled, since turning off Ask AI
+    // shouldn't also stop staff from reading a customer's message.
+    if (translate) {
+      const text = String(translate).slice(0, 4000);
+      const result = await callWithFallback(
+        geminiKey, groqKey,
+        `Translate the following customer message into plain, natural English. Reply with ONLY the translation, nothing else — no labels, no quotes, no commentary. If it's already in English, reply with it unchanged.\n\nMessage:\n${text}`,
+        400
+      );
+      if (!result.ok) return json({ error: result.error }, cors);
+      return json({ translation: result.text, provider: result.provider }, cors);
+    }
+
+    const { data: appSettings } = await supabaseAdmin
+      .from('app_settings')
+      .select('ai_enabled')
+      .eq('id', true)
+      .maybeSingle();
+
+    if (appSettings && appSettings.ai_enabled === false) {
+      return json({ error: 'The AI Insights feature has been turned off by your store admin.' }, cors);
     }
 
     if (!customerId) return json({ error: 'Missing customerId.' }, cors);

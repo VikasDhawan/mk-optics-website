@@ -108,6 +108,7 @@
     }
     .btn:hover { background: #5cc95c; }
     .btn.secondary { background: var(--cream); color: var(--navy); border: 1.5px solid var(--line); }
+    .btn.secondary.active { background: var(--green); border-color: var(--green-dark); color: var(--navy-dark); }
     .btn.small { width: auto; padding: 9px 16px; font-size: 13px; }
     .link-btn {
         background: none; border: none; color: var(--navy); text-decoration: underline;
@@ -277,8 +278,26 @@
             <input type="date" id="appt-date">
         </div>
         <div class="field">
+            <label>Preferred Time (optional)</label>
+            <div class="phone-row">
+                <select id="appt-time-hour" aria-label="Hour" style="flex:0 0 80px">
+                    <option value="">Hour</option>
+                    <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                    <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+                    <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+                    <option value="10">10</option><option value="11">11</option><option value="12">12</option>
+                </select>
+                <select id="appt-time-minute" aria-label="Minute" style="flex:0 0 80px">
+                    <option value="00">:00</option><option value="15">:15</option>
+                    <option value="30">:30</option><option value="45">:45</option>
+                </select>
+                <button type="button" class="btn secondary" id="appt-ampm-am" style="flex:1">AM</button>
+                <button type="button" class="btn secondary" id="appt-ampm-pm" style="flex:1">PM</button>
+            </div>
+        </div>
+        <div class="field">
             <label for="appt-notes">Anything else? (optional)</label>
-            <textarea id="appt-notes" placeholder="e.g. preferred time, specific concern"></textarea>
+            <textarea id="appt-notes" placeholder="e.g. specific concern"></textarea>
         </div>
         <button class="btn" id="book-appt-btn">Request Appointment</button>
         <p id="appt-status" class="ok-msg"></p>
@@ -474,17 +493,58 @@
 
     // ---------------- Book appointment ----------------
 
+    // Tap-only AM/PM toggle, same pattern as the public booking form
+    // (book-appointment.html) — avoids any 12-hour-clock ambiguity.
+    let apptAmPm = null;
+    el('appt-ampm-am').addEventListener('click', () => setApptAmPm('AM'));
+    el('appt-ampm-pm').addEventListener('click', () => setApptAmPm('PM'));
+    function setApptAmPm(value) {
+        apptAmPm = value;
+        el('appt-ampm-am').classList.toggle('active', value === 'AM');
+        el('appt-ampm-pm').classList.toggle('active', value === 'PM');
+    }
+    // Returns "HH:MM" (24-hour) for the database, undefined for "no time
+    // chosen" (valid), or null for "hour picked but AM/PM wasn't" (invalid).
+    function getApptPreferredTime() {
+        const hour12 = el('appt-time-hour').value;
+        if (!hour12) return undefined;
+        if (!apptAmPm) return null;
+        let h = parseInt(hour12, 10) % 12;
+        if (apptAmPm === 'PM') h += 12;
+        const m = el('appt-time-minute').value || '00';
+        return String(h).padStart(2, '0') + ':' + m;
+    }
+
     el('book-appt-btn').addEventListener('click', async () => {
         const statusEl = el('appt-status');
         statusEl.className = 'error-msg';
         const date = el('appt-date').value;
+        const preferredTime = getApptPreferredTime();
         const notes = el('appt-notes').value.trim();
+
+        if (preferredTime === null) {
+            statusEl.textContent = 'Please choose AM or PM for your preferred time.';
+            return;
+        }
+
+        // Same narrow yes/no slot check the public booking form uses —
+        // without it, two people (or this same booking form and the
+        // public one) could both request the same date+time with no
+        // warning until staff notice the clash manually.
+        if (date && preferredTime) {
+            const { data: isTaken, error: checkError } = await supabase.rpc('is_time_slot_taken', {
+                p_date: date, p_time: preferredTime
+            });
+            if (checkError) { statusEl.textContent = 'Something went wrong — please call or WhatsApp us instead.'; return; }
+            if (isTaken) { statusEl.textContent = 'That time is already booked — please choose a different time.'; return; }
+        }
 
         const { error } = await supabase.from('appointment_requests').insert({
             customer_id: customer.id,
             name: customer.name,
             phone: customer.phone,
             preferred_date: date || null,
+            preferred_time: preferredTime || null,
             notes: notes || null,
         });
         if (error) { statusEl.textContent = 'Something went wrong — please call or WhatsApp us instead.'; return; }
@@ -493,6 +553,9 @@
         statusEl.textContent = 'Request sent — we’ll confirm shortly.';
         el('appt-date').value = '';
         el('appt-notes').value = '';
+        el('appt-time-hour').value = '';
+        el('appt-time-minute').value = '00';
+        setApptAmPm(null);
         loadAppointments();
     });
 
@@ -510,7 +573,7 @@
         container.innerHTML = reqs.map((r) => `
             <div class="item-card">
                 <div class="row1">
-                    <div class="date">${r.preferred_date ? fmtDate(r.preferred_date) : 'No date given'}</div>
+                    <div class="date">${r.preferred_date ? fmtDate(r.preferred_date) : 'No date given'}${r.preferred_time ? ' · ' + escapeHtml(r.preferred_time) : ''}</div>
                     <span class="status-chip ${escapeHtml(r.status)}">${escapeHtml(r.status)}</span>
                 </div>
                 ${r.notes ? `<div class="meta">${escapeHtml(r.notes)}</div>` : ''}
@@ -524,6 +587,11 @@
         statusEl.className = 'error-msg';
         const item = el('order-item').value;
         const notes = el('order-notes').value.trim();
+
+        if (item === 'Other' && !notes) {
+            statusEl.textContent = 'Please describe what you need in the notes.';
+            return;
+        }
 
         const { error } = await supabase.from('consumable_orders').insert({
             customer_id: customer.id,
@@ -603,10 +671,15 @@
     // ---------------- Offers ----------------
 
     async function loadOffers() {
+        // Belt-and-braces: an offer past its valid_until shouldn't show
+        // even if staff forgot to manually turn it off. valid_until is
+        // optional, so offers with none never expire this way.
+        const today = new Date().toISOString().slice(0, 10);
         const { data: offers, error } = await supabase
             .from('offers')
             .select('*')
             .eq('active', true)
+            .or(`valid_until.is.null,valid_until.gte.${today}`)
             .order('created_at', { ascending: false });
 
         const container = el('offers-list');
