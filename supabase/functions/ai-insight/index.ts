@@ -101,22 +101,12 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
 
   try {
-    const { customerId, test } = await req.json();
+    const { customerId, test, translate } = await req.json();
 
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
-
-    const { data: appSettings } = await supabaseAdmin
-      .from('app_settings')
-      .select('ai_enabled')
-      .eq('id', true)
-      .maybeSingle();
-
-    if (appSettings && appSettings.ai_enabled === false) {
-      return json({ error: 'The AI Insights feature has been turned off by your store admin.' }, cors);
-    }
 
     const { data: settings, error: settingsError } = await supabaseAdmin
       .from('ai_settings')
@@ -136,6 +126,31 @@ Deno.serve(async (req) => {
       const result = await callWithFallback(geminiKey, groqKey, 'Reply with the single word: OK', 10);
       if (!result.ok) return json({ error: result.error }, cors);
       return json({ ok: true, provider: result.provider }, cors);
+    }
+
+    // Translation (used by customer-messages.html) is a separate,
+    // unrelated feature from the sales-focused "AI Insights" below — it
+    // isn't gated by app_settings.ai_enabled, since turning off Ask AI
+    // shouldn't also stop staff from reading a customer's message.
+    if (translate) {
+      const text = String(translate).slice(0, 4000);
+      const result = await callWithFallback(
+        geminiKey, groqKey,
+        `Translate the following customer message into plain, natural English. Reply with ONLY the translation, nothing else — no labels, no quotes, no commentary. If it's already in English, reply with it unchanged.\n\nMessage:\n${text}`,
+        400
+      );
+      if (!result.ok) return json({ error: result.error }, cors);
+      return json({ translation: result.text, provider: result.provider }, cors);
+    }
+
+    const { data: appSettings } = await supabaseAdmin
+      .from('app_settings')
+      .select('ai_enabled')
+      .eq('id', true)
+      .maybeSingle();
+
+    if (appSettings && appSettings.ai_enabled === false) {
+      return json({ error: 'The AI Insights feature has been turned off by your store admin.' }, cors);
     }
 
     if (!customerId) return json({ error: 'Missing customerId.' }, cors);
