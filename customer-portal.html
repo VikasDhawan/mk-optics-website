@@ -228,7 +228,7 @@
         </div>
         <div class="field">
             <label for="pin">PIN</label>
-            <input type="password" id="pin" placeholder="4-6 digit PIN" inputmode="numeric" autocomplete="current-password">
+            <input type="password" id="pin" placeholder="6-digit PIN" inputmode="numeric" autocomplete="current-password">
         </div>
         <button class="btn" id="login-btn">Sign In</button>
         <p id="phone-error" class="error-msg"></p>
@@ -275,7 +275,7 @@
         <p class="hint">We'll confirm by WhatsApp or phone.</p>
         <div class="field">
             <label for="appt-date">Preferred Date</label>
-            <input type="date" id="appt-date">
+            <input type="date" id="appt-date" required>
         </div>
         <div class="field">
             <label>Preferred Time (optional)</label>
@@ -358,6 +358,8 @@
     const cfg = window.SUPABASE_CONFIG;
     const el = (id) => document.getElementById(id);
     let supabase = null;
+
+    el('appt-date').min = new Date().toISOString().slice(0, 10);
 
     if (!cfg || !cfg.url || cfg.url.indexOf('YOUR-PROJECT-REF') !== -1) {
         el('config-banner').hidden = false;
@@ -522,6 +524,14 @@
         const preferredTime = getApptPreferredTime();
         const notes = el('appt-notes').value.trim();
 
+        if (!date) {
+            statusEl.textContent = 'Please choose a preferred date.';
+            return;
+        }
+        if (date < new Date().toISOString().slice(0, 10)) {
+            statusEl.textContent = 'Please choose today or a future date.';
+            return;
+        }
         if (preferredTime === null) {
             statusEl.textContent = 'Please choose AM or PM for your preferred time.';
             return;

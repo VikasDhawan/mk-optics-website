@@ -189,6 +189,15 @@
     const supabase = window.MKAuth.supabase;
     const el = (id) => document.getElementById(id);
     const statusEl = el('status-msg');
+    // Customer names/reminder notes can carry attacker-controlled text
+    // (via the public booking form or a reward sign-up copied into a
+    // customer record) — escape before innerHTML, same reasoning as
+    // dashboard.html and follow-ups.html.
+    function escapeHtml(s) {
+        const div = document.createElement('div');
+        div.textContent = s == null ? '' : s;
+        return div.innerHTML;
+    }
     const DOW = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
     const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
@@ -280,9 +289,9 @@
             list.innerHTML = events.map((r) => {
                 const c = r.customers || {};
                 return `<div class="day-detail-row">
-                    <div class="name">${c.name || 'Unknown customer'}</div>
-                    <div class="meta">${r.type} · ${c.phone || 'no phone on file'} · ${r.status}</div>
-                    ${r.notes ? `<div class="meta">${r.notes}</div>` : ''}
+                    <div class="name">${escapeHtml(c.name) || 'Unknown customer'}</div>
+                    <div class="meta">${escapeHtml(r.type)} · ${escapeHtml(c.phone) || 'no phone on file'} · ${escapeHtml(r.status)}</div>
+                    ${r.notes ? `<div class="meta">${escapeHtml(r.notes)}</div>` : ''}
                 </div>`;
             }).join('');
         }
