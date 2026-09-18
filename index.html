@@ -262,6 +262,13 @@
         padding: clamp(40px, 6vw, 64px) 0;
     }
 
+    /* Anchor links (nav, hamburger menu) jump straight under the sticky
+       header without this — the section's own heading ends up hidden
+       behind it. 96px comfortably clears the header at any width. */
+    section[id] {
+        scroll-margin-top: 96px;
+    }
+
     section.alt {
         background: var(--cream-alt);
     }
@@ -1110,7 +1117,16 @@
         }
 
         .before-after .half {
-            aspect-ratio: 4 / 3;
+            /* flex: 1 1 0 (set for the row layout above) puts a 0 flex-basis
+               on what is now the vertical main axis, which fights with
+               aspect-ratio and collapses the photo to 0 height in Chromium.
+               flex: none lets width stretch to fill (align-items: stretch,
+               the flex default) and height follow from aspect-ratio. */
+            flex: none;
+            /* Matches the desktop crop (470/620 ≈ 3/4) instead of the
+               previous 4/3 landscape ratio, which was shorter than wide
+               and cropped the tops of heads out of frame. */
+            aspect-ratio: 3 / 4;
         }
     }
 </style>
