@@ -1110,6 +1110,12 @@
         }
 
         .before-after .half {
+            /* flex: 1 1 0 (set for the row layout above) puts a 0 flex-basis
+               on what is now the vertical main axis, which fights with
+               aspect-ratio and collapses the photo to 0 height in Chromium.
+               flex: none lets width stretch to fill (align-items: stretch,
+               the flex default) and height follow from aspect-ratio. */
+            flex: none;
             aspect-ratio: 4 / 3;
         }
     }
