@@ -178,6 +178,12 @@
     const statusEl = el('status-msg');
     let selectedReferrer = null;
 
+    function escapeHtml(s) {
+        const div = document.createElement('div');
+        div.textContent = s == null ? '' : s;
+        return div.innerHTML;
+    }
+
     function setStatus(message, isError) {
         statusEl.textContent = message;
         statusEl.className = 'status-msg ' + (isError ? 'error' : 'ok');
@@ -209,7 +215,7 @@
             return;
         }
         selectedReferrer = data;
-        el('referrer-result').innerHTML = `<strong style="color:var(--navy)">${data.name}</strong> selected as referrer.`;
+        el('referrer-result').innerHTML = `<strong style="color:var(--navy)">${escapeHtml(data.name)}</strong> selected as referrer.`;
     });
 
     el('create-referral-btn').addEventListener('click', async () => {
@@ -249,8 +255,8 @@
             row.className = 'referral-row';
             row.innerHTML = `
                 <div class="referral-info">
-                    <div class="referral-names">${referrer.name || 'Unknown'} → ${r.referred_name || 'friend (name unknown)'}</div>
-                    <div class="referral-meta">${r.referred_phone || 'No phone yet'} · logged ${(r.created_at || '').slice(0, 10)}</div>
+                    <div class="referral-names">${escapeHtml(referrer.name) || 'Unknown'} → ${escapeHtml(r.referred_name) || 'friend (name unknown)'}</div>
+                    <div class="referral-meta">${escapeHtml(r.referred_phone) || 'No phone yet'} · logged ${(r.created_at || '').slice(0, 10)}</div>
                     <div style="display:flex;gap:14px;margin-top:8px">
                         <label class="discount-check"><input type="checkbox" data-field="referrer_discount_given" ${r.referrer_discount_given ? 'checked' : ''}> Referrer discount given</label>
                         <label class="discount-check"><input type="checkbox" data-field="referred_discount_given" ${r.referred_discount_given ? 'checked' : ''}> Friend's discount given</label>

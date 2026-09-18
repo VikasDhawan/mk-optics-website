@@ -743,10 +743,10 @@
             const row = document.createElement('div');
             row.className = 'customer-row' + (currentCustomer && currentCustomer.id === c.id ? ' selected' : '');
             row.innerHTML = `
-                <div class="avatar">${initials(c.name)}</div>
+                <div class="avatar">${escapeHtml(initials(c.name))}</div>
                 <div>
-                    <div class="customer-name">${c.name}</div>
-                    <div class="customer-meta">${maskPhone(c.phone)}</div>
+                    <div class="customer-name">${escapeHtml(c.name)}</div>
+                    <div class="customer-meta">${escapeHtml(maskPhone(c.phone))}</div>
                 </div>
                 ${c.high_value ? '<div class="badge">High value</div>' : ''}
             `;
@@ -928,15 +928,20 @@
         const recentGap = gaps.slice(mid).reduce((a, b) => a + b, 0) / (gaps.length - mid || 1);
         const speedingUp = earlyGap > 0 && recentGap <= earlyGap * 0.75;
 
+        // Escaped once here since this name is interpolated straight into
+        // an innerHTML string below, alongside genuinely-intended <b> tags
+        // — can't just escapeHtml() the whole narrative afterward.
+        const firstName = escapeHtml(customer.name.split(' ')[0]);
+
         let narrative;
         if (growthRate >= 0.1 && speedingUp) {
-            narrative = `${customer.name.split(' ')[0]} started as a ${rupee(firstAmt)} customer ${shortDate(dates[0])}, visiting roughly every ${Math.round(earlyGap)} days. Today they're spending <b>${rupee(lastAmt)} per visit</b> and coming back every ~${Math.round(recentGap)} days — buying more often, and paying more each time. If that trend holds, their next visit is worth around <b>${rupee(predictedNext)}</b>.`;
+            narrative = `${firstName} started as a ${rupee(firstAmt)} customer ${shortDate(dates[0])}, visiting roughly every ${Math.round(earlyGap)} days. Today they're spending <b>${rupee(lastAmt)} per visit</b> and coming back every ~${Math.round(recentGap)} days — buying more often, and paying more each time. If that trend holds, their next visit is worth around <b>${rupee(predictedNext)}</b>.`;
         } else if (growthRate >= 0.1) {
-            narrative = `${customer.name.split(' ')[0]} has grown from a ${rupee(firstAmt)} customer to <b>${rupee(lastAmt)} per visit</b> over ${visits.length} visits — a steady upgrade pattern. Their next visit is projected to be worth around <b>${rupee(predictedNext)}</b>, if the right option is ready to show them.`;
+            narrative = `${firstName} has grown from a ${rupee(firstAmt)} customer to <b>${rupee(lastAmt)} per visit</b> over ${visits.length} visits — a steady upgrade pattern. Their next visit is projected to be worth around <b>${rupee(predictedNext)}</b>, if the right option is ready to show them.`;
         } else if (speedingUp) {
-            narrative = `${customer.name.split(' ')[0]} is visiting more often lately — every ~${Math.round(recentGap)} days now, down from ~${Math.round(earlyGap)}. Based on their spending pattern, this relationship is worth an estimated <b>${rupee(annualValue)} a year</b>.`;
+            narrative = `${firstName} is visiting more often lately — every ~${Math.round(recentGap)} days now, down from ~${Math.round(earlyGap)}. Based on their spending pattern, this relationship is worth an estimated <b>${rupee(annualValue)} a year</b>.`;
         } else {
-            narrative = `Across ${visits.length} visits over ${Math.round(spanDays / 30)} months, ${customer.name.split(' ')[0]} has spent <b>${rupee(totalSpend)}</b> in total — an estimated <b>${rupee(annualValue)} a year</b> at their current pace.`;
+            narrative = `Across ${visits.length} visits over ${Math.round(spanDays / 30)} months, ${firstName} has spent <b>${rupee(totalSpend)}</b> in total — an estimated <b>${rupee(annualValue)} a year</b> at their current pace.`;
         }
 
         // Secondary, quick-scan chips — kept to short tags, not paragraphs.
@@ -1025,7 +1030,7 @@
             return;
         }
         container.innerHTML = reminders.map(r =>
-            `<div class="kv-row"><div class="k">${r.due_date}</div><div>${r.type} (${r.status})</div></div>`
+            `<div class="kv-row"><div class="k">${r.due_date}</div><div>${escapeHtml(r.type)} (${escapeHtml(r.status)})</div></div>`
         ).join('');
     }
 
@@ -1220,9 +1225,9 @@
 
     el('set-portal-pin-btn').addEventListener('click', async () => {
         if (!currentCustomer) return;
-        const pin = prompt(`Set a 4-6 digit PIN for ${currentCustomer.name} to sign in on the customer portal (they'll use their mobile number + this PIN):`);
+        const pin = prompt(`Set a 6-digit PIN for ${currentCustomer.name} to sign in on the customer portal (they'll use their mobile number + this PIN):`);
         if (!pin) return;
-        if (!/^\d{4,6}$/.test(pin)) { setStatus('PIN must be 4-6 digits.', true); return; }
+        if (!/^\d{6}$/.test(pin)) { setStatus('PIN must be exactly 6 digits.', true); return; }
 
         const { data, error } = await supabase.functions.invoke('customer-portal-admin', {
             body: { action: 'setPin', customerId: currentCustomer.id, pin }

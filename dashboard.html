@@ -253,6 +253,16 @@
     const el = (id) => document.getElementById(id);
     const statusEl = el('status-msg');
 
+    // reward_signups rows come from the public, no-login sign-up form —
+    // anyone on the internet can submit a name/phone there, so this MUST
+    // be escaped before going into innerHTML, or a crafted sign-up name
+    // becomes script that runs in a staff member's own logged-in session.
+    function escapeHtml(s) {
+        const div = document.createElement('div');
+        div.textContent = s == null ? '' : s;
+        return div.innerHTML;
+    }
+
     function setStatus(message, isError) {
         statusEl.textContent = message;
         statusEl.className = 'status-msg ' + (isError ? 'error' : 'ok');
@@ -389,8 +399,8 @@
             row.className = 'signup-row';
             row.innerHTML = `
                 <div class="signup-info">
-                    <div class="signup-name">${s.name}</div>
-                    <div class="signup-meta">${s.phone} · submitted ${(s.created_at || '').slice(0, 10)}${s.opted_in_offers ? '' : ' · did not opt into offers'}</div>
+                    <div class="signup-name">${escapeHtml(s.name)}</div>
+                    <div class="signup-meta">${escapeHtml(s.phone)} · submitted ${(s.created_at || '').slice(0, 10)}${s.opted_in_offers ? '' : ' · did not opt into offers'}</div>
                 </div>
                 <div class="signup-actions">
                     <button class="btn btn-dark" data-action="add">Add as Customer</button>

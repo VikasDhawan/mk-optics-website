@@ -181,6 +181,16 @@
     const requestListEl = document.getElementById('request-list');
     const statusEl = document.getElementById('status-msg');
 
+    // appointment_requests rows come from the public, no-login booking
+    // form (and now the logged-in customer portal too) — free-text name/
+    // notes must be escaped before going into innerHTML, or a crafted
+    // booking becomes script that runs in a staff member's own session.
+    function escapeHtml(s) {
+        const div = document.createElement('div');
+        div.textContent = s == null ? '' : s;
+        return div.innerHTML;
+    }
+
     function setStatus(message, isError) {
         statusEl.textContent = message;
         statusEl.className = 'status-msg ' + (isError ? 'error' : 'ok');
@@ -235,9 +245,9 @@
             const badgeText = isFuture ? 'Upcoming' : (isOverdue ? overdueBy + ' day' + (overdueBy > 1 ? 's' : '') + ' overdue' : 'Due today');
             row.innerHTML = `
                 <div class="followup-info">
-                    <div class="followup-name">${customer.name || 'Unknown customer'}</div>
-                    <div class="followup-meta">${customer.phone || 'No phone on file'} · ${r.type} · due ${r.due_date}</div>
-                    ${r.notes ? `<div class="followup-meta">${r.notes}</div>` : ''}
+                    <div class="followup-name">${escapeHtml(customer.name) || 'Unknown customer'}</div>
+                    <div class="followup-meta">${escapeHtml(customer.phone) || 'No phone on file'} · ${escapeHtml(r.type)} · due ${r.due_date}</div>
+                    ${r.notes ? `<div class="followup-meta">${escapeHtml(r.notes)}</div>` : ''}
                 </div>
                 <div class="followup-badge${isOverdue ? ' overdue' : ''}">${badgeText}</div>
                 <div class="followup-actions">
@@ -323,9 +333,9 @@
             row.className = 'followup-row';
             row.innerHTML = `
                 <div class="followup-info">
-                    <div class="followup-name">${req.name}</div>
-                    <div class="followup-meta">${req.phone} · wants ${req.preferred_date || 'no date specified'}${req.preferred_time ? ' at ' + formatTime(req.preferred_time) : ''}</div>
-                    ${req.notes ? `<div class="followup-meta">${req.notes}</div>` : ''}
+                    <div class="followup-name">${escapeHtml(req.name)}</div>
+                    <div class="followup-meta">${escapeHtml(req.phone)} · wants ${req.preferred_date || 'no date specified'}${req.preferred_time ? ' at ' + formatTime(req.preferred_time) : ''}</div>
+                    ${req.notes ? `<div class="followup-meta">${escapeHtml(req.notes)}</div>` : ''}
                 </div>
                 <div class="followup-actions">
                     <button class="btn btn-dark" data-action="add">Add to Follow-Ups</button>

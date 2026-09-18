@@ -518,6 +518,14 @@
     // and wired up the login screen — we just reuse its client here.
     const supabase = window.MKAuth.supabase;
 
+    // A customer name could carry attacker-controlled text (e.g. copied
+    // in from a public reward sign-up) — escape before innerHTML.
+    function escapeHtml(s) {
+        const div = document.createElement('div');
+        div.textContent = s == null ? '' : s;
+        return div.innerHTML;
+    }
+
     let selectedCustomer = null;
     let selectedReminder = 'Eye test';
 
@@ -661,10 +669,10 @@
         row.className = 'customer-row selected';
         row.title = 'Click to reopen this customer\'s record';
         row.innerHTML = `
-            <div class="avatar">${initials(c.name)}</div>
+            <div class="avatar">${escapeHtml(initials(c.name))}</div>
             <div>
-                <div class="customer-name">${c.name}</div>
-                <div class="customer-meta">${maskPhone(c.phone)}</div>
+                <div class="customer-name">${escapeHtml(c.name)}</div>
+                <div class="customer-meta">${escapeHtml(maskPhone(c.phone))}</div>
             </div>
             <div class="customer-tag">${isNew ? 'New customer added ✓' : 'Existing customer — record open ✓'}</div>
         `;
@@ -722,10 +730,10 @@
                 const row = document.createElement('div');
                 row.className = 'customer-row';
                 row.innerHTML = `
-                    <div class="avatar">${initials(c.name)}</div>
+                    <div class="avatar">${escapeHtml(initials(c.name))}</div>
                     <div>
-                        <div class="customer-name">${c.name}</div>
-                        <div class="customer-meta">${maskPhone(c.phone)}</div>
+                        <div class="customer-name">${escapeHtml(c.name)}</div>
+                        <div class="customer-meta">${escapeHtml(maskPhone(c.phone))}</div>
                     </div>
                     <div class="customer-tag">Select</div>
                 `;
