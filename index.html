@@ -1026,6 +1026,16 @@
         .makeover-grid,
         .makeover-grid.reverse {
             grid-template-columns: 1fr;
+            /* This gap is sized for a 2-column desktop split. Flattening
+               .makeover-copy below turns 2 columns into 5 stacked pieces
+               on mobile, and grid gap applies between every one of them
+               — at the desktop value (up to 64px) that reads as a wall
+               of dead space between things that are actually one
+               continuous block of copy. Zeroed here; spacing between
+               pieces is set individually below instead, tight where
+               they're related (photo → its own caption) and roomier
+               where a new thought starts (subheading → photo). */
+            gap: 0;
         }
 
         /* Reading order on mobile: heading/subheading, then the
@@ -1047,15 +1057,21 @@
             order: -2;
         }
 
+        .makeover-copy h2 {
+            margin-bottom: 14px;
+        }
+
         .makeover-grid .before-after,
         .makeover-grid.reverse .before-after {
             order: -1;
             max-width: 420px;
-            margin: 0 auto;
+            margin: 0 auto 14px;
         }
 
         .makeover-copy .makeover-caption {
             order: 0;
+            margin: 0 0 20px;
+            text-align: center;
         }
 
         .makeover-copy .btn {
