@@ -1075,19 +1075,34 @@
             grid-template-columns: 1fr;
         }
 
-        /* The heading/copy needs to read before the before/after photo,
-           in both makeover sections, so the comparison has context by
-           the time you see it. The two sections order the copy and
-           photo divs oppositely in the HTML (for the desktop two-column
-           layout), so pin the copy to the front explicitly rather than
-           relying on source order once they stack to one column. */
+        /* Reading order on mobile: heading/subheading first (so the
+           comparison has context), then the before/after photo, then the
+           "Book a Visit" CTA and its supporting caption last. That's
+           three logical pieces threaded through what desktop treats as
+           two boxes (.makeover-copy and .before-after), so .makeover-copy
+           becomes display: contents here — its own box disappears and
+           its children (eyebrow, h2, p.sub, the button, the male
+           section's feature-strip-3) become direct grid items in their
+           own right, each individually orderable around the photo. */
         .makeover-grid .makeover-copy,
         .makeover-grid.reverse .makeover-copy {
+            display: contents;
+        }
+
+        .makeover-copy .eyebrow,
+        .makeover-copy h2,
+        .makeover-copy p.sub {
             order: -1;
+        }
+
+        .makeover-copy .btn,
+        .makeover-copy .feature-strip-3 {
+            order: 1;
         }
 
         .makeover-grid .before-after,
         .makeover-grid.reverse .before-after {
+            order: 0;
             max-width: 420px;
             margin: 0 auto;
         }
