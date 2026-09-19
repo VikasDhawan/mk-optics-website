@@ -653,57 +653,10 @@
         margin: 0 0 30px;
     }
 
-    .feature-strip-3 {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        border-top: 1px solid var(--line);
-        margin-top: 30px;
-    }
-
-    .feature-strip-3 > div {
-        padding: 18px 12px 0;
-        text-align: center;
-        border-right: 1px solid var(--line);
-    }
-
-    .feature-strip-3 > div:last-child {
-        border-right: none;
-    }
-
-    .feature-strip-3 p {
-        font-size: 12px;
-        font-weight: 700;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        margin: 0;
-    }
-
-    .feature-strip-4 {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        border-top: 1px solid var(--line);
-        margin-top: 48px;
-    }
-
-    .feature-strip-4 > div {
-        padding: 24px 20px 0;
-        border-right: 1px solid var(--line);
-    }
-
-    .feature-strip-4 > div:last-child {
-        border-right: none;
-    }
-
-    .feature-strip-4 p.title {
-        font-weight: 600;
-        font-size: 14px;
-        margin: 0 0 4px;
-    }
-
-    .feature-strip-4 p.desc {
+    .makeover-caption {
         color: var(--muted);
         font-size: 13px;
-        margin: 0;
+        margin: 18px 0 0;
     }
 
     /* FITTING */
@@ -1073,13 +1026,56 @@
         .makeover-grid,
         .makeover-grid.reverse {
             grid-template-columns: 1fr;
+            /* This gap is sized for a 2-column desktop split. Flattening
+               .makeover-copy below turns 2 columns into 5 stacked pieces
+               on mobile, and grid gap applies between every one of them
+               — at the desktop value (up to 64px) that reads as a wall
+               of dead space between things that are actually one
+               continuous block of copy. Zeroed here; spacing between
+               pieces is set individually below instead, tight where
+               they're related (photo → its own caption) and roomier
+               where a new thought starts (subheading → photo). */
+            gap: 0;
+        }
+
+        /* Reading order on mobile: heading/subheading, then the
+           before/after photo, then its one-line caption, then the
+           "Book a Visit" CTA last. .makeover-caption now lives directly
+           inside .makeover-copy for both sections (it's a single plain
+           sentence, not a multi-item list, so it no longer needs its own
+           grid/box outside .makeover-copy the way the old feature strips
+           did) — so a plain display: contents + order on each child is
+           enough, with no extra wrapper class needed. */
+        .makeover-grid .makeover-copy,
+        .makeover-grid.reverse .makeover-copy {
+            display: contents;
+        }
+
+        .makeover-copy .eyebrow,
+        .makeover-copy h2,
+        .makeover-copy p.sub {
+            order: -2;
+        }
+
+        .makeover-copy h2 {
+            margin-bottom: 14px;
         }
 
         .makeover-grid .before-after,
         .makeover-grid.reverse .before-after {
             order: -1;
             max-width: 420px;
-            margin: 0 auto;
+            margin: 0 auto 14px;
+        }
+
+        .makeover-copy .makeover-caption {
+            order: 0;
+            margin: 0 0 20px;
+            text-align: center;
+        }
+
+        .makeover-copy .btn {
+            order: 1;
         }
 
         .visit-grid {
@@ -1088,17 +1084,6 @@
 
         .map-frame {
             aspect-ratio: 16 / 10;
-        }
-
-        .feature-strip-3 {
-            grid-template-columns: 1fr;
-            border-top: none;
-        }
-
-        .feature-strip-3 > div {
-            border-right: none;
-            border-top: 1px solid var(--line);
-            padding: 16px 0 0;
         }
 
         .stories-head {
@@ -1340,11 +1325,7 @@
             <h2>Same person.<br>A different impression.</h2>
             <p class="sub">The right frame adds style to your personality.</p>
             <a href="book-appointment.html?reason=visit" class="btn btn-gold">BOOK A VISIT &rarr;</a>
-            <div class="feature-strip-3">
-                <div><p>Expert Guidance</p></div>
-                <div><p>Frames For Every You</p></div>
-                <div><p>A Clearer Confident You</p></div>
-            </div>
+            <p class="makeover-caption">Real fit. Real style. Real confidence.</p>
         </div>
     </div>
 </section>
@@ -1361,6 +1342,7 @@
                 <h2>Before and after: what changes.</h2>
                 <p class="sub">Same face. Same person.<br>A frame that actually fits your features changes how you feel walking out the door — and that's why we sit with you instead of pointing at a shelf.</p>
                 <a href="book-appointment.html?reason=visit" class="btn btn-navy">BOOK A VISIT &rarr;</a>
+                <p class="makeover-caption">Premium brands. Expert care. Built to last.</p>
             </div>
             <div class="before-after">
                 <div class="half">
@@ -1371,24 +1353,6 @@
                     <img src="assets/girl2-after.png" alt="After: a frame fitted to the face">
                     <p class="pill after">After</p>
                 </div>
-            </div>
-        </div>
-        <div class="feature-strip-4">
-            <div>
-                <p class="title">Premium brands</p>
-                <p class="desc">A look for every you.</p>
-            </div>
-            <div>
-                <p class="title">Expert guidance</p>
-                <p class="desc">Personal, not generic.</p>
-            </div>
-            <div>
-                <p class="title">Comprehensive testing</p>
-                <p class="desc">See the world more clearly.</p>
-            </div>
-            <div>
-                <p class="title">After-sales</p>
-                <p class="desc">Because it shouldn't end at the sale.</p>
             </div>
         </div>
     </div>
