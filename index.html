@@ -1075,9 +1075,19 @@
             grid-template-columns: 1fr;
         }
 
+        /* The heading/copy needs to read before the before/after photo,
+           in both makeover sections, so the comparison has context by
+           the time you see it. The two sections order the copy and
+           photo divs oppositely in the HTML (for the desktop two-column
+           layout), so pin the copy to the front explicitly rather than
+           relying on source order once they stack to one column. */
+        .makeover-grid .makeover-copy,
+        .makeover-grid.reverse .makeover-copy {
+            order: -1;
+        }
+
         .makeover-grid .before-after,
         .makeover-grid.reverse .before-after {
-            order: -1;
             max-width: 420px;
             margin: 0 auto;
         }
