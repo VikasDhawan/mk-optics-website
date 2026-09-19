@@ -1075,36 +1075,58 @@
             grid-template-columns: 1fr;
         }
 
-        /* Reading order on mobile: heading/subheading first (so the
-           comparison has context), then the before/after photo, then the
-           "Book a Visit" CTA and its supporting caption last. That's
-           three logical pieces threaded through what desktop treats as
-           two boxes (.makeover-copy and .before-after), so .makeover-copy
-           becomes display: contents here — its own box disappears and
-           its children (eyebrow, h2, p.sub, the button, the male
-           section's feature-strip-3) become direct grid items in their
-           own right, each individually orderable around the photo. */
+        /* Reading order on mobile: heading/subheading, then the
+           before/after photo, then its one-line caption, then the
+           "Book a Visit" CTA last. That's four logical pieces threaded
+           through what desktop treats as two or three separate boxes
+           (.makeover-copy, .before-after, and — for the female section
+           — a .feature-strip-4 that isn't even nested inside the grid),
+           so several ancestors become display: contents here: their own
+           box disappears and their children become direct items of
+           whichever ancestor is still display: grid, each individually
+           orderable around the photo. */
         .makeover-grid .makeover-copy,
         .makeover-grid.reverse .makeover-copy {
+            display: contents;
+        }
+
+        /* The female section's caption sits outside the grid entirely
+           (a sibling of .makeover-grid.reverse, so it can span full
+           width on desktop). Making the shared .wrap grid too, and the
+           grid it wraps display: contents, flattens the caption in
+           alongside the grid's own (already-flattened) children so it
+           can be ordered the same way as the male section's, which
+           already lives inside .makeover-copy. Scoped to this one
+           section's wrap via .makeover-wrap-reverse, not every .wrap. */
+        .makeover-wrap-reverse {
+            display: grid;
+            grid-template-columns: 1fr;
+        }
+
+        .makeover-wrap-reverse .makeover-grid.reverse {
             display: contents;
         }
 
         .makeover-copy .eyebrow,
         .makeover-copy h2,
         .makeover-copy p.sub {
-            order: -1;
-        }
-
-        .makeover-copy .btn,
-        .makeover-copy .feature-strip-3 {
-            order: 1;
+            order: -2;
         }
 
         .makeover-grid .before-after,
         .makeover-grid.reverse .before-after {
-            order: 0;
+            order: -1;
             max-width: 420px;
             margin: 0 auto;
+        }
+
+        .makeover-copy .feature-strip-3,
+        .makeover-wrap-reverse .feature-strip-4 {
+            order: 0;
+        }
+
+        .makeover-copy .btn {
+            order: 1;
         }
 
         .visit-grid {
@@ -1432,7 +1454,7 @@
 
 <!-- MAKEOVER (WOMAN) -->
 <section class="alt">
-    <div class="wrap">
+    <div class="wrap makeover-wrap-reverse">
         <div class="makeover-grid reverse">
             <div class="makeover-copy">
                 <div class="eyebrow">
