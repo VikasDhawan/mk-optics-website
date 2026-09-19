@@ -1090,15 +1090,35 @@
             aspect-ratio: 16 / 10;
         }
 
-        .feature-strip-3 {
+        /* Stacked to one column, both feature strips previously kept their
+           row-layout border-right, which piled up into one stray vertical
+           line down the whole list instead of a divider between items.
+           feature-strip-3 was also centered with bold/uppercase/tracked
+           text, which — stacked full-width with dividers — read as a
+           list of nav links rather than supporting copy. Left-align it
+           and give both strips the same simple top-border-only divider
+           so they read consistently as one style of "supporting facts"
+           list, not two different sub-components. */
+        .feature-strip-3,
+        .feature-strip-4 {
             grid-template-columns: 1fr;
             border-top: none;
         }
 
-        .feature-strip-3 > div {
+        .feature-strip-3 > div,
+        .feature-strip-4 > div {
             border-right: none;
             border-top: 1px solid var(--line);
-            padding: 16px 0 0;
+            padding: 16px 0;
+        }
+
+        .feature-strip-3 > div:first-child,
+        .feature-strip-4 > div:first-child {
+            border-top: none;
+        }
+
+        .feature-strip-3 > div {
+            text-align: left;
         }
 
         .stories-head {
