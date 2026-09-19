@@ -1100,35 +1100,71 @@
             aspect-ratio: 16 / 10;
         }
 
-        /* Stacked to one column, both feature strips previously kept their
-           row-layout border-right, which piled up into one stray vertical
-           line down the whole list instead of a divider between items.
-           feature-strip-3 was also centered with bold/uppercase/tracked
-           text, which — stacked full-width with dividers — read as a
-           list of nav links rather than supporting copy. Left-align it
-           and give both strips the same simple top-border-only divider
-           so they read consistently as one style of "supporting facts"
-           list, not two different sub-components. */
+        /* Stacked to one column, a bordered/divided list of short lines
+           reads as navigation regardless of alignment — it's the same
+           visual pattern as the hamburger dropdown menu right above it.
+           Both strips drop the grid/border treatment entirely on mobile
+           and read instead as one small italic caption line, the same
+           way this design already uses a muted "kicker" line elsewhere
+           (e.g. "Refined · Timeless · Everyday" under Find Your Style).
+           feature-strip-3 has no description text, so its three labels
+           join into one wrapped line separated by "·". feature-strip-4's
+           title/description pairs can't join that way, so each renders
+           as "Title — description." on its own line instead, with plain
+           spacing (no border) between them. */
         .feature-strip-3,
         .feature-strip-4 {
-            grid-template-columns: 1fr;
+            display: block;
             border-top: none;
-        }
-
-        .feature-strip-3 > div,
-        .feature-strip-4 > div {
-            border-right: none;
-            border-top: 1px solid var(--line);
-            padding: 16px 0;
-        }
-
-        .feature-strip-3 > div:first-child,
-        .feature-strip-4 > div:first-child {
-            border-top: none;
+            text-align: center;
         }
 
         .feature-strip-3 > div {
-            text-align: left;
+            display: inline;
+            border: none;
+            padding: 0;
+        }
+
+        .feature-strip-3 p {
+            display: inline;
+            margin: 0;
+            font-size: 13px;
+            font-weight: 400;
+            font-style: italic;
+            text-transform: none;
+            letter-spacing: normal;
+            color: var(--muted);
+        }
+
+        .feature-strip-3 > div:not(:last-child) p::after {
+            content: " \00b7 ";
+            font-style: normal;
+        }
+
+        .feature-strip-4 > div {
+            border: none;
+            padding: 10px 0 0;
+        }
+
+        .feature-strip-4 p.title,
+        .feature-strip-4 p.desc {
+            display: inline;
+            font-size: 13px;
+            font-weight: 400;
+            font-style: italic;
+        }
+
+        .feature-strip-4 p.title {
+            color: var(--muted);
+        }
+
+        .feature-strip-4 p.title::after {
+            content: " \2014 ";
+            font-style: normal;
+        }
+
+        .feature-strip-4 p.desc {
+            color: var(--muted);
         }
 
         .stories-head {
