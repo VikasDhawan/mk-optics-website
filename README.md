@@ -26,9 +26,11 @@ Website prototype for M&K Optics
   yet. The sidebar's "Actions" badge is the total count across all five
   worklist sections, so staff see at a glance whether anything needs
   doing without opening the page.
-- `dashboard.html` — key numbers (total customers, visits and revenue
-  this month, follow-ups due, open leads, pending rewards sign-ups) and
-  two charts (monthly revenue, revenue by category).
+- `dashboard.html` — the shop's overall numbers: total customers,
+  visits/revenue/average order value this month, and two charts
+  (monthly revenue over the last 6 months, revenue by category this
+  month). Everything actionable (follow-ups, enquiries, orders,
+  sign-ups) lives on Actions instead — Dashboard is just the numbers.
 - `counter-intake.html` — look up or add a customer by mobile number,
   capture prescription + purchase, save, and send a WhatsApp confirmation.
   A toggle at the top switches between **Eyewear** and **Contact Lens**
