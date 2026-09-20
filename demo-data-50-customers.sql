@@ -2,14 +2,24 @@
 -- MK Optics — Demo dataset: 40 customers, 4 enquiries, 6 follow-ups
 -- =====================================================================
 -- FOR DEMO USE. Wipes existing customers/visits/reminders/referrals/
--- enquiries(leads)/appointment requests/reward sign-ups and replaces
--- them with a fresh, realistic dataset sized for a live demo:
+-- enquiries(leads)/appointment requests/reward sign-ups/consumable
+-- orders/complaints and replaces them with a fresh, realistic dataset
+-- sized for a live demo, with something to show on every staff app page:
 --   - 40 customers (one — the first inserted — has a deliberate 6-visit
 --     story designed to make the Quick Insight / Ask AI panels shine).
 --   - 4 open enquiries (Enquiries page).
 --   - 6 follow-ups: 2 overdue, 2 due today, 2 upcoming (Follow-Ups page).
+--   - 5 referrals across all 3 stages (Referrals page).
+--   - 8 consumable orders — requested/fulfilled/cancelled (Orders page).
+--   - 5 customer messages/complaints — open/resolved, multiple languages
+--     (Messages page).
+--   - 4 reward sign-ups, mostly unreviewed (Dashboard's pending tile).
+--   - 3 new appointment requests + 1 already reviewed (Follow-Ups' New
+--     Appointment Requests queue and Dashboard).
 -- Does NOT touch ai_settings (your AI keys) or staff logins.
--- Safe to re-run — it wipes and reseeds every time.
+-- Safe to re-run — it wipes and reseeds every time. `cascade` also
+-- clears visits/reminders/referrals/consumable_orders/complaints, since
+-- all of those reference customers with on-delete-cascade.
 -- =====================================================================
 
 truncate table customers, leads, appointment_requests, reward_signups restart identity cascade;
@@ -376,3 +386,75 @@ insert into reminders (customer_id, type, due_date, status)
 insert into reminders (customer_id, type, due_date, status)
   select id, 'Eye test', current_date + (14), 'pending'
   from customers where phone = '+918021293209';
+
+-- --- Referrals ---------------------------------------------------
+insert into referrals (referrer_customer_id, referred_name, referred_phone, status, created_at)
+  select id, 'Suresh Nair', '+919845099001', 'invited', now() - interval '3 days'
+  from customers where phone = '+919859601079';
+insert into referrals (referrer_customer_id, referred_name, referred_phone, status, referrer_discount_given, created_at)
+  select id, 'Anita Rao', '+919845099002', 'joined', true, now() - interval '10 days'
+  from customers where phone = '+919934077931';
+insert into referrals (referrer_customer_id, referred_name, referred_phone, status, referrer_discount_given, referred_discount_given, created_at)
+  select id, 'Vivek Shah', '+919845099003', 'purchased', true, true, now() - interval '25 days'
+  from customers where phone = '+917096603779';
+insert into referrals (referrer_customer_id, referred_phone, status, created_at)
+  select id, '+919845099004', 'invited', now() - interval '1 day'
+  from customers where phone = '+918016956018';
+insert into referrals (referrer_customer_id, referred_name, referred_phone, status, referrer_discount_given, created_at)
+  select id, 'Poonam Iyer', '+919845099005', 'joined', true, now() - interval '6 days'
+  from customers where phone = '+916329849151';
+
+-- --- Consumable orders (Orders page) -----------------------------
+insert into consumable_orders (customer_id, item, notes, status, created_at)
+  select id, 'Contact lens solution (usual brand)', 'Ran out, needs it before the weekend', 'requested', now() - interval '1 day'
+  from customers where phone = '+919859601079';
+insert into consumable_orders (customer_id, item, notes, status, created_at)
+  select id, 'Monthly disposables — Bausch + Lomb Ultra', null, 'requested', now() - interval '3 hours'
+  from customers where phone = '+919934077931';
+insert into consumable_orders (customer_id, item, notes, status, created_at)
+  select id, 'Spectacle case + cleaning cloth', 'Lost the original case', 'requested', now() - interval '2 days'
+  from customers where phone = '+916235851465';
+insert into consumable_orders (customer_id, item, notes, status, created_at)
+  select id, 'Contact lens solution (Acuvue)', null, 'requested', now() - interval '5 hours'
+  from customers where phone = '+918113961419';
+insert into consumable_orders (customer_id, item, notes, status, created_at)
+  select id, 'Anti-glare lens cleaning spray', null, 'requested', now() - interval '30 minutes'
+  from customers where phone = '+917090503471';
+insert into consumable_orders (customer_id, item, notes, status, created_at)
+  select id, 'Daily disposables — Johnson & Johnson 1-Day', 'Needs 3 boxes', 'fulfilled', now() - interval '6 days'
+  from customers where phone = '+919751571758';
+insert into consumable_orders (customer_id, item, notes, status, created_at)
+  select id, 'Contact lens solution (usual brand)', null, 'fulfilled', now() - interval '9 days'
+  from customers where phone = '+919056927468';
+insert into consumable_orders (customer_id, item, notes, status, created_at)
+  select id, 'Nose pads (replacement)', 'Changed mind, picked up in-store instead', 'cancelled', now() - interval '4 days'
+  from customers where phone = '+918024190200';
+
+-- --- Customer messages / complaints (Messages page) --------------
+insert into complaints (customer_id, message, language, status, created_at)
+  select id, 'Mera order abhi tak nahi mila, kab tak milega?', 'Hindi', 'open', now() - interval '2 hours'
+  from customers where phone = '+919859601079';
+insert into complaints (customer_id, message, language, status, created_at)
+  select id, 'The frame I bought last week has a loose hinge already. Can someone take a look?', 'English', 'open', now() - interval '1 day'
+  from customers where phone = '+918099480323';
+insert into complaints (customer_id, message, language, status, created_at)
+  select id, 'என் கண்ணாடியின் பவர் தவறாக இருப்பது போல் தெரிகிறது.', 'Tamil', 'open', now() - interval '5 hours'
+  from customers where phone = '+917090503471';
+insert into complaints (customer_id, message, language, status, created_at)
+  select id, 'Thank you for the quick service last visit — really appreciated it.', 'English', 'resolved', now() - interval '8 days'
+  from customers where phone = '+919667153548';
+insert into complaints (customer_id, message, language, status, created_at)
+  select id, 'माझा चष्मा दुरुस्त झाला, धन्यवाद.', 'Marathi', 'resolved', now() - interval '12 days'
+  from customers where phone = '+916383831789';
+
+-- --- Reward sign-ups (Dashboard pending-review tile) --------------
+insert into reward_signups (name, phone, opted_in_offers, reviewed, created_at) values ('Sanjay Rathore', '+919845066001', true, false, now() - interval '2 days');
+insert into reward_signups (name, phone, opted_in_offers, reviewed, created_at) values ('Priya Malhotra', '+919845066002', true, false, now() - interval '1 day');
+insert into reward_signups (name, phone, opted_in_offers, reviewed, created_at) values ('Vivaan Kapoor', '+919845066003', false, false, now() - interval '6 hours');
+insert into reward_signups (name, phone, opted_in_offers, reviewed, created_at) values ('Kiran Aggarwal', '+919845066004', true, true, now() - interval '15 days');
+
+-- --- Appointment requests (Follow-Ups' New Appointment Requests) --
+insert into appointment_requests (name, phone, preferred_date, notes, status, created_at) values ('Ritu Kapoor', '+919845077001', current_date + 3, 'Prefers a morning slot', 'new', now() - interval '1 day');
+insert into appointment_requests (name, phone, preferred_date, notes, status, created_at) values ('Amit Trivedi', '+919845077002', current_date + 1, null, 'new', now() - interval '4 hours');
+insert into appointment_requests (name, phone, preferred_date, notes, status, created_at) values ('Sneha Rao', '+919845077003', current_date + 7, 'First-time visitor, wants an eye test', 'new', now() - interval '20 minutes');
+insert into appointment_requests (name, phone, preferred_date, notes, status, created_at) values ('Deepak Oberoi', '+919845077004', current_date - 2, 'Already called and booked in person', 'reviewed', now() - interval '10 days');
