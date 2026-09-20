@@ -207,22 +207,54 @@
         supabase.auth.signOut();
     });
 
-    // Sidebar badge on "Follow-Ups": a small red count of new, not-yet-
-    // reviewed appointment requests from the public booking page. Shown
-    // on every staff page (not just Follow-Ups itself) so staff notice
-    // it app-wide. #followups-badge is present in every page's sidebar
-    // markup; this just fills it in once we know the count.
-    const followupsBadge = document.getElementById('followups-badge');
-    if (followupsBadge) {
+    // Sidebar badges — small red counts shown app-wide (not just on the
+    // page they link to) so staff notice pending work no matter where
+    // they are. #actions-badge is the single worklist total: everything
+    // that shows up as its own section on actions.html, added together.
+    // #messages-badge and #referrals-badge are narrower — just the count
+    // on their own dedicated page — since Messages and Referrals still
+    // have real pages of their own under Customers.
+    function fillBadge(el, count) {
+        if (!el || !count) return;
+        el.textContent = count > 99 ? '99+' : String(count);
+        el.hidden = false;
+    }
+
+    const actionsBadge = document.getElementById('actions-badge');
+    if (actionsBadge) {
         window.MKAuth.ready.then(async () => {
-            const { count } = await supabase
-                .from('appointment_requests')
-                .select('id', { count: 'exact', head: true })
-                .eq('status', 'new');
-            if (count) {
-                followupsBadge.textContent = count > 99 ? '99+' : String(count);
-                followupsBadge.hidden = false;
-            }
+            const todayISO = new Date().toISOString().slice(0, 10);
+            const [
+                { count: followupCount },
+                { count: requestCount },
+                { count: leadCount },
+                { count: orderCount },
+                { count: signupCount }
+            ] = await Promise.all([
+                supabase.from('reminders').select('id', { count: 'exact', head: true }).eq('status', 'pending').lte('due_date', todayISO),
+                supabase.from('appointment_requests').select('id', { count: 'exact', head: true }).eq('status', 'new'),
+                supabase.from('leads').select('id', { count: 'exact', head: true }).eq('status', 'open'),
+                supabase.from('consumable_orders').select('id', { count: 'exact', head: true }).eq('status', 'requested'),
+                supabase.from('reward_signups').select('id', { count: 'exact', head: true }).eq('reviewed', false)
+            ]);
+            const total = (followupCount || 0) + (requestCount || 0) + (leadCount || 0) + (orderCount || 0) + (signupCount || 0);
+            fillBadge(actionsBadge, total);
+        });
+    }
+
+    const messagesBadge = document.getElementById('messages-badge');
+    if (messagesBadge) {
+        window.MKAuth.ready.then(async () => {
+            const { count } = await supabase.from('complaints').select('id', { count: 'exact', head: true }).eq('status', 'open');
+            fillBadge(messagesBadge, count);
+        });
+    }
+
+    const referralsBadge = document.getElementById('referrals-badge');
+    if (referralsBadge) {
+        window.MKAuth.ready.then(async () => {
+            const { count } = await supabase.from('referrals').select('id', { count: 'exact', head: true }).eq('status', 'invited');
+            fillBadge(referralsBadge, count);
         });
     }
 })();

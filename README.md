@@ -15,10 +15,20 @@ Website prototype for M&K Optics
   a real follow-up from the Follow-Ups page.
 
 **Staff (all behind login, all share the same sidebar/navigation)**
-- `dashboard.html` — the staff app's home page: key numbers (total
-  customers, visits and revenue this month, follow-ups due, open leads,
-  pending rewards sign-ups) and a queue to review pending rewards
-  sign-ups — add each as a real customer, or dismiss duplicates/spam.
+- `actions.html` — the staff app's home page and default landing spot
+  after login (bookmark this one). One worklist aggregating everything
+  that needs attention: follow-ups due/overdue with a one-tap WhatsApp
+  message and "Mark Done," new appointment requests (booked online —
+  "Add to Follow-Ups" finds/creates the customer and creates the actual
+  reminder, which is what makes it show up on the Calendar), open
+  enquiries, pending consumable orders, and pending rewards sign-ups —
+  plus an "Upcoming" section for follow-ups booked ahead but not due
+  yet. The sidebar's "Actions" badge is the total count across all five
+  worklist sections, so staff see at a glance whether anything needs
+  doing without opening the page.
+- `dashboard.html` — key numbers (total customers, visits and revenue
+  this month, follow-ups due, open leads, pending rewards sign-ups) and
+  two charts (monthly revenue, revenue by category).
 - `counter-intake.html` — look up or add a customer by mobile number,
   capture prescription + purchase, save, and send a WhatsApp confirmation.
   A toggle at the top switches between **Eyewear** and **Contact Lens**
@@ -29,11 +39,6 @@ Website prototype for M&K Optics
   point being a returning contact lens customer's brand and exact color
   are recalled automatically, since staff often remember the brand but
   not the exact shade.
-- `follow-ups.html` — every reminder due today or overdue, with a
-  one-tap WhatsApp message and "Mark Done." Also has a "New Appointment
-  Requests" queue (online bookings) — "Add to Follow-Ups" finds/creates
-  the customer and creates the actual reminder, which is what makes a
-  request show up in the list below and on the Calendar.
 - `customers.html` — search any customer and see their full contact
   details, preferences/notes (editable), pending reminders, and complete
   purchase + prescription history across every visit. Once a customer
@@ -91,16 +96,26 @@ Website prototype for M&K Optics
 - `referrals.html` — look up the referring customer, log who they
   referred, ask them via WhatsApp, advance status (invited → joined →
   purchased), and track whether each side's discount was given.
+- `consumable-orders.html` ("Orders") — consumable/supply requests
+  (contact lens solution, disposables, cases, etc.) customers sent from
+  their self-service portal — mark each fulfilled or cancelled.
+- `customer-messages.html` ("Messages") — messages/complaints customers
+  sent from their portal, in any language, with a one-click "Translate
+  to English" (via the same `ai-insight` Edge Function used for Ask AI)
+  — mark each resolved once handled.
 - `calendar.html` — a month-grid view of every reminder/appointment by
   date (built ourselves rather than integrating an external calendar
   service — no OAuth, no API keys, no free-tier limits, and it's
   automatically staff-only since it's just another page behind login).
   Click a day to see who's booked.
 
-Every staff page's sidebar shows a red count badge next to "Follow-Ups"
-when there are new, unreviewed appointment requests waiting. It also
-shows the logged-in person's photo (if they've uploaded one on My
-Profile) next to their email.
+Every staff page's sidebar shows a red count badge next to "Actions" —
+the total of everything waiting across its five worklist sections
+(follow-ups due/overdue, new appointment requests, open enquiries,
+pending orders, pending sign-ups) — plus narrower badges next to
+"Messages" and "Referrals" for what's pending on those pages
+specifically. It also shows the logged-in person's photo (if they've
+uploaded one on My Profile) next to their email.
 
 **Shared**
 - `app-shared.css` / `auth-gate.js` — layout, login screen, and the
@@ -260,8 +275,7 @@ work side by side.
   may only **insert** into separate, narrow tables (`reward_signups`,
   `appointment_requests`) — they can't read them back, so one customer
   can't see another's submission. Staff review and convert these into
-  real records from the **Dashboard** (sign-ups) and **Follow-Ups**
-  (appointment requests).
+  real records from **Actions**.
 - `book-appointment.html` also calls `is_time_slot_taken(date, time)`, a
   database function that answers only true/false for one exact slot —
   it can see into `reminders`/`appointment_requests` to check, but never

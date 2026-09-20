@@ -5,8 +5,8 @@
 //
 // Each page sets window.MK_ACTIVE_PAGE to one of the ids below, then
 // includes this script — BEFORE auth-gate.js, since auth-gate.js looks
-// up #followups-badge, #nav-admin-settings and #nav-ai-settings by id
-// and expects them to already exist in the DOM.
+// up #actions-badge, #messages-badge, #referrals-badge, #nav-admin-settings
+// and #nav-ai-settings by id and expects them to already exist in the DOM.
 //
 // Categories with children render as an accordion: clicking one expands
 // it in place and collapses whichever other category was open. The
@@ -15,12 +15,15 @@
 // for free, since .sidebar-nav as a whole is just shown/hidden by the
 // existing hamburger toggle in auth-gate.js, not rebuilt separately.
 //
-// "Actions" temporarily points at follow-ups.html and reuses its badge —
-// a placeholder until it becomes its own aggregated page in the next
-// phase. Nothing about follow-ups.html itself changes here.
+// "Actions" is the aggregated worklist (actions.html): follow-ups due/
+// overdue, new appointment requests, open enquiries, pending orders, and
+// pending rewards sign-ups, all in one place — its badge is the total
+// count across all five. Messages and Referrals carry their own badges
+// too (open messages, invited referrals) since those still have their
+// own dedicated pages under Customers.
 (function () {
     var NAV_ITEMS = [
-        { id: 'actions', label: 'Actions', href: 'follow-ups.html', badgeId: 'followups-badge' },
+        { id: 'actions', label: 'Actions', href: 'actions.html', badgeId: 'actions-badge' },
         {
             id: 'customers',
             label: 'Customers',
@@ -28,8 +31,8 @@
                 { id: 'counter-intake', label: 'Counter Intake', href: 'counter-intake.html' },
                 { id: 'customers', label: 'Customers', href: 'customers.html' },
                 { id: 'enquiries', label: 'Enquiries', href: 'enquiries.html' },
-                { id: 'referrals', label: 'Referrals', href: 'referrals.html' },
-                { id: 'messages', label: 'Messages', href: 'customer-messages.html' }
+                { id: 'referrals', label: 'Referrals', href: 'referrals.html', badgeId: 'referrals-badge' },
+                { id: 'messages', label: 'Messages', href: 'customer-messages.html', badgeId: 'messages-badge' }
             ]
         },
         { id: 'calendar', label: 'Calendar', href: 'calendar.html' },

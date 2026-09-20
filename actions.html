@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Follow-Ups | MK Optics</title>
+<title>Actions | MK Optics</title>
 
 <link rel="stylesheet" href="app-shared.css">
 <style>
-    .followup-list {
+    .followup-list, .lead-list, .order-list, .signup-list {
         display: flex;
         flex-direction: column;
         gap: 10px;
     }
 
-    .followup-row {
+    .followup-row, .lead-row, .order-row, .signup-row {
         display: flex;
         align-items: center;
         gap: 16px;
@@ -29,9 +29,12 @@
         background: #fdf0f0;
     }
 
-    .followup-info { flex: 1; min-width: 200px; }
-    .followup-name { font-weight: 700; color: var(--ink); }
-    .followup-meta { font-size: 12px; color: var(--grey); margin-top: 2px; }
+    .followup-info, .lead-info, .order-info, .signup-info { flex: 1; min-width: 200px; }
+    .followup-name, .lead-name, .order-name, .signup-name { font-weight: 700; color: var(--ink); }
+    .followup-meta, .lead-meta, .order-meta, .signup-meta { font-size: 12px; color: var(--grey); margin-top: 2px; }
+    .lead-notes { font-size: 13px; color: var(--ink); margin-top: 6px; }
+    .order-item { font-size: 14px; color: var(--ink); margin-top: 8px; font-weight: 700; }
+    .order-notes { font-size: 13px; color: var(--grey); margin-top: 4px; }
 
     .followup-badge {
         font-size: 11px;
@@ -49,15 +52,31 @@
         background: #b02a2a;
     }
 
-    .followup-actions {
+    .followup-actions, .lead-actions, .order-actions, .signup-actions {
         display: flex;
         gap: 8px;
         flex-wrap: wrap;
     }
 
+    .status-pill {
+        font-size: 11px; font-weight: 700; text-transform: uppercase;
+        padding: 4px 10px; border-radius: 20px; white-space: nowrap;
+    }
+    .status-pill.open, .status-pill.requested { background: #ffe1a8; color: #7a5200; }
+    .status-pill.converted, .status-pill.fulfilled { background: var(--green-pale); color: var(--green-dark); }
+    .status-pill.lost, .status-pill.cancelled { background: #f3d3d3; color: #8a2626; }
+
+    .section-title {
+        font-family: Georgia, serif;
+        color: var(--navy);
+        font-size: 22px;
+        margin: 32px 0 14px;
+    }
+    .section-title:first-child { margin-top: 0; }
+
     @media (max-width: 900px) {
-        .followup-row { flex-direction: column; align-items: stretch; }
-        .followup-actions .btn { flex: 1; }
+        .followup-row, .lead-row, .order-row, .signup-row { flex-direction: column; align-items: stretch; }
+        .followup-actions .btn, .lead-actions .btn, .order-actions .btn, .signup-actions .btn { flex: 1; }
     }
 </style>
 </head>
@@ -112,8 +131,8 @@
     <main class="main">
 
         <div class="topbar">
-            <h1>Follow-Ups</h1>
-            <p>Everyone due for a message, reminder, or offer — today or overdue</p>
+            <h1>Actions</h1>
+            <p>Everything that needs your attention today, in one place</p>
         </div>
 
         <div class="content">
@@ -124,29 +143,53 @@
                 fill in your project URL and key, and reload this page.
             </div>
 
+            <h2 class="section-title">Due today or overdue</h2>
             <div class="card">
-                <h2>New Appointment Requests</h2>
+                <div id="followup-list" class="followup-list">
+                    <p class="empty-hint">Loading…</p>
+                </div>
+            </div>
+
+            <h2 class="section-title">New Appointment Requests</h2>
+            <div class="card">
                 <p class="empty-hint" style="margin-top:-6px;margin-bottom:14px">
-                    Booked online via the website — add each to Follow-Ups so it shows up below and on the Calendar.
+                    Booked online via the website — add each to Follow-Ups so it shows up on the Calendar.
                 </p>
                 <div id="request-list" class="followup-list">
                     <p class="empty-hint">Loading…</p>
                 </div>
             </div>
 
+            <h2 class="section-title">Open Enquiries</h2>
             <div class="card">
-                <h2>Upcoming</h2>
-                <p class="empty-hint" style="margin-top:-6px;margin-bottom:14px">
-                    Booked ahead — not due yet, so they won't appear below until their date arrives.
-                </p>
-                <div id="upcoming-list" class="followup-list">
+                <div id="lead-list" class="lead-list">
                     <p class="empty-hint">Loading…</p>
                 </div>
             </div>
 
+            <h2 class="section-title">Pending Orders</h2>
             <div class="card">
-                <h2>Due today or overdue</h2>
-                <div id="followup-list" class="followup-list">
+                <div id="order-list" class="order-list">
+                    <p class="empty-hint">Loading…</p>
+                </div>
+            </div>
+
+            <h2 class="section-title">Pending Rewards Sign-ups</h2>
+            <div class="card">
+                <p class="empty-hint" style="margin-top:-6px;margin-bottom:14px">
+                    Customers who joined via the QR code sign-up page. Add them as a real customer, or dismiss duplicates/spam.
+                </p>
+                <div id="signup-list" class="signup-list">
+                    <p class="empty-hint">Loading…</p>
+                </div>
+            </div>
+
+            <h2 class="section-title">Upcoming</h2>
+            <div class="card">
+                <p class="empty-hint" style="margin-top:-6px;margin-bottom:14px">
+                    Booked ahead — not due yet, so they won't appear above until their date arrives.
+                </p>
+                <div id="upcoming-list" class="followup-list">
                     <p class="empty-hint">Loading…</p>
                 </div>
             </div>
@@ -168,12 +211,16 @@
     const listEl = document.getElementById('followup-list');
     const upcomingEl = document.getElementById('upcoming-list');
     const requestListEl = document.getElementById('request-list');
+    const leadListEl = document.getElementById('lead-list');
+    const orderListEl = document.getElementById('order-list');
+    const signupListEl = document.getElementById('signup-list');
     const statusEl = document.getElementById('status-msg');
 
-    // appointment_requests rows come from the public, no-login booking
-    // form (and now the logged-in customer portal too) — free-text name/
-    // notes must be escaped before going into innerHTML, or a crafted
-    // booking becomes script that runs in a staff member's own session.
+    // Everything rendered on this page ultimately comes from a public,
+    // no-login form somewhere (booking, enquiry, rewards sign-up, the
+    // customer portal) — free text must be escaped before going into
+    // innerHTML, or a crafted submission becomes script that runs in a
+    // staff member's own logged-in session.
     function escapeHtml(s) {
         const div = document.createElement('div');
         div.textContent = s == null ? '' : s;
@@ -217,6 +264,7 @@
         return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
     }
 
+    // --- Follow-ups (due/overdue + upcoming) ----------------------------
     function renderReminders(reminders, targetEl, emptyMessage, onChange) {
         targetEl.innerHTML = '';
         if (!reminders.length) {
@@ -402,7 +450,216 @@
         renderRequests(data || []);
     }
 
-    window.MKAuth.ready.then(() => { loadReminders(); loadUpcoming(); loadRequests(); });
+    // --- Open Enquiries --------------------------------------------------
+    function renderLeads(leads) {
+        leadListEl.innerHTML = '';
+        if (!leads.length) {
+            leadListEl.innerHTML = '<p class="empty-hint">No open enquiries — nice work staying on top of things.</p>';
+            return;
+        }
+        leads.forEach((lead) => {
+            const row = document.createElement('div');
+            row.className = 'lead-row';
+            row.innerHTML = `
+                <div class="lead-info">
+                    <div class="lead-name">${escapeHtml(lead.name)}</div>
+                    <div class="lead-meta">${escapeHtml(lead.phone) || 'No phone on file'} · enquired ${lead.enquiry_date}</div>
+                    <div class="lead-meta">${escapeHtml(lead.interest)}${lead.reason_not_bought ? ' — ' + escapeHtml(lead.reason_not_bought) : ''}</div>
+                    ${lead.notes ? `<div class="lead-notes">${escapeHtml(lead.notes)}</div>` : ''}
+                </div>
+                <span class="status-pill ${lead.status}">${lead.status}</span>
+                <div class="lead-actions">
+                    <button class="btn btn-primary" data-action="whatsapp">WhatsApp</button>
+                    <button class="btn btn-dark" data-action="converted">Mark Converted</button>
+                    <button class="btn" style="background:#f3d3d3;color:#8a2626" data-action="lost">Mark Lost</button>
+                </div>
+            `;
+
+            row.querySelector('[data-action="whatsapp"]').addEventListener('click', () => {
+                if (!lead.phone) { setStatus('This enquiry has no phone number on file.', true); return; }
+                const message = `Hi ${lead.name}, this is MK Optics — following up on your interest in ${lead.interest || 'our products'}. Happy to help if you have any questions!`;
+                window.open(buildWhatsAppLink(lead.phone, message), '_blank');
+            });
+
+            row.querySelector('[data-action="lost"]').addEventListener('click', async () => {
+                const { error } = await supabase.from('leads').update({ status: 'lost' }).eq('id', lead.id);
+                if (error) { setStatus('Could not update: ' + error.message, true); return; }
+                loadLeads();
+            });
+
+            row.querySelector('[data-action="converted"]').addEventListener('click', async () => {
+                if (!lead.phone) {
+                    setStatus('Add a phone number to this enquiry before converting — a customer record needs one.', true);
+                    return;
+                }
+                const { data: existing } = await supabase.from('customers').select('*').eq('phone', lead.phone).maybeSingle();
+                let customer = existing;
+                if (!customer) {
+                    const { data: created, error: createError } = await supabase
+                        .from('customers')
+                        .insert({ name: lead.name, phone: lead.phone })
+                        .select()
+                        .single();
+                    if (createError) { setStatus('Could not create customer: ' + createError.message, true); return; }
+                    customer = created;
+                }
+                const { error } = await supabase.from('leads').update({ status: 'converted', converted_customer_id: customer.id }).eq('id', lead.id);
+                if (error) { setStatus('Could not update lead: ' + error.message, true); return; }
+                setStatus(lead.name + ' converted to a customer.', false);
+                loadLeads();
+            });
+
+            leadListEl.appendChild(row);
+        });
+    }
+
+    async function loadLeads() {
+        if (!supabase) {
+            leadListEl.innerHTML = '<p class="empty-hint">Connect Supabase to see enquiries.</p>';
+            return;
+        }
+        const { data, error } = await supabase
+            .from('leads')
+            .select('*')
+            .eq('status', 'open')
+            .order('enquiry_date', { ascending: false });
+        if (error) {
+            leadListEl.innerHTML = '<p class="empty-hint">Could not load leads: ' + error.message + '</p>';
+            return;
+        }
+        renderLeads(data || []);
+    }
+
+    // --- Pending Orders (consumable requests) -----------------------------
+    function renderOrders(orders, infoById) {
+        orderListEl.innerHTML = '';
+        if (!orders.length) {
+            orderListEl.innerHTML = '<p class="empty-hint">No open requests — nice work staying on top of things.</p>';
+            return;
+        }
+        orders.forEach((o) => {
+            const info = infoById[o.customer_id] || {};
+            const row = document.createElement('div');
+            row.className = 'order-row';
+            row.innerHTML = `
+                <div class="order-info">
+                    <div class="order-name">${escapeHtml(info.name || 'Unknown customer')}</div>
+                    <div class="order-meta">${escapeHtml(info.phone || '')}</div>
+                    <div class="order-item">${escapeHtml(o.item)}</div>
+                    ${o.notes ? `<div class="order-notes">${escapeHtml(o.notes)}</div>` : ''}
+                </div>
+                <span class="status-pill ${o.status}">${o.status}</span>
+                <div class="order-actions">
+                    <button class="btn btn-dark" data-action="fulfilled">Mark Fulfilled</button>
+                    <button class="btn" style="background:#f3d3d3;color:#8a2626" data-action="cancelled">Cancel</button>
+                </div>
+            `;
+
+            ['fulfilled', 'cancelled'].forEach((status) => {
+                row.querySelector(`[data-action="${status}"]`).addEventListener('click', async () => {
+                    const { error } = await supabase.from('consumable_orders').update({ status }).eq('id', o.id);
+                    if (error) { setStatus('Could not update: ' + error.message, true); return; }
+                    loadOrders();
+                });
+            });
+
+            orderListEl.appendChild(row);
+        });
+    }
+
+    async function loadOrders() {
+        if (!supabase) {
+            orderListEl.innerHTML = '<p class="empty-hint">Connect Supabase to see orders.</p>';
+            return;
+        }
+        const { data: orders, error } = await supabase
+            .from('consumable_orders')
+            .select('*')
+            .eq('status', 'requested')
+            .order('created_at', { ascending: false });
+        if (error) {
+            orderListEl.innerHTML = '<p class="empty-hint">Could not load orders: ' + error.message + '</p>';
+            return;
+        }
+        const customerIds = [...new Set((orders || []).map(o => o.customer_id))];
+        const infoById = {};
+        if (customerIds.length) {
+            const { data: customers } = await supabase.from('customers').select('id, name, phone').in('id', customerIds);
+            (customers || []).forEach(c => { infoById[c.id] = c; });
+        }
+        renderOrders(orders || [], infoById);
+    }
+
+    // --- Pending Rewards Sign-ups ------------------------------------------
+    function renderSignups(signups) {
+        signupListEl.innerHTML = '';
+        if (!signups.length) {
+            signupListEl.innerHTML = '<p class="empty-hint">No pending sign-ups.</p>';
+            return;
+        }
+        signups.forEach((s) => {
+            const row = document.createElement('div');
+            row.className = 'signup-row';
+            row.innerHTML = `
+                <div class="signup-info">
+                    <div class="signup-name">${escapeHtml(s.name)}</div>
+                    <div class="signup-meta">${escapeHtml(s.phone)} · submitted ${(s.created_at || '').slice(0, 10)}${s.opted_in_offers ? '' : ' · did not opt into offers'}</div>
+                </div>
+                <div class="signup-actions">
+                    <button class="btn btn-dark" data-action="add">Add as Customer</button>
+                    <button class="btn" style="background:#f3d3d3;color:#8a2626" data-action="dismiss">Dismiss</button>
+                </div>
+            `;
+
+            row.querySelector('[data-action="add"]').addEventListener('click', async () => {
+                const { data: existing } = await supabase.from('customers').select('id').eq('phone', s.phone).maybeSingle();
+                if (!existing) {
+                    const { error: createError } = await supabase.from('customers').insert({
+                        name: s.name, phone: s.phone, rewards_opted_in: s.opted_in_offers
+                    });
+                    if (createError) { setStatus('Could not create customer: ' + createError.message, true); return; }
+                }
+                const { error } = await supabase.from('reward_signups').update({ reviewed: true }).eq('id', s.id);
+                if (error) { setStatus('Could not update sign-up: ' + error.message, true); return; }
+                setStatus((existing ? s.name + ' already existed — marked reviewed.' : s.name + ' added as a customer.'), false);
+                loadSignups();
+            });
+
+            row.querySelector('[data-action="dismiss"]').addEventListener('click', async () => {
+                const { error } = await supabase.from('reward_signups').update({ reviewed: true }).eq('id', s.id);
+                if (error) { setStatus('Could not update: ' + error.message, true); return; }
+                loadSignups();
+            });
+
+            signupListEl.appendChild(row);
+        });
+    }
+
+    async function loadSignups() {
+        if (!supabase) {
+            signupListEl.innerHTML = '<p class="empty-hint">Connect Supabase to see sign-ups.</p>';
+            return;
+        }
+        const { data, error } = await supabase
+            .from('reward_signups')
+            .select('*')
+            .eq('reviewed', false)
+            .order('created_at', { ascending: false });
+        if (error) {
+            signupListEl.innerHTML = '<p class="empty-hint">Could not load sign-ups: ' + error.message + '</p>';
+            return;
+        }
+        renderSignups(data || []);
+    }
+
+    window.MKAuth.ready.then(() => {
+        loadReminders();
+        loadUpcoming();
+        loadRequests();
+        loadLeads();
+        loadOrders();
+        loadSignups();
+    });
 })();
 </script>
 
