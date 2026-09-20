@@ -71,26 +71,13 @@
             </svg>
             MK OPTICS
         </div>
-        <nav class="sidebar-nav">
-            <a href="dashboard.html">Dashboard</a>
-            <a href="counter-intake.html">Counter Intake</a>
-            <a href="follow-ups.html">Follow-Ups<span class="nav-badge" id="followups-badge" hidden>0</span></a>
-            <a href="customers.html">Customers</a>
-            <a href="enquiries.html">Enquiries</a>
-            <a href="referrals.html">Referrals</a>
-            <a href="customer-messages.html">Messages</a>
-            <a href="consumable-orders.html">Orders</a>
-            <a href="calendar.html">Calendar</a>
-            <span id="nav-ai-settings" hidden><a href="ai-settings.html">AI Setup</a></span>
-            <a href="my-profile.html" class="active">My Profile</a>
-            <span id="nav-admin-settings" hidden><a href="admin-settings.html">Admin Settings</a></span>
-        </nav>
+        <nav class="sidebar-nav"></nav>
         <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">☰</button>
         <div class="sidebar-footer" id="sidebar-footer">
-            <div class="staff-avatar-row">
+            <a class="staff-avatar-row" href="my-profile.html">
                 <img class="staff-avatar" id="staff-avatar" alt="" hidden>
                 <div class="staff-email" id="staff-email"></div>
-            </div>
+            </a>
             <a class="sign-out-link" href="https://vikasdhawan.github.io/mk-optics-website/" target="_blank" rel="noopener">View Website ↗</a>
             <div class="sign-out-link" id="sign-out-btn">Sign out</div>
         </div>
@@ -136,6 +123,8 @@
     </main>
 </div>
 
+<script>window.MK_ACTIVE_PAGE = 'my-profile';</script>
+<script src="nav-shared.js"></script>
 <script src="supabase-config.js" onerror="window.__SUPABASE_CONFIG_MISSING__ = true"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="auth-gate.js"></script>
