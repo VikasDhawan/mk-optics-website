@@ -100,29 +100,7 @@
 
     @media (max-width: 900px) {
         .charts-grid { grid-template-columns: 1fr; }
-    }
-
-    .signup-row {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        padding: 14px 16px;
-        border-radius: 8px;
-        border: 1.5px solid var(--line);
-        background: var(--cream);
-        margin-bottom: 8px;
-        flex-wrap: wrap;
-    }
-
-    .signup-info { flex: 1; min-width: 200px; }
-    .signup-name { font-weight: 700; color: var(--ink); }
-    .signup-meta { font-size: 12px; color: var(--grey); margin-top: 2px; }
-    .signup-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-
-    @media (max-width: 900px) {
         .stat-grid { grid-template-columns: 1fr 1fr; }
-        .signup-row { flex-direction: column; align-items: stretch; }
-        .signup-actions .btn { flex: 1; }
     }
     @media (max-width: 500px) {
         .stat-grid { grid-template-columns: 1fr; }
@@ -199,9 +177,6 @@
                 <div class="stat-tile"><div class="value" id="stat-visits-month">—</div><div class="label">Visits This Month</div></div>
                 <div class="stat-tile"><div class="value" id="stat-revenue-month">—</div><div class="label">Revenue This Month</div></div>
                 <div class="stat-tile"><div class="value" id="stat-aov-month">—</div><div class="label">Avg Order Value (Month)</div></div>
-                <a class="stat-tile" href="follow-ups.html"><div class="value" id="stat-followups">—</div><div class="label">Follow-Ups Due</div></a>
-                <a class="stat-tile" href="enquiries.html"><div class="value" id="stat-leads">—</div><div class="label">Open Enquiries</div></a>
-                <a class="stat-tile" href="#signups-card"><div class="value" id="stat-signups">—</div><div class="label">Pending Rewards Sign-ups</div></a>
             </div>
 
             <div class="charts-grid">
@@ -217,16 +192,6 @@
                 </div>
             </div>
 
-            <div class="card" id="signups-card">
-                <h2>Pending Rewards Sign-ups</h2>
-                <p class="empty-hint" style="margin-top:-6px;margin-bottom:14px">
-                    Customers who joined via the QR code sign-up page. Add them as a real customer, or dismiss duplicates/spam.
-                </p>
-                <div id="signup-list"><p class="empty-hint">Loading…</p></div>
-            </div>
-
-            <div id="status-msg" class="status-msg"></div>
-
         </div>
     </main>
 </div>
@@ -240,24 +205,7 @@
 (function () {
     const supabase = window.MKAuth.supabase;
     const el = (id) => document.getElementById(id);
-    const statusEl = el('status-msg');
 
-    // reward_signups rows come from the public, no-login sign-up form —
-    // anyone on the internet can submit a name/phone there, so this MUST
-    // be escaped before going into innerHTML, or a crafted sign-up name
-    // becomes script that runs in a staff member's own logged-in session.
-    function escapeHtml(s) {
-        const div = document.createElement('div');
-        div.textContent = s == null ? '' : s;
-        return div.innerHTML;
-    }
-
-    function setStatus(message, isError) {
-        statusEl.textContent = message;
-        statusEl.className = 'status-msg ' + (isError ? 'error' : 'ok');
-    }
-
-    function todayISO() { return new Date().toISOString().slice(0, 10); }
     function monthStartISO() {
         const d = new Date();
         return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10);
@@ -268,22 +216,13 @@
 
         const [
             { count: customerCount },
-            { data: visits },
-            { count: followupCount },
-            { count: leadCount },
-            { count: signupCount }
+            { data: visits }
         ] = await Promise.all([
             supabase.from('customers').select('id', { count: 'exact', head: true }),
-            supabase.from('visits').select('amount').gte('created_at', monthStartISO()),
-            supabase.from('reminders').select('id', { count: 'exact', head: true }).eq('status', 'pending').lte('due_date', todayISO()),
-            supabase.from('leads').select('id', { count: 'exact', head: true }).eq('status', 'open'),
-            supabase.from('reward_signups').select('id', { count: 'exact', head: true }).eq('reviewed', false)
+            supabase.from('visits').select('amount').gte('created_at', monthStartISO())
         ]);
 
         el('stat-customers').textContent = customerCount != null ? customerCount : '—';
-        el('stat-followups').textContent = followupCount != null ? followupCount : '—';
-        el('stat-leads').textContent = leadCount != null ? leadCount : '—';
-        el('stat-signups').textContent = signupCount != null ? signupCount : '—';
 
         if (visits) {
             el('stat-visits-month').textContent = visits.length;
@@ -376,71 +315,7 @@
         renderCategoryChart(all.filter((v) => v.created_at >= monthStart));
     }
 
-    function renderSignups(signups) {
-        const container = el('signup-list');
-        container.innerHTML = '';
-        if (!signups.length) {
-            container.innerHTML = '<p class="empty-hint">No pending sign-ups.</p>';
-            return;
-        }
-        signups.forEach((s) => {
-            const row = document.createElement('div');
-            row.className = 'signup-row';
-            row.innerHTML = `
-                <div class="signup-info">
-                    <div class="signup-name">${escapeHtml(s.name)}</div>
-                    <div class="signup-meta">${escapeHtml(s.phone)} · submitted ${(s.created_at || '').slice(0, 10)}${s.opted_in_offers ? '' : ' · did not opt into offers'}</div>
-                </div>
-                <div class="signup-actions">
-                    <button class="btn btn-dark" data-action="add">Add as Customer</button>
-                    <button class="btn" style="background:#f3d3d3;color:#8a2626" data-action="dismiss">Dismiss</button>
-                </div>
-            `;
-
-            row.querySelector('[data-action="add"]').addEventListener('click', async () => {
-                const { data: existing } = await supabase.from('customers').select('id').eq('phone', s.phone).maybeSingle();
-                if (!existing) {
-                    const { error: createError } = await supabase.from('customers').insert({
-                        name: s.name, phone: s.phone, rewards_opted_in: s.opted_in_offers
-                    });
-                    if (createError) { setStatus('Could not create customer: ' + createError.message, true); return; }
-                }
-                const { error } = await supabase.from('reward_signups').update({ reviewed: true }).eq('id', s.id);
-                if (error) { setStatus('Could not update sign-up: ' + error.message, true); return; }
-                setStatus((existing ? s.name + ' already existed — marked reviewed.' : s.name + ' added as a customer.'), false);
-                loadSignups();
-                loadStats();
-            });
-
-            row.querySelector('[data-action="dismiss"]').addEventListener('click', async () => {
-                const { error } = await supabase.from('reward_signups').update({ reviewed: true }).eq('id', s.id);
-                if (error) { setStatus('Could not update: ' + error.message, true); return; }
-                loadSignups();
-                loadStats();
-            });
-
-            container.appendChild(row);
-        });
-    }
-
-    async function loadSignups() {
-        if (!supabase) {
-            el('signup-list').innerHTML = '<p class="empty-hint">Connect Supabase to see sign-ups.</p>';
-            return;
-        }
-        const { data, error } = await supabase
-            .from('reward_signups')
-            .select('*')
-            .eq('reviewed', false)
-            .order('created_at', { ascending: false });
-        if (error) {
-            el('signup-list').innerHTML = '<p class="empty-hint">Could not load sign-ups: ' + error.message + '</p>';
-            return;
-        }
-        renderSignups(data || []);
-    }
-
-    window.MKAuth.ready.then(() => { loadStats(); loadSignups(); loadCharts(); });
+    window.MKAuth.ready.then(() => { loadStats(); loadCharts(); });
 })();
 </script>
 
