@@ -39,10 +39,11 @@
 
     // Settings/account-level pages — unaffected by the categorization
     // above, rendered exactly as before (including the role-gated hidden
-    // wrapper spans auth-gate.js toggles by id).
+    // wrapper spans auth-gate.js toggles by id). My Profile isn't here —
+    // it's reached via the avatar/name in the sidebar footer instead,
+    // since it's account-level, not a work area.
     var EXTRA_ITEMS = [
         { id: 'ai-settings', label: 'AI Setup', href: 'ai-settings.html', wrapperId: 'nav-ai-settings' },
-        { id: 'my-profile', label: 'My Profile', href: 'my-profile.html' },
         { id: 'admin-settings', label: 'Admin Settings', href: 'admin-settings.html', wrapperId: 'nav-admin-settings' }
     ];
 
