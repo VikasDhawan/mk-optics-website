@@ -111,6 +111,15 @@
         window.MKAuth.role = profile.role;
         window.MKAuth.profile = profile;
 
+        // showApp() already put the login (phone/email) here as a
+        // same-instant fallback, before this profile fetch resolves —
+        // swap it for the person's actual name once we know it. Staff
+        // set this on My Profile; until they do, the login stays shown
+        // rather than an empty label.
+        if (staffEmailEl && profile.name) {
+            staffEmailEl.textContent = profile.name;
+        }
+
         const avatarImg = document.getElementById('staff-avatar');
         if (avatarImg) {
             if (profile.photo_url) {
