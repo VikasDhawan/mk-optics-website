@@ -181,7 +181,7 @@
     // Customer names/reminder notes can carry attacker-controlled text
     // (via the public booking form or a reward sign-up copied into a
     // customer record) — escape before innerHTML, same reasoning as
-    // dashboard.html and follow-ups.html.
+    // dashboard.html and actions.html.
     function escapeHtml(s) {
         const div = document.createElement('div');
         div.textContent = s == null ? '' : s;
