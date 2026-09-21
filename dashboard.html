@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard | MK Optics</title>
 
-<link rel="stylesheet" href="app-shared.css">
+<link rel="stylesheet" href="app-shared.css?v=2">
 <style>
     .stat-grid {
         display: grid;
@@ -44,6 +44,15 @@
         margin-top: 4px;
     }
 
+    .tile-delta {
+        font-size: 11px;
+        font-weight: 700;
+        margin-top: 8px;
+    }
+    .tile-delta.up { color: var(--green-dark); }
+    .tile-delta.down { color: #b02a2a; }
+    .tile-delta.neutral { color: var(--grey); font-weight: 400; }
+
     .charts-grid {
         display: grid;
         grid-template-columns: 1.3fr 1fr;
@@ -64,9 +73,6 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: flex-end;
-        height: 100%;
-        position: relative;
     }
     .month-bar-value {
         font-size: 11px;
@@ -75,16 +81,39 @@
         margin-bottom: 4px;
         white-space: nowrap;
     }
-    .month-bar {
+    /* A fixed-height track the bar grows inside, kept separate from the
+       value/label text above and below it. The bar's height is a
+       percentage of THIS element, not of the whole flex column — sharing
+       one flex container with two text siblings meant a tall bar could
+       overflow the column and get squashed by flex-shrink along with its
+       siblings, non-proportionally, so two very different values could
+       render at nearly the same height. */
+    .month-bar-track {
         width: 100%;
         max-width: 40px;
+        height: 100px;
+        position: relative;
+    }
+    .month-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
         border-radius: 4px 4px 0 0;
         background: var(--green-dark);
+    }
+    .month-bar.current {
+        background: repeating-linear-gradient(45deg, var(--green-dark), var(--green-dark) 6px, #8fcf9b 6px, #8fcf9b 12px);
     }
     .month-bar-label {
         font-size: 11px;
         color: var(--grey);
         margin-top: 6px;
+    }
+    .chart-note {
+        font-size: 11px;
+        color: var(--grey);
+        margin-top: 10px;
     }
 
     /* Revenue by category — categorical composition, fixed hue order,
@@ -97,6 +126,19 @@
     .category-bar-track { flex: 1; background: var(--cream); border-radius: 4px; height: 14px; overflow: hidden; }
     .category-bar-fill { height: 100%; border-radius: 4px; }
     .category-value { font-size: 12px; font-weight: 700; color: var(--navy); width: 70px; text-align: right; flex-shrink: 0; }
+
+    .health-list { margin-top: 16px; }
+    .health-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--line);
+        font-size: 13px;
+    }
+    .health-row:last-child { border-bottom: none; }
+    .health-label { color: var(--ink); }
+    .health-value { font-weight: 700; color: var(--navy); }
 
     @media (max-width: 900px) {
         .charts-grid { grid-template-columns: 1fr; }
@@ -173,10 +215,26 @@
             </div>
 
             <div class="stat-grid" id="stat-grid">
-                <a class="stat-tile" href="customers.html"><div class="value" id="stat-customers">—</div><div class="label">Total Customers</div></a>
-                <div class="stat-tile"><div class="value" id="stat-visits-month">—</div><div class="label">Visits This Month</div></div>
-                <div class="stat-tile"><div class="value" id="stat-revenue-month">—</div><div class="label">Revenue This Month</div></div>
-                <div class="stat-tile"><div class="value" id="stat-aov-month">—</div><div class="label">Avg Order Value (Month)</div></div>
+                <a class="stat-tile" href="customers.html">
+                    <div class="value" id="stat-customers">—</div>
+                    <div class="label">Total Customers</div>
+                    <div class="tile-delta" id="delta-customers"></div>
+                </a>
+                <div class="stat-tile">
+                    <div class="value" id="stat-visits-month">—</div>
+                    <div class="label">Visits This Month</div>
+                    <div class="tile-delta" id="delta-visits"></div>
+                </div>
+                <div class="stat-tile">
+                    <div class="value" id="stat-revenue-month">—</div>
+                    <div class="label">Revenue This Month</div>
+                    <div class="tile-delta" id="delta-revenue"></div>
+                </div>
+                <div class="stat-tile">
+                    <div class="value" id="stat-aov-month">—</div>
+                    <div class="label">Avg Order Value (Month)</div>
+                    <div class="tile-delta" id="delta-aov"></div>
+                </div>
             </div>
 
             <div class="charts-grid">
@@ -184,6 +242,7 @@
                     <h2>Monthly Revenue</h2>
                     <p class="empty-hint" style="margin-top:-6px;margin-bottom:0">Last 6 months, across all purchase types.</p>
                     <div class="month-chart" id="month-chart"><p class="empty-hint">Loading…</p></div>
+                    <p class="chart-note">The hatched bar is the current month, still in progress — the tiles above compare it against the same number of days last month instead, which is the fairer number.</p>
                 </div>
                 <div class="card">
                     <h2>Revenue by Category (Month)</h2>
@@ -192,15 +251,34 @@
                 </div>
             </div>
 
+            <div class="charts-grid">
+                <div class="card">
+                    <h2>New vs. Repeat Customers (Month)</h2>
+                    <p class="empty-hint" style="margin-top:-6px;margin-bottom:0">A sale from someone's first-ever visit vs. someone who's been in before.</p>
+                    <div class="category-chart" id="new-repeat-chart"><p class="empty-hint">Loading…</p></div>
+                </div>
+                <div class="card">
+                    <h2>Growth &amp; Loyalty</h2>
+                    <p class="empty-hint" style="margin-top:-6px;margin-bottom:0">Program health, at a glance.</p>
+                    <div class="health-list" id="health-list">
+                        <div class="health-row"><span class="health-label">VIP Customers</span><span class="health-value" id="health-vip">—</span></div>
+                        <div class="health-row"><span class="health-label">Rewards Members</span><span class="health-value" id="health-rewards">—</span></div>
+                        <div class="health-row"><span class="health-label">Referrals — Invited</span><span class="health-value" id="health-ref-invited">—</span></div>
+                        <div class="health-row"><span class="health-label">Referrals — Joined</span><span class="health-value" id="health-ref-joined">—</span></div>
+                        <div class="health-row"><span class="health-label">Referrals — Purchased</span><span class="health-value" id="health-ref-purchased">—</span></div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </main>
 </div>
 
 <script>window.MK_ACTIVE_PAGE = 'dashboard';</script>
-<script src="nav-shared.js"></script>
+<script src="nav-shared.js?v=2"></script>
 <script src="supabase-config.js" onerror="window.__SUPABASE_CONFIG_MISSING__ = true"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="auth-gate.js"></script>
+<script src="auth-gate.js?v=2"></script>
 <script>
 (function () {
     const supabase = window.MKAuth.supabase;
@@ -211,26 +289,162 @@
         return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10);
     }
 
+    // The same number of days into LAST month, so a still-accumulating
+    // current month is compared fairly rather than against a full month.
+    function prevPeriodRangeISO() {
+        const now = new Date();
+        const y = now.getFullYear(), m = now.getMonth(), day = now.getDate();
+        const daysInPrevMonth = new Date(y, m, 0).getDate();
+        const cappedDay = Math.min(day, daysInPrevMonth);
+        const start = new Date(y, m - 1, 1);
+        const end = new Date(y, m - 1, cappedDay, 23, 59, 59, 999);
+        return { startISO: start.toISOString(), endISO: end.toISOString() };
+    }
+
+    function weekAgoISO() {
+        const d = new Date();
+        d.setDate(d.getDate() - 7);
+        return d.toISOString();
+    }
+
+    function renderDeltaPct(elId, curr, prev) {
+        const target = el(elId);
+        if (!prev) { target.textContent = 'No data last month yet'; target.className = 'tile-delta neutral'; return; }
+        const pct = Math.round(((curr - prev) / prev) * 100);
+        if (pct === 0) { target.textContent = 'Flat vs. last month'; target.className = 'tile-delta neutral'; return; }
+        target.textContent = (pct > 0 ? '▲ ' : '▼ ') + Math.abs(pct) + '% vs. last month';
+        target.className = 'tile-delta ' + (pct > 0 ? 'up' : 'down');
+    }
+
+    function renderCustomerDelta(elId, newThisWeek) {
+        const target = el(elId);
+        target.textContent = newThisWeek > 0 ? '+' + newThisWeek + ' this week' : 'No new customers this week';
+        target.className = 'tile-delta ' + (newThisWeek > 0 ? 'up' : 'neutral');
+    }
+
     async function loadStats() {
         if (!supabase) return;
 
+        const { startISO: prevStart, endISO: prevEnd } = prevPeriodRangeISO();
+
         const [
             { count: customerCount },
-            { data: visits }
+            { count: newCustomerCount },
+            { data: visits },
+            { data: prevVisits }
         ] = await Promise.all([
             supabase.from('customers').select('id', { count: 'exact', head: true }),
-            supabase.from('visits').select('amount').gte('created_at', monthStartISO())
+            supabase.from('customers').select('id', { count: 'exact', head: true }).gte('created_at', weekAgoISO()),
+            supabase.from('visits').select('customer_id, amount, created_at').gte('created_at', monthStartISO()),
+            supabase.from('visits').select('amount').gte('created_at', prevStart).lte('created_at', prevEnd)
         ]);
 
         el('stat-customers').textContent = customerCount != null ? customerCount : '—';
+        renderCustomerDelta('delta-customers', newCustomerCount || 0);
 
-        if (visits) {
-            el('stat-visits-month').textContent = visits.length;
-            const total = visits.reduce((sum, v) => sum + (v.amount || 0), 0);
-            el('stat-revenue-month').textContent = '₹' + total.toLocaleString('en-IN');
-            const aov = visits.length ? Math.round(total / visits.length) : 0;
-            el('stat-aov-month').textContent = visits.length ? '₹' + aov.toLocaleString('en-IN') : '—';
+        const monthVisits = visits || [];
+        const prevTotal = (prevVisits || []).reduce((sum, v) => sum + (v.amount || 0), 0);
+        const prevCount = (prevVisits || []).length;
+        const prevAov = prevCount ? prevTotal / prevCount : 0;
+
+        el('stat-visits-month').textContent = monthVisits.length;
+        renderDeltaPct('delta-visits', monthVisits.length, prevCount);
+
+        const total = monthVisits.reduce((sum, v) => sum + (v.amount || 0), 0);
+        el('stat-revenue-month').textContent = '₹' + total.toLocaleString('en-IN');
+        renderDeltaPct('delta-revenue', total, prevTotal);
+
+        const aov = monthVisits.length ? Math.round(total / monthVisits.length) : 0;
+        el('stat-aov-month').textContent = monthVisits.length ? '₹' + aov.toLocaleString('en-IN') : '—';
+        renderDeltaPct('delta-aov', aov, prevAov);
+
+        loadNewVsRepeat(monthVisits);
+    }
+
+    // A bar's colored proportion of a shared breakdown — used for both the
+    // category chart and the new-vs-repeat chart so the two don't carry
+    // separate, near-identical rendering logic.
+    function renderBarBreakdown(container, items, emptyMessage) {
+        const grandTotal = items.reduce((sum, it) => sum + it.value, 0);
+        container.innerHTML = '';
+        if (!grandTotal) {
+            container.innerHTML = `<p class="empty-hint">${emptyMessage}</p>`;
+            return;
         }
+        items.forEach((it) => {
+            const pct = Math.round((it.value / grandTotal) * 100);
+            const row = document.createElement('div');
+            row.className = 'category-row';
+            row.innerHTML = `
+                <div class="category-swatch" style="background:${it.color}"></div>
+                <div class="category-name">${it.name}</div>
+                <div class="category-bar-track"><div class="category-bar-fill" style="width:${pct}%;background:${it.color}"></div></div>
+                <div class="category-value">₹${it.value.toLocaleString('en-IN')}</div>
+            `;
+            container.appendChild(row);
+        });
+    }
+
+    // A sale counts as "new" if it's the customer's very first visit ever
+    // (checked against their full visit history, not just this month) —
+    // a repeat purchase later in the same month still counts as repeat.
+    async function loadNewVsRepeat(monthVisits) {
+        const container = el('new-repeat-chart');
+        if (!supabase) {
+            container.innerHTML = '<p class="empty-hint">Connect Supabase to see this breakdown.</p>';
+            return;
+        }
+        if (!monthVisits.length) {
+            container.innerHTML = '<p class="empty-hint">No sales recorded yet this month.</p>';
+            return;
+        }
+        const customerIds = [...new Set(monthVisits.map((v) => v.customer_id))];
+        const { data: allVisits, error } = await supabase
+            .from('visits')
+            .select('customer_id, created_at')
+            .in('customer_id', customerIds);
+        if (error) {
+            container.innerHTML = '<p class="empty-hint">Could not load breakdown.</p>';
+            return;
+        }
+        const firstVisitByCustomer = {};
+        (allVisits || []).forEach((v) => {
+            if (!firstVisitByCustomer[v.customer_id] || v.created_at < firstVisitByCustomer[v.customer_id]) {
+                firstVisitByCustomer[v.customer_id] = v.created_at;
+            }
+        });
+        let newCount = 0, newRevenue = 0, repeatCount = 0, repeatRevenue = 0;
+        monthVisits.forEach((v) => {
+            if (firstVisitByCustomer[v.customer_id] === v.created_at) {
+                newCount++; newRevenue += (v.amount || 0);
+            } else {
+                repeatCount++; repeatRevenue += (v.amount || 0);
+            }
+        });
+        renderBarBreakdown(container, [
+            { name: `New (${newCount})`, value: newRevenue, color: '#2a78d6' },
+            { name: `Repeat (${repeatCount})`, value: repeatRevenue, color: '#1c7a3e' }
+        ], 'No sales recorded yet this month.');
+    }
+
+    async function loadHealth() {
+        if (!supabase) return;
+        const [
+            { count: vipCount },
+            { count: rewardsCount },
+            { data: referrals }
+        ] = await Promise.all([
+            supabase.from('customers').select('id', { count: 'exact', head: true }).eq('high_value', true),
+            supabase.from('customers').select('id', { count: 'exact', head: true }).eq('rewards_opted_in', true),
+            supabase.from('referrals').select('status')
+        ]);
+        el('health-vip').textContent = vipCount != null ? vipCount : '—';
+        el('health-rewards').textContent = rewardsCount != null ? rewardsCount : '—';
+        const counts = { invited: 0, joined: 0, purchased: 0 };
+        (referrals || []).forEach((r) => { if (counts[r.status] != null) counts[r.status]++; });
+        el('health-ref-invited').textContent = counts.invited;
+        el('health-ref-joined').textContent = counts.joined;
+        el('health-ref-purchased').textContent = counts.purchased;
     }
 
     const CATEGORY_COLORS = { 'Spectacles': '#2a78d6', 'Contact Lenses': '#eb6834' };
@@ -256,46 +470,29 @@
         });
         const maxTotal = Math.max(1, ...buckets.map((b) => b.total));
         container.innerHTML = '';
-        buckets.forEach((b) => {
+        buckets.forEach((b, idx) => {
+            const isCurrent = idx === buckets.length - 1;
             const wrap = document.createElement('div');
             wrap.className = 'month-bar-wrap';
             const heightPct = Math.max(2, Math.round((b.total / maxTotal) * 100));
             wrap.innerHTML = `
                 <div class="month-bar-value">${b.total ? '₹' + Math.round(b.total / 1000) + 'k' : ''}</div>
-                <div class="month-bar" style="height:${heightPct}%"></div>
-                <div class="month-bar-label">${b.label}</div>
+                <div class="month-bar-track"><div class="month-bar${isCurrent ? ' current' : ''}" style="height:${heightPct}%"></div></div>
+                <div class="month-bar-label">${b.label}${isCurrent ? ' (so far)' : ''}</div>
             `;
             container.appendChild(wrap);
         });
     }
 
     function renderCategoryChart(monthVisits) {
-        const container = el('category-chart');
         const totals = {};
         monthVisits.forEach((v) => {
             const type = v.product_type || 'Spectacles';
             totals[type] = (totals[type] || 0) + (v.amount || 0);
         });
         const order = ['Spectacles', 'Contact Lenses'];
-        const grandTotal = order.reduce((sum, t) => sum + (totals[t] || 0), 0);
-        container.innerHTML = '';
-        if (!grandTotal) {
-            container.innerHTML = '<p class="empty-hint">No sales recorded yet this month.</p>';
-            return;
-        }
-        order.forEach((type) => {
-            const value = totals[type] || 0;
-            const pct = Math.round((value / grandTotal) * 100);
-            const row = document.createElement('div');
-            row.className = 'category-row';
-            row.innerHTML = `
-                <div class="category-swatch" style="background:${CATEGORY_COLORS[type]}"></div>
-                <div class="category-name">${CATEGORY_LABELS[type]}</div>
-                <div class="category-bar-track"><div class="category-bar-fill" style="width:${pct}%;background:${CATEGORY_COLORS[type]}"></div></div>
-                <div class="category-value">₹${value.toLocaleString('en-IN')}</div>
-            `;
-            container.appendChild(row);
-        });
+        const items = order.map((type) => ({ name: CATEGORY_LABELS[type], value: totals[type] || 0, color: CATEGORY_COLORS[type] }));
+        renderBarBreakdown(el('category-chart'), items, 'No sales recorded yet this month.');
     }
 
     async function loadCharts() {
@@ -315,7 +512,7 @@
         renderCategoryChart(all.filter((v) => v.created_at >= monthStart));
     }
 
-    window.MKAuth.ready.then(() => { loadStats(); loadCharts(); });
+    window.MKAuth.ready.then(() => { loadStats(); loadCharts(); loadHealth(); });
 })();
 </script>
 
