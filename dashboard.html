@@ -73,9 +73,6 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: flex-end;
-        height: 100%;
-        position: relative;
     }
     .month-bar-value {
         font-size: 11px;
@@ -84,9 +81,24 @@
         margin-bottom: 4px;
         white-space: nowrap;
     }
-    .month-bar {
+    /* A fixed-height track the bar grows inside, kept separate from the
+       value/label text above and below it. The bar's height is a
+       percentage of THIS element, not of the whole flex column — sharing
+       one flex container with two text siblings meant a tall bar could
+       overflow the column and get squashed by flex-shrink along with its
+       siblings, non-proportionally, so two very different values could
+       render at nearly the same height. */
+    .month-bar-track {
         width: 100%;
         max-width: 40px;
+        height: 100px;
+        position: relative;
+    }
+    .month-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
         border-radius: 4px 4px 0 0;
         background: var(--green-dark);
     }
@@ -465,7 +477,7 @@
             const heightPct = Math.max(2, Math.round((b.total / maxTotal) * 100));
             wrap.innerHTML = `
                 <div class="month-bar-value">${b.total ? '₹' + Math.round(b.total / 1000) + 'k' : ''}</div>
-                <div class="month-bar${isCurrent ? ' current' : ''}" style="height:${heightPct}%"></div>
+                <div class="month-bar-track"><div class="month-bar${isCurrent ? ' current' : ''}" style="height:${heightPct}%"></div></div>
                 <div class="month-bar-label">${b.label}${isCurrent ? ' (so far)' : ''}</div>
             `;
             container.appendChild(wrap);
