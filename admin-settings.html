@@ -116,6 +116,19 @@
             <div id="page-content">
 
             <div class="card">
+                <h2>Data Export</h2>
+                <p class="empty-hint" style="margin-top:-4px;margin-bottom:14px">
+                    Download a spreadsheet copy of the shop's data — handy to keep on hand in case the
+                    internet ever goes down and you need to look something up. Always a full, current
+                    snapshot at the moment you download it, not a live-updating file.
+                </p>
+                <div style="display:flex;gap:10px;flex-wrap:wrap">
+                    <button class="btn btn-dark" id="export-all-btn">Download Everything (.xlsx)</button>
+                    <button class="btn btn-primary" id="export-actions-btn">Download Actions Only (.xlsx)</button>
+                </div>
+            </div>
+
+            <div class="card">
                 <h2>Store Features</h2>
                 <div class="toggle-row">
                     <input type="checkbox" id="ai-enabled-toggle">
@@ -211,6 +224,7 @@
 <script src="nav-shared.js?v=2"></script>
 <script src="supabase-config.js" onerror="window.__SUPABASE_CONFIG_MISSING__ = true"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="auth-gate.js?v=2"></script>
 <script>
 (function () {
@@ -397,6 +411,103 @@
         el('new-offer-valid-until').value = '';
         setStatus('Offer added.', false);
         loadOffers();
+    });
+
+    // --- Data Export -----------------------------------------------
+    // Always a full, current snapshot fetched fresh on click — never a
+    // scheduled/incremental job. The dataset is small enough (a few
+    // hundred rows across a handful of tables) that a full re-fetch every
+    // time is simpler and safer than tracking "what changed since last
+    // export," and it means a skipped day never silently drops data.
+    function todayStamp() {
+        return new Date().toISOString().slice(0, 10);
+    }
+
+    function buildWorkbook(sheets) {
+        const wb = XLSX.utils.book_new();
+        Object.entries(sheets).forEach(([name, rows]) => {
+            const data = (rows && rows.length) ? rows : [{ note: 'No data' }];
+            const ws = XLSX.utils.json_to_sheet(data);
+            XLSX.utils.book_append_sheet(wb, ws, name.slice(0, 31));
+        });
+        return wb;
+    }
+
+    // A joined customer's name/phone come back as a nested object
+    // (e.g. row.customers.name) — flatten that into plain columns so it
+    // shows up as ordinary cells instead of "[object Object]".
+    function flattenCustomer(rows) {
+        return (rows || []).map((r) => {
+            const { customers, ...rest } = r;
+            return { ...rest, customer_name: (customers && customers.name) || '', customer_phone: (customers && customers.phone) || '' };
+        });
+    }
+
+    async function fetchAllTables() {
+        const [customers, visits, leads, reminders, referrals, orders, messages, signups, requests] = await Promise.all([
+            supabase.from('customers').select('*'),
+            supabase.from('visits').select('*'),
+            supabase.from('leads').select('*'),
+            supabase.from('reminders').select('*'),
+            supabase.from('referrals').select('*'),
+            supabase.from('consumable_orders').select('*'),
+            supabase.from('complaints').select('*'),
+            supabase.from('reward_signups').select('*'),
+            supabase.from('appointment_requests').select('*')
+        ]);
+        return {
+            Customers: customers.data || [],
+            Visits: visits.data || [],
+            Enquiries: leads.data || [],
+            'Follow-Ups': reminders.data || [],
+            Referrals: referrals.data || [],
+            Orders: orders.data || [],
+            Messages: messages.data || [],
+            'Sign-Ups': signups.data || [],
+            'Appt Requests': requests.data || []
+        };
+    }
+
+    // Mirrors actions.html's own five queries exactly, so this file is a
+    // paper copy of exactly what staff see on the Actions page.
+    async function fetchActionsOnly() {
+        const todayISO = todayStamp();
+        const [dueReminders, requests, leads, orders, signups] = await Promise.all([
+            supabase.from('reminders').select('*, customers(name, phone)').eq('status', 'pending').lte('due_date', todayISO).order('due_date', { ascending: true }),
+            supabase.from('appointment_requests').select('*').eq('status', 'new').order('created_at', { ascending: false }),
+            supabase.from('leads').select('*').eq('status', 'open').order('enquiry_date', { ascending: false }),
+            supabase.from('consumable_orders').select('*, customers(name, phone)').eq('status', 'requested').order('created_at', { ascending: false }),
+            supabase.from('reward_signups').select('*').eq('reviewed', false).order('created_at', { ascending: false })
+        ]);
+        return {
+            'Due or Overdue': flattenCustomer(dueReminders.data),
+            'New Appt Requests': requests.data || [],
+            'Open Enquiries': leads.data || [],
+            'Pending Orders': flattenCustomer(orders.data),
+            'Pending Sign-ups': signups.data || []
+        };
+    }
+
+    el('export-all-btn').addEventListener('click', async () => {
+        setStatus('Preparing full export…', false);
+        try {
+            const sheets = await fetchAllTables();
+            XLSX.writeFile(buildWorkbook(sheets), `mkoptics-full-export-${todayStamp()}.xlsx`);
+            setStatus('Full export downloaded.', false);
+        } catch (e) {
+            setStatus('Could not build export: ' + e.message, true);
+        }
+    });
+
+    el('export-actions-btn').addEventListener('click', async () => {
+        setStatus('Preparing Actions export…', false);
+        try {
+            const sheets = await fetchActionsOnly();
+            XLSX.writeFile(buildWorkbook(sheets), `mkoptics-actions-${todayStamp()}.xlsx`);
+            setStatus('Actions export downloaded.', false);
+        } catch (e) {
+            setStatus('Could not build export: ' + e.message, true);
+        }
     });
 
     window.MKAuth.roleReady.then((role) => {
