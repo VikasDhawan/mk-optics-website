@@ -267,6 +267,20 @@
                             <input type="tel" id="nc-phone" placeholder="98450 12345" style="flex:1">
                         </div>
                     </div>
+                    <div>
+                        <label class="field-label" for="nc-age">Age (optional)</label>
+                        <input type="number" id="nc-age" min="1" max="120" placeholder="e.g. 34">
+                    </div>
+                    <div>
+                        <label class="field-label" for="nc-city">City or area (optional)</label>
+                        <input type="text" id="nc-city" placeholder="e.g. Secunderabad">
+                    </div>
+                    <div id="nc-guardian-field" hidden style="grid-column: 1 / -1">
+                        <label style="display:flex;gap:8px;align-items:flex-start;text-transform:none;font-weight:400;letter-spacing:normal">
+                            <input type="checkbox" id="nc-guardian" style="margin-top:3px">
+                            <span>Under 18: the parent or legal guardian has agreed to this customer being recorded.</span>
+                        </label>
+                    </div>
                     <div style="grid-column: 1 / -1">
                         <button class="btn btn-dark" id="save-new-customer-btn">Save Customer</button>
                     </div>
@@ -279,6 +293,15 @@
                     <div class="chip active" data-type="Spectacles">👓 Eyewear</div>
                     <div class="chip" data-type="Contact Lenses">👁️ Contact Lens</div>
                 </div>
+            </div>
+
+            <div class="card" id="rx-consent-card" style="margin-bottom:16px">
+                <h2>Customer consent</h2>
+                <label style="display:flex;gap:8px;align-items:flex-start;text-transform:none;font-weight:400;letter-spacing:normal">
+                    <input type="checkbox" id="rx-consent" style="margin-top:3px">
+                    <span>The customer agrees that their prescription can be recorded for preparing their eyewear and kept in their record.</span>
+                </label>
+                <p class="hint" style="margin-top:8px">Tick this only after the customer has agreed. It is required before a prescription can be saved. The record will show the signed-in staff member and the time.</p>
             </div>
 
             <div class="grid-2">
@@ -506,6 +529,9 @@
     // auth-gate.js already checked config, created the Supabase client,
     // and wired up the login screen — we just reuse its client here.
     const supabase = window.MKAuth.supabase;
+    const POLICY_VERSION = '2026-11-12';
+    // Prescription columns: eyewear sphere/cylinder/axis/add, and contact lens curve/diameter.
+    const RX_COLUMN_PATTERN = /^(od_|os_|add_|cl_base_curve|cl_diameter)/;
 
     // A customer name could carry attacker-controlled text (e.g. copied
     // in from a public reward sign-up) — escape before innerHTML.
@@ -757,15 +783,44 @@
         if (!name || !phone) {
             return { error: 'Enter a name and mobile number to add a customer.' };
         }
+        const ageRaw = el('nc-age').value.trim();
+        const age = ageRaw === '' ? null : parseInt(ageRaw, 10);
+        if (age !== null && (isNaN(age) || age < 1 || age > 120)) {
+            return { error: 'Please enter a valid age, or leave it blank.' };
+        }
+        const guardianConfirmed = el('nc-guardian').checked;
+        if (age !== null && age < 18 && !guardianConfirmed) {
+            return { error: 'For a customer under 18, confirm the parent or guardian has agreed.' };
+        }
+        const city = el('nc-city').value.trim() || null;
+
         const { data, error } = await supabase
             .from('customers')
-            .insert({ name, phone })
+            .insert({ name, phone, age, city })
             .select()
             .single();
         if (error) {
             return { error: 'Could not save customer: ' + error.message };
         }
+
+        if (age !== null && age < 18) {
+            const staffEmail = await currentStaffEmail();
+            await supabase.from('consent_records').insert({
+                customer_id: data.id,
+                phone,
+                purpose: 'guardian_consent',
+                granted: true,
+                policy_version: POLICY_VERSION,
+                source: 'counter',
+                recorded_by: staffEmail
+            });
+        }
         return { customer: data };
+    }
+
+    async function currentStaffEmail() {
+        const { data } = await supabase.auth.getUser();
+        return data && data.user ? data.user.email : null;
     }
 
     el('save-new-customer-btn').addEventListener('click', async () => {
@@ -834,10 +889,34 @@
         });
         if (visit.amount !== null) visit.amount = Number(visit.amount);
 
+        // Prescription values need the customer's consent first. Staff must
+        // tick the box, which is only done after the customer agrees.
+        const rxFilled = activeVisitFields().some(([inputId, column]) =>
+            RX_COLUMN_PATTERN.test(column) && el(inputId).value.trim() !== ''
+        );
+        if (rxFilled && !el('rx-consent').checked) {
+            setStatus('Ask the customer to agree, then tick the Customer consent box before saving their prescription.', true);
+            return;
+        }
+
         const { error } = await supabase.from('visits').insert(visit);
         if (error) {
             setStatus('Could not save visit: ' + error.message, true);
             return;
+        }
+
+        if (rxFilled) {
+            await supabase.from('consent_records').insert({
+                customer_id: selectedCustomer.id,
+                phone: selectedCustomer.phone,
+                purpose: 'prescription',
+                granted: true,
+                policy_version: POLICY_VERSION,
+                source: 'counter',
+                recorded_by: await currentStaffEmail()
+            });
+            // Clear the tick so the next prescription needs a fresh consent.
+            el('rx-consent').checked = false;
         }
 
         // A visit's "next reminder date" is only useful if it actually

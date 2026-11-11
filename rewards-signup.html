@@ -158,7 +158,7 @@
             </div>
         </div>
         <div class="consent">
-            <input type="checkbox" id="consent" checked>
+            <input type="checkbox" id="consent">
             <label for="consent" style="text-transform:none;font-weight:400;letter-spacing:normal;margin:0">
                 I'd like to receive offers and updates from MK Optics on WhatsApp.
             </label>
@@ -186,6 +186,7 @@
         supabase = window.supabase.createClient(cfg.url, cfg.anonKey);
     }
 
+    const POLICY_VERSION = '2026-11-12';
     const el = (id) => document.getElementById(id);
     const errorEl = el('error-msg');
 
@@ -204,16 +205,28 @@
             return;
         }
 
+        const offersChosen = el('consent').checked;
+
         const { error } = await supabase.from('reward_signups').insert({
             name,
             phone,
-            opted_in_offers: el('consent').checked
+            opted_in_offers: offersChosen
         });
 
         if (error) {
             errorEl.textContent = 'Something went wrong — please ask our staff to add you instead.';
             return;
         }
+
+        // Keep a separate, timestamped record of the WhatsApp offers choice,
+        // whether the box was ticked or not.
+        await supabase.from('consent_records').insert({
+            phone,
+            purpose: 'whatsapp_offers',
+            granted: offersChosen,
+            policy_version: POLICY_VERSION,
+            source: 'website_rewards'
+        });
 
         el('form-view').hidden = true;
         el('success-view').hidden = false;

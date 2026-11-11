@@ -211,6 +211,21 @@
             <label for="notes">Anything else? (optional)</label>
             <textarea id="notes" placeholder="e.g. Preferred time of day, specific concern"></textarea>
         </div>
+        <div class="field">
+            <label for="age">Age (optional)</label>
+            <input type="number" id="age" min="1" max="120" placeholder="e.g. 34">
+        </div>
+        <div class="field">
+            <label for="city">City or area (optional)</label>
+            <input type="text" id="city" placeholder="e.g. Secunderabad">
+        </div>
+        <div class="field" id="guardian-field" hidden>
+            <label style="display:flex;gap:8px;align-items:flex-start;text-transform:none;font-weight:400;letter-spacing:normal">
+                <input type="checkbox" id="guardian-consent" style="margin-top:3px">
+                <span>I am the parent or legal guardian of this person, and I agree to this appointment being booked for them.</span>
+            </label>
+        </div>
+        <p class="sub" style="font-size:13px;margin-bottom:18px">By booking, you agree that MK Optics can use your name and phone number to confirm and manage your appointment. Read our <a href="privacy-policy.html">Privacy Policy</a>.</p>
 
         <button class="btn" id="book-btn"><span id="book-btn-label">Request Appointment</span></button>
         <p id="error-msg" class="error-msg"></p>
@@ -281,16 +296,37 @@
         return String(h).padStart(2, '0') + ':' + m;
     }
 
+    const POLICY_VERSION = '2026-11-12';
+
+    // Show the guardian box only when an age under 18 is typed in.
+    el('age').addEventListener('input', () => {
+        const age = parseInt(el('age').value, 10);
+        el('guardian-field').hidden = !(age > 0 && age < 18);
+        if (el('guardian-field').hidden) el('guardian-consent').checked = false;
+    });
+
     el('book-btn').addEventListener('click', async () => {
         const name = el('name').value.trim();
         const phoneDigits = el('phone').value.replace(/\D/g, '');
         const phone = phoneDigits ? '+' + el('phone-code').value + phoneDigits : '';
         const date = el('date').value;
         const preferredTime = getPreferredTime();
+        const ageRaw = el('age').value.trim();
+        const age = ageRaw === '' ? null : parseInt(ageRaw, 10);
+        const city = el('city').value.trim() || null;
+        const guardianConsent = el('guardian-consent').checked;
         errorEl.textContent = '';
 
         if (!name || !phone) {
             errorEl.textContent = 'Please enter your name and mobile number.';
+            return;
+        }
+        if (age !== null && (isNaN(age) || age < 1 || age > 120)) {
+            errorEl.textContent = 'Please enter a valid age, or leave it blank.';
+            return;
+        }
+        if (age !== null && age < 18 && !guardianConsent) {
+            errorEl.textContent = 'For someone under 18, please tick the guardian box to confirm their parent or guardian agrees.';
             return;
         }
         if (!date) {
@@ -333,13 +369,35 @@
             phone,
             preferred_date: date || null,
             preferred_time: preferredTime || null,
-            notes: el('notes').value.trim() || null
+            notes: el('notes').value.trim() || null,
+            age,
+            city,
+            guardian_consent: age !== null && age < 18 ? guardianConsent : false
         });
 
         if (error) {
             errorEl.textContent = 'Something went wrong — please call or WhatsApp us instead.';
             return;
         }
+
+        // Record the appointment notice as given at the time of booking.
+        const consentRows = [{
+            phone,
+            purpose: 'appointment',
+            granted: true,
+            policy_version: POLICY_VERSION,
+            source: 'website_booking'
+        }];
+        if (age !== null && age < 18) {
+            consentRows.push({
+                phone,
+                purpose: 'guardian_consent',
+                granted: guardianConsent,
+                policy_version: POLICY_VERSION,
+                source: 'website_booking'
+            });
+        }
+        await supabase.from('consent_records').insert(consentRows);
 
         el('form-view').hidden = true;
         el('success-view').hidden = false;
