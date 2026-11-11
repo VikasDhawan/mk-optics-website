@@ -1,0 +1,16 @@
+User-agent: *
+Disallow: /dashboard.html
+Disallow: /customers.html
+Disallow: /admin-settings.html
+Disallow: /ai-settings.html
+Disallow: /calendar.html
+Disallow: /actions.html
+Disallow: /my-profile.html
+Disallow: /counter-intake.html
+Disallow: /customer-messages.html
+Disallow: /enquiries.html
+Disallow: /referrals.html
+Disallow: /consumable-orders.html
+Disallow: /customer-portal.html
+
+Sitemap: https://mkoptics.in/sitemap.xml
