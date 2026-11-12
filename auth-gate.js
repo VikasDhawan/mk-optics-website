@@ -65,6 +65,14 @@
     const loginError = document.getElementById('login-error');
     const staffEmailEl = document.getElementById('staff-email');
 
+    function initialsFor(name) {
+        const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+        if (!parts.length) return '?';
+        const first = parts[0][0] || '';
+        const last = parts.length > 1 ? parts[parts.length - 1][0] : '';
+        return (first + last).toUpperCase();
+    }
+
     function showApp(session) {
         loginScreen.hidden = true;
         appRoot.hidden = false;
@@ -120,14 +128,29 @@
             staffEmailEl.textContent = profile.name;
         }
 
+        // Photo above the name: the uploaded photo if there is one,
+        // otherwise a placeholder showing the person's initials.
         const avatarImg = document.getElementById('staff-avatar');
+        const avatarPlaceholder = document.getElementById('staff-avatar-placeholder');
         if (avatarImg) {
             if (profile.photo_url) {
                 avatarImg.src = profile.photo_url;
                 avatarImg.hidden = false;
+                if (avatarPlaceholder) avatarPlaceholder.hidden = true;
             } else {
                 avatarImg.hidden = true;
+                if (avatarPlaceholder) {
+                    avatarPlaceholder.hidden = false;
+                    avatarPlaceholder.textContent = initialsFor(profile.name);
+                }
             }
+        }
+
+        // Role shown under the name, e.g. "Admin".
+        const roleEl = document.getElementById('staff-role');
+        if (roleEl) {
+            const roleLabels = { employee: 'Employee', admin: 'Admin', super_admin: 'Super Admin' };
+            roleEl.textContent = roleLabels[profile.role] || '';
         }
 
         const isAdminOrAbove = profile.role === 'admin' || profile.role === 'super_admin';

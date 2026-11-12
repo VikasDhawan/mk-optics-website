@@ -218,6 +218,35 @@
         });
     }
 
+    // Logo: clicking it opens the public website.
+    var brand = document.querySelector('.sidebar .sidebar-brand');
+    if (brand && brand.tagName !== 'A') {
+        var brandLink = document.createElement('a');
+        brandLink.className = 'sidebar-brand';
+        brandLink.href = 'https://mkoptics.in';
+        brandLink.target = '_blank';
+        brandLink.rel = 'noopener';
+        brandLink.title = 'Visit the MK Optics website';
+        brandLink.innerHTML = brand.innerHTML;
+        brand.replaceWith(brandLink);
+    }
+
+    // Footer: profile block (photo placeholder, name, role) and sign out.
+    // auth-gate.js fills in the name, role and photo once the profile loads.
+    var footer = document.querySelector('.sidebar .sidebar-footer');
+    if (footer) {
+        footer.innerHTML =
+            '<a class="staff-profile-link" href="my-profile.html">' +
+                '<div class="staff-avatar-wrap">' +
+                    '<img class="staff-avatar" id="staff-avatar" alt="" hidden>' +
+                    '<div class="staff-avatar-placeholder" id="staff-avatar-placeholder"></div>' +
+                '</div>' +
+                '<div class="staff-email" id="staff-email"></div>' +
+                '<div class="staff-role" id="staff-role"></div>' +
+            '</a>' +
+            '<div class="sign-out-link" id="sign-out-btn">Sign out</div>';
+    }
+
     var navEl = document.querySelector('.sidebar-nav');
     if (navEl) render(navEl, window.MK_ACTIVE_PAGE || '');
 })();
