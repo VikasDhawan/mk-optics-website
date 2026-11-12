@@ -190,6 +190,18 @@
                 <p class="empty-hint" style="margin-top:-6px;margin-bottom:14px">
                     Booked ahead — not due yet, so they won't appear above until their date arrives.
                 </p>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+                    <select id="upcoming-window" aria-label="Time window" style="padding:8px;border:1px solid #d6dbe6;border-radius:8px">
+                        <option value="30" selected>Next 30 days</option>
+                        <option value="all">All upcoming</option>
+                    </select>
+                    <select id="upcoming-type" aria-label="Reminder type" style="padding:8px;border:1px solid #d6dbe6;border-radius:8px">
+                        <option value="all">All types</option>
+                        <option value="eye_test">Eye tests</option>
+                        <option value="contact_lens_refill">Contact lens refills</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
                 <div id="upcoming-list" class="followup-list">
                     <p class="empty-hint">Loading…</p>
                 </div>
@@ -338,23 +350,37 @@
         renderReminders(data || [], listEl, "Nothing due today — you're all caught up.");
     }
 
+    function daysFromTodayISO(n) {
+        const d = new Date();
+        d.setDate(d.getDate() + n);
+        return d.toLocaleDateString('en-CA');
+    }
+
     async function loadUpcoming() {
         if (!supabase) {
             upcomingEl.innerHTML = '<p class="empty-hint">Connect Supabase to see upcoming follow-ups.</p>';
             return;
         }
-        const { data, error } = await supabase
+        const windowValue = document.getElementById('upcoming-window').value;
+        const typeValue = document.getElementById('upcoming-type').value;
+        let query = supabase
             .from('reminders')
             .select('*, customers(name, phone)')
             .eq('status', 'pending')
-            .gt('due_date', todayISO())
-            .order('due_date', { ascending: true });
+            .gt('due_date', todayISO());
+        if (windowValue === '30') query = query.lte('due_date', daysFromTodayISO(30));
+        if (typeValue === 'other') query = query.not('type', 'in', '(eye_test,contact_lens_refill)');
+        else if (typeValue !== 'all') query = query.eq('type', typeValue);
+        const { data, error } = await query.order('due_date', { ascending: true });
         if (error) {
             upcomingEl.innerHTML = '<p class="empty-hint">Could not load upcoming follow-ups: ' + error.message + '</p>';
             return;
         }
         renderReminders(data || [], upcomingEl, 'Nothing booked ahead right now.');
     }
+
+    document.getElementById('upcoming-window').addEventListener('change', loadUpcoming);
+    document.getElementById('upcoming-type').addEventListener('change', loadUpcoming);
 
     // --- New Appointment Requests (booked online) -----------------------
     // Turning a request into a real reminder is what makes it show up in

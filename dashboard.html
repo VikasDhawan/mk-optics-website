@@ -150,6 +150,10 @@
     }
 
     .category-chart .empty-hint, .month-chart .empty-hint { margin: 0; }
+    .ops-list { list-style: none; margin: 0; padding: 0; }
+    .ops-list li { padding: 9px 0; border-bottom: 1px solid #eceef4; font-size: 14px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .ops-list .when { color: #666; font-size: 12px; white-space: nowrap; }
+    .ops-list .when.overdue { color: #9b2c2c; font-weight: 600; }
 </style>
 </head>
 <body>
@@ -215,6 +219,14 @@
                 fill in your project URL and key, and reload this page.
             </div>
 
+            <div class="card" style="margin-bottom:24px">
+                <h2>Recall — Next 30 Days</h2>
+                <p class="empty-hint" style="margin-top:-6px;margin-bottom:10px">The five soonest eye tests and contact lens refills. The full list is on Actions.</p>
+                <div id="recall-preview"><p class="empty-hint">Loading…</p></div>
+                <p style="margin-top:12px"><a href="actions.html" style="font-weight:600">See all on Actions →</a></p>
+            </div>
+
+            <div id="money-section">
             <div class="stat-grid" id="stat-grid">
                 <a class="stat-tile" href="customers.html">
                     <div class="value" id="stat-customers">—</div>
@@ -269,6 +281,7 @@
                         <div class="health-row"><span class="health-label">Referrals — Purchased</span><span class="health-value" id="health-ref-purchased">—</span></div>
                     </div>
                 </div>
+            </div>
             </div>
 
         </div>
@@ -513,7 +526,53 @@
         renderCategoryChart(all.filter((v) => v.created_at >= monthStart));
     }
 
-    window.MKAuth.ready.then(() => { loadStats(); loadCharts(); loadHealth(); });
+    // Money figures are for Admins and Super Admin only.
+    const esc = (v) => String(v == null ? '' : v)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+    function maskPhone(phone) {
+        if (!phone) return '';
+        const digits = phone.replace(/\D/g, '');
+        if (digits.length <= 4) return phone;
+        return phone.slice(0, phone.length - 5) + 'XXXXX';
+    }
+
+    const TYPE_LABELS = { eye_test: 'Eye test due', contact_lens_refill: 'Contact lens refill' };
+
+    async function loadRecallPreview() {
+        if (!supabase) return;
+        const today = new Date().toLocaleDateString('en-CA');
+        const in30 = new Date(); in30.setDate(in30.getDate() + 30);
+        const { data, error } = await supabase.from('reminders')
+            .select('type, due_date, customers(name, phone)')
+            .eq('status', 'pending')
+            .in('type', ['eye_test', 'contact_lens_refill'])
+            .lte('due_date', in30.toLocaleDateString('en-CA'))
+            .order('due_date', { ascending: true })
+            .limit(5);
+        const box = el('recall-preview');
+        if (error) { box.innerHTML = '<p class="empty-hint">Could not load the recall list.</p>'; return; }
+        const rows = (data || []).map((r) => {
+            const name = r.customers ? r.customers.name : 'Unknown customer';
+            const phone = r.customers ? maskPhone(r.customers.phone) : '';
+            const overdue = r.due_date < today;
+            return '<li><span>' + esc(TYPE_LABELS[r.type] || 'Recall') + ': <strong>' + esc(name) + '</strong> <span class="when">' + esc(phone) + '</span></span>'
+                + '<span class="when' + (overdue ? ' overdue' : '') + '">' + (overdue ? 'Overdue since ' : 'Due ') + esc(r.due_date) + '</span></li>';
+        });
+        box.innerHTML = rows.length
+            ? '<ul class="ops-list">' + rows.join('') + '</ul>'
+            : '<p class="empty-hint">No recalls due in the next 30 days yet. They appear here once eye test or contact lens refill reminders are scheduled.</p>';
+    }
+
+    window.MKAuth.ready.then(() => {
+        loadRecallPreview();
+        const role = window.MKAuth.role;
+        if (role === 'admin' || role === 'super_admin') {
+            loadStats(); loadCharts(); loadHealth();
+        } else {
+            el('money-section').hidden = true;
+        }
+    });
 })();
 </script>
 
