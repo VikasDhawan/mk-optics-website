@@ -196,6 +196,12 @@
             </div>
 
             <div class="card">
+                <h2>Download data (Excel)</h2>
+                <p class="empty-hint">Downloads customer and business records as one Excel file, with one tab per table and a summary tab. Passwords, API keys and staff logins are never included. Every download is recorded.</p>
+                <button class="btn btn-dark" id="export-btn" style="margin-top:8px">⬇️ Download Excel backup</button>
+            </div>
+
+            <div class="card">
                 <h2>Staff</h2>
                 <div id="staff-list"><p class="empty-hint">Loading…</p></div>
             </div>
@@ -212,6 +218,7 @@
 <script src="nav-shared.js?v=7"></script>
 <script src="supabase-config.js" onerror="window.__SUPABASE_CONFIG_MISSING__ = true"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="auth-gate.js?v=7"></script>
 <script>
 (function () {
@@ -399,6 +406,116 @@
         setStatus('Offer added.', false);
         loadOffers();
     });
+
+    // ---- Excel backup download (Admin and Super Admin) ----
+    // Tables to export, with the tab name used in the workbook.
+    // Deliberately NOT exported: ai_settings (API keys), staff_profiles (staff details),
+    // app_settings, help_articles, and anything in auth (passwords).
+    const EXPORT_TABLES = [
+        ['Customers', 'customers'],
+        ['Visits', 'visits'],
+        ['Enquiries', 'leads'],
+        ['Referrals', 'referrals'],
+        ['Reminders', 'reminders'],
+        ['Orders', 'consumable_orders'],
+        ['Appointments', 'appointment_requests'],
+        ['Reward Signups', 'reward_signups'],
+        ['Messages', 'complaints'],
+        ['Consent', 'consent_records'],
+        ['Offers', 'offers'],
+        ['Name-Phone Changes', 'customer_edit_log']
+    ];
+    const PAGE_SIZE = 1000;
+
+    // Supabase returns at most 1,000 rows per request, so read the whole table in pages.
+    // Any error stops the export, so a backup is never silently incomplete.
+    async function fetchAllRows(table) {
+        const rows = [];
+        for (let from = 0; ; from += PAGE_SIZE) {
+            const { data, error } = await supabase
+                .from(table)
+                .select('*')
+                .order('id')
+                .range(from, from + PAGE_SIZE - 1);
+            if (error) throw new Error(table + ': ' + error.message);
+            rows.push(...data);
+            if (data.length < PAGE_SIZE) break;
+        }
+        return rows;
+    }
+
+    // Excel cells cannot hold objects or arrays, so store them as JSON text.
+    function flatten(row) {
+        const out = {};
+        Object.keys(row).forEach((k) => {
+            const v = row[k];
+            out[k] = (v !== null && typeof v === 'object') ? JSON.stringify(v) : v;
+        });
+        return out;
+    }
+
+    async function runExport() {
+        const btn = el('export-btn');
+        btn.disabled = true;
+        setStatus('Exporting… this can take a minute for large records.', false);
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            const today = new Date();
+            const stamp = today.toISOString().slice(0, 10);
+            const fileName = 'mkoptics-backup-' + stamp + '.xlsx';
+
+            const wb = XLSX.utils.book_new();
+            const counts = {};
+            const usedTables = [];
+
+            for (const [tabName, table] of EXPORT_TABLES) {
+                const rows = await fetchAllRows(table);
+                counts[table] = rows.length;
+                usedTables.push(table);
+                const sheet = rows.length
+                    ? XLSX.utils.json_to_sheet(rows.map(flatten))
+                    : XLSX.utils.aoa_to_sheet([['(no rows)']]);
+                XLSX.utils.book_append_sheet(wb, sheet, tabName);
+            }
+
+            // Summary tab first, so whoever opens the file sees what it contains.
+            const summary = [
+                ['MK Optics data backup'],
+                ['Exported at', today.toLocaleString('en-IN')],
+                ['Exported by', user ? user.email : '—'],
+                ['Amounts', 'Visit amounts are before GST.'],
+                ['Not included', 'Passwords, API keys, staff logins, app settings'],
+                [],
+                ['Tab', 'Rows']
+            ];
+            EXPORT_TABLES.forEach(([tabName, table]) => summary.push([tabName, counts[table]]));
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summary), 'Summary');
+            wb.SheetNames.unshift(wb.SheetNames.pop());
+
+            XLSX.writeFile(wb, fileName);
+
+            // Record the download. The file has already been saved, so a logging
+            // failure is reported but does not undo the download.
+            const { error: logError } = await supabase.from('data_exports').insert({
+                exported_by: user ? user.id : null,
+                exported_by_email: user ? user.email : null,
+                file_name: fileName,
+                tables_exported: usedTables,
+                row_counts: counts
+            });
+            if (logError) {
+                setStatus('Downloaded ' + fileName + ', but the download could not be recorded: ' + logError.message, true);
+            } else {
+                setStatus('Downloaded ' + fileName + '.', false);
+            }
+        } catch (err) {
+            setStatus('Export failed. Nothing was downloaded. ' + err.message, true);
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    el('export-btn').addEventListener('click', runExport);
 
     window.MKAuth.roleReady.then((role) => {
         myRole = role;
