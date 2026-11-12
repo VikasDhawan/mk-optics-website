@@ -37,7 +37,8 @@
         },
         { id: 'calendar', label: 'Calendar', href: 'calendar.html' },
         { id: 'orders', label: 'Orders', href: 'consumable-orders.html' },
-        { id: 'dashboard', label: 'Dashboard', href: 'dashboard.html' }
+        { id: 'dashboard', label: 'Dashboard', href: 'dashboard.html' },
+        { id: 'help', label: 'Help', href: 'help.html' }
     ];
 
     // Settings/account-level pages — unaffected by the categorization
