@@ -564,9 +564,10 @@
             : '<p class="empty-hint">No recalls due in the next 30 days yet. They appear here once eye test or contact lens refill reminders are scheduled.</p>';
     }
 
-    window.MKAuth.ready.then(() => {
+    // Wait for roleReady: the role is only set after the staff profile loads,
+    // which happens after 'ready' has already resolved.
+    window.MKAuth.roleReady.then((role) => {
         loadRecallPreview();
-        const role = window.MKAuth.role;
         if (role === 'admin' || role === 'super_admin') {
             loadStats(); loadCharts(); loadHealth();
         } else {
