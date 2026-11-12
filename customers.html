@@ -775,6 +775,11 @@
             listEl.innerHTML = '<p class="empty-hint">Could not load customers: ' + error.message + '</p>';
             return;
         }
+        if (!term && !(data || []).length) {
+            // Nobody on file at all: say so, rather than "No matches".
+            listEl.innerHTML = '<p class="empty-hint">No customers yet. Add the first one from Counter Intake.</p>';
+            return;
+        }
         renderList(data || []);
     }
 
