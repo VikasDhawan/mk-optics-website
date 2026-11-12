@@ -136,6 +136,8 @@
         if (adminNav) adminNav.hidden = !isAdminOrAbove;
         const aiNav = document.getElementById('nav-ai-settings');
         if (aiNav) aiNav.hidden = !isSuperAdmin;
+        const adminGroup = document.getElementById('nav-group-admin');
+        if (adminGroup) adminGroup.hidden = !isAdminOrAbove;
 
         resolveRoleReady(profile.role);
     }
