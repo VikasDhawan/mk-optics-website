@@ -80,6 +80,7 @@
         return '<svg viewBox="0 0 100 100" aria-hidden="true" width="100%" height="100%">' +
             HEAD_AND_SHOULDERS + hair + '</svg>';
     }
+    window.MKAuth.placeholderSvg = placeholderSvg;
 
     function showApp(session) {
         loginScreen.hidden = true;
