@@ -468,3 +468,31 @@ a.staff-avatar-row:hover {
 
     .grid-2 { grid-template-columns: 1fr; }
 }
+
+/* Loading indicator for lists */
+.list-loading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 18px 8px;
+    color: var(--grey, #555);
+    font-size: 14px;
+}
+.list-loading .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #cfd8cf;
+    border-top-color: #1c7a3e;
+    border-radius: 50%;
+    animation: list-spin 0.8s linear infinite;
+}
+.list-loading-note {
+    flex-basis: 100%;
+    font-size: 13px;
+    color: #7a4d00;
+}
+@keyframes list-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+    .list-loading .spinner { animation: none; }
+}
