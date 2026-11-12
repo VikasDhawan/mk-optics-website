@@ -65,12 +65,20 @@
     const loginError = document.getElementById('login-error');
     const staffEmailEl = document.getElementById('staff-email');
 
-    function initialsFor(name) {
-        const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
-        if (!parts.length) return '?';
-        const first = parts[0][0] || '';
-        const last = parts.length > 1 ? parts[parts.length - 1][0] : '';
-        return (first + last).toUpperCase();
+    // Default profile silhouette, chosen by salutation. 'Mr' gets a short-haired
+    // figure, 'Ms' and 'Mrs' a longer-haired one, and anyone without a
+    // salutation a neutral figure.
+    const HEAD_AND_SHOULDERS = '<circle cx="50" cy="40" r="17" fill="#f2f2f2"/>' +
+        '<path d="M22 92 C22 70 34 62 50 62 C66 62 78 70 78 92 Z" fill="#6b6b6b"/>';
+    const HAIR = {
+        Mr: '<path d="M33 40 C30 22 70 18 67 40 C64 30 56 28 50 28 C42 28 36 32 33 40 Z" fill="#4d4d4d"/>',
+        Ms: '<path d="M31 48 C26 20 74 20 69 48 L70 66 C70 70 66 62 64 56 L36 56 C34 62 30 70 30 66 Z" fill="#4d4d4d"/>',
+        Mrs: '<path d="M31 48 C26 20 74 20 69 48 L70 66 C70 70 66 62 64 56 L36 56 C34 62 30 70 30 66 Z" fill="#4d4d4d"/>'
+    };
+    function placeholderSvg(salutation) {
+        var hair = HAIR[salutation] || '';
+        return '<svg viewBox="0 0 100 100" aria-hidden="true" width="100%" height="100%">' +
+            HEAD_AND_SHOULDERS + hair + '</svg>';
     }
 
     function showApp(session) {
@@ -141,7 +149,7 @@
                 avatarImg.hidden = true;
                 if (avatarPlaceholder) {
                     avatarPlaceholder.hidden = false;
-                    avatarPlaceholder.textContent = initialsFor(profile.name);
+                    avatarPlaceholder.innerHTML = placeholderSvg(profile.salutation);
                 }
             }
         }

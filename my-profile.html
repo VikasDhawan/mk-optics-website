@@ -6,7 +6,7 @@
 <title>My Profile | MK Optics</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 
-<link rel="stylesheet" href="app-shared.css?v=4">
+<link rel="stylesheet" href="app-shared.css?v=5">
 <style>
     .profile-photo-row {
         display: flex;
@@ -112,6 +112,18 @@
             </div>
 
             <div class="card">
+                <h2>Salutation</h2>
+                <p class="empty-hint" style="margin-top:-6px;margin-bottom:10px">Used to choose the default profile picture until you upload a photo.</p>
+                <select id="salutation-select" aria-label="Salutation" style="padding:8px;border:1px solid #d6dbe6;border-radius:8px;margin-bottom:12px">
+                    <option value="">Not set</option>
+                    <option value="Mr">Mr</option>
+                    <option value="Ms">Ms</option>
+                    <option value="Mrs">Mrs</option>
+                </select>
+                <div><button class="btn btn-dark" id="save-salutation-btn">Save Salutation</button></div>
+            </div>
+
+            <div class="card">
                 <h2>Account</h2>
                 <div class="kv-row"><div class="k">Name</div><div id="profile-name">—</div></div>
                 <div class="kv-row"><div class="k">Login (Mobile/Email)</div><div id="profile-email">—</div></div>
@@ -125,10 +137,10 @@
 </div>
 
 <script>window.MK_ACTIVE_PAGE = 'my-profile';</script>
-<script src="nav-shared.js?v=4"></script>
+<script src="nav-shared.js?v=5"></script>
 <script src="supabase-config.js" onerror="window.__SUPABASE_CONFIG_MISSING__ = true"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="auth-gate.js?v=4"></script>
+<script src="auth-gate.js?v=5"></script>
 <script>
 (function () {
     const supabase = window.MKAuth.supabase;
@@ -170,6 +182,8 @@
         badge.textContent = roleLabel(role);
         badge.className = 'role-badge ' + role;
 
+        el('salutation-select').value = (profile && profile.salutation) || '';
+
         if (profile && profile.photo_url) {
             el('profile-photo-preview').src = profile.photo_url;
         } else {
@@ -209,6 +223,15 @@
 
         const sidebarAvatar = el('staff-avatar');
         if (sidebarAvatar) { sidebarAvatar.src = photoUrl; sidebarAvatar.hidden = false; }
+    });
+
+    el('save-salutation-btn').addEventListener('click', async () => {
+        if (!userId) { setStatus('Not signed in.', true); return; }
+        const value = el('salutation-select').value || null;
+        const { error } = await supabase.from('staff_profiles').update({ salutation: value }).eq('id', userId);
+        if (error) { setStatus('Could not save salutation: ' + error.message, true); return; }
+        setStatus('Salutation saved.', false);
+        if (window.MKAuth && window.MKAuth.refreshAvatar) window.MKAuth.refreshAvatar();
     });
 
     window.MKAuth.ready.then(loadProfile);

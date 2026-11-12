@@ -561,12 +561,10 @@ a.sidebar-brand { color: inherit; text-decoration: none; }
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.14);
-    border: 1px dashed rgba(205, 217, 245, 0.45);
-    color: #ffffff;
-    font-weight: 700;
-    font-size: 16px;
+    overflow: hidden;
+    background: #e4e4e4;
 }
+.staff-avatar-placeholder svg { display: block; }
 .staff-avatar-placeholder[hidden],
 .staff-avatar[hidden] { display: none; }
 .staff-role {
